@@ -1,0 +1,8 @@
+services:
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
