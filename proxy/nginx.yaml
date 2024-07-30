@@ -5,4 +5,5 @@ services:
     restart: unless-stopped
     network_mode: host
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - /etc/ssl/letsencrypt:/etc/nginx/ssl
