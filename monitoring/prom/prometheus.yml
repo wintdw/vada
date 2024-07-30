@@ -13,6 +13,7 @@ scrape_configs:
       - web.internal.vadata.vn:9100 
       - demo.internal.vadata.vn:9100 
       - prod.internal.vadata.vn:9100 
-      - mon.internal.vadata.vn:9100 
+      - mon.internal.vadata.vn:9100
+      - setup.internal.vadata.vn:9100
       - proxy01.internal.vadata.vn:9100 
       - proxy02.internal.vadata.vn:9100 
