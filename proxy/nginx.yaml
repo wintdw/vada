@@ -3,7 +3,9 @@ services:
     image: nginx
     container_name: nginx
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/ssl/letsencrypt:/etc/nginx/ssl
@@ -14,6 +16,4 @@ services:
     ports:
       - "9113:9113"
     environment:
-      - NGINX_STATUS_URL=http://nginx/nginx_status
-    networks:
-      - nginx-network
+      - NGINX_STATUS_URL=http://nginx/status
