@@ -7,3 +7,13 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/ssl/letsencrypt:/etc/nginx/ssl
+  
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx_exporter
+    ports:
+      - "9113:9113"
+    environment:
+      - NGINX_STATUS_URL=http://nginx/nginx_status
+    networks:
+      - nginx-network
