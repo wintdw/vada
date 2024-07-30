@@ -12,8 +12,8 @@ services:
   
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
-    container_name: nginx_exporter
+    container_name: nginx-exporter
     ports:
       - "9113:9113"
-    environment:
-      - NGINX_STATUS_URL=http://nginx/status
+    command:
+      - "--nginx.scrape-uri=http://nginx/status"
