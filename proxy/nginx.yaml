@@ -1,3 +1,7 @@
+networks:
+  nginx-network:
+    driver: bridge
+
 services:
   nginx:
     image: nginx
@@ -9,6 +13,8 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/ssl/letsencrypt:/etc/nginx/ssl
+    networks:
+      - nginx-network
   
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
@@ -17,3 +23,5 @@ services:
       - "9113:9113"
     command:
       - "--nginx.scrape-uri=http://nginx/status"
+    networks:
+      - nginx-network
