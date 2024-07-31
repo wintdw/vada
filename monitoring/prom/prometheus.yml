@@ -17,6 +17,7 @@ scrape_configs:
       - setup.internal.vadata.vn:9100
       - proxy01.internal.vadata.vn:9100 
       - proxy02.internal.vadata.vn:9100
+      - db01.internal.vadata.vn:9100
   - job_name: nginx-exporter
     static_configs:
     - targets:
