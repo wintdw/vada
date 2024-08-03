@@ -4,11 +4,11 @@ services:
     container_name: mysql
     restart: on-failure
     environment:
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_pass
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root
     volumes:
       - /mnt/mysql:/var/lib/mysql
     secrets:
-      - db_pass
+      - db_root
     user: "100000:100000"
     ports:
       - "3306:3306"
@@ -20,18 +20,20 @@ services:
     container_name: mysqld-exporter
     restart: unless-stopped
     command:
-     - "--mysqld.username=root:$(cat /run/secrets/db_pass)"
+     - "--mysqld.username=exporter:$(cat /run/secrets/db_exporter)"
      - "--mysqld.address=mysql:3306"
     secrets:
-      - db_pass
+      - db_exporter
     ports:
       - "9104:9104"
     networks:
       - mysql-network
 
 secrets:
-  db_pass:
-    file: db_root_password
+  db_root:
+    file: db_root
+  db_exporter:
+    file: db_exporter
 
 networks:
   mysql-network:
