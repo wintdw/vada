@@ -1,5 +1,5 @@
 services:
-  db:
+  mysql:
     image: mysql
     container_name: mysql
     restart: on-failure
