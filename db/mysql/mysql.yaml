@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql
+    container_name: mysql
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_pass
+    volumes:
+      - /mnt/mysql:/var/lib/mysql
+    secrets:
+      - db_pass
+    user: "100000:100000"
+    ports:
+      - "3306:3306"
+    networks:
+      - mysql-network
+
+  mysqld-exporter:
+    image: quay.io/prometheus/mysqld-exporter
+    container_name: mysqld-exporter
+    restart: unless-stopped
+    command:
+     - "--mysqld.username=root:$(cat /run/secrets/db_pass)"
+     - "--mysqld.address=mysql:3306"
+    secrets:
+      - db_pass
+    ports:
+      - "9104:9104"
+    networks:
+      - mysql-network
+
+secrets:
+  db_pass:
+    file: db_root_password
+
+networks:
+  mysql-network:
+    driver: bridge
