@@ -15,9 +15,30 @@ services:
     networks:
       - mysql-network
 
+  mysqld-exporter:
+    image: quay.io/prometheus/mysqld-exporter
+    container_name: mysqld-exporter
+    restart: unless-stopped
+    volumes:
+      - ./exporter:/exporter
+    command:
+      - --mysqld.username=exporter
+      - --mysqld.address=mysql:3306
+      - --config.my-cnf=/exporter/exporter.cnf
+    secrets:
+      - db_exporter
+    depends_on:
+      - mysql
+    ports:
+      - "9104:9104"
+    networks:
+      - mysql-network
+
 secrets:
   db_root:
     file: db_root
+  db_exporter:
+    file: db_exporter
 
 networks:
   mysql-network:
