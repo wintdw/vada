@@ -28,8 +28,12 @@ services:
     ports:
       - "9104:9104"
     networks:
-      - mysql-network
+      - db_mysql-network
 
 secrets:
   db_exporter:
     file: db_exporter
+
+networks:
+  db_mysql-network:
+    external: true
