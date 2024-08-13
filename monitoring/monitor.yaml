@@ -43,3 +43,13 @@ services:
     volumes:
       - ./gr/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
       - /var/lib/grafana/data:/var/lib/grafana
+
+  cloudprober:
+    image: cloudprober/cloudprober:latest
+    container_name: cloudprober
+    restart: unless-stopped
+    ports:
+      - "9313:9313"
+    volumes:
+      - ./cloudprober:/etc/cloudprober
+    command: [ "--config_file", "/etc/cloudprober/cloudprober.conf" ]
