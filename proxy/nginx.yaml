@@ -23,6 +23,6 @@ services:
     ports:
       - "9113:9113"
     command:
-      - "--nginx.scrape-uri=http://nginx/status"
+      - "--nginx.scrape-uri=http://nginx/stub"
     networks:
       - nginx-network

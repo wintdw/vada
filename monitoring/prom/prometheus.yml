@@ -27,6 +27,12 @@ scrape_configs:
     - targets:
       - proxy01.internal.vadata.vn:9113
       - proxy02.internal.vadata.vn:9113
+  - job_name: nginx-vts
+    static_configs:
+    - targets:
+      - proxy01.internal.vadata.vn
+      - proxy02.internal.vadata.vn
+    metrics_path: /status/format/prometheus
   - job_name: mysql
     static_configs:
     - targets:
