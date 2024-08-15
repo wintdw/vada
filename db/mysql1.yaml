@@ -14,7 +14,8 @@ services:
     ports:
       - "3306:3306"
     command:
-      - --server-id=1 
+      - --server-id=1
+      - --report-host=db01.internal.vadata.vn
     networks:
       - mysql-network
 
