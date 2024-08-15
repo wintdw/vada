@@ -24,7 +24,7 @@ services:
     container_name: mysqld-exporter
     restart: unless-stopped
     volumes:
-      - ./exporter:/exporter
+      - /var/secret/docker/exporter.cnf:/exporter/exporter.cnf
     command:
       - --mysqld.username=exporter
       - --mysqld.address=mysql:3306
@@ -40,9 +40,9 @@ services:
 
 secrets:
   db_root:
-    file: db_root
+    file: /var/secret/docker/db_root
   db_exporter:
-    file: db_exporter
+    file: /var/secret/docker/db_exporter
 
 networks:
   mysql-network:
