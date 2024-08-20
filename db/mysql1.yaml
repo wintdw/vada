@@ -16,7 +16,6 @@ services:
     command:
       - --server-id=1
       - --report-host=db01.internal.vadata.vn
-      - --group-replication-local-address=db01.internal.vadata.vn:33061
     networks:
       - mysql-network
 
