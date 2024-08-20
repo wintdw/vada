@@ -1,0 +1,50 @@
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root
+    volumes:
+      - /mnt/mysql:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    secrets:
+      - db_root
+    user: "100000:100000"
+    ports:
+      - "3306:3306"
+    command:
+      - --server-id=2
+      - --report-host=db00.internal.vadata.vn
+      - --group-replication-local-address=db00.internal.vadata.vn:33061
+    networks:
+      - mysql-network
+
+  mysqld-exporter:
+    image: quay.io/prometheus/mysqld-exporter
+    container_name: mysqld-exporter
+    restart: unless-stopped
+    volumes:
+      - /var/secret/docker/exporter.cnf:/exporter/exporter.cnf
+    command:
+      - --mysqld.username=exporter
+      - --mysqld.address=mysql:3306
+      - --config.my-cnf=/exporter/exporter.cnf
+    secrets:
+      - db_exporter
+    depends_on:
+      - mysql
+    ports:
+      - "9104:9104"
+    networks:
+      - mysql-network
+
+secrets:
+  db_root:
+    file: /var/secret/docker/db_root
+  db_exporter:
+    file: /var/secret/docker/db_exporter
+
+networks:
+  mysql-network:
+    driver: bridge
