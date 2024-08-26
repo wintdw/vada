@@ -20,7 +20,9 @@ services:
       - mysql-network
 
   mysqlrouter:
-    image: mysql/mysql-router:8.0
+    image: mysql/mysql-router
+    container_name: mysqlrouter
+    restart: always
     environment:
       MYSQL_HOST: localhost
       MYSQL_PORT: 3306
