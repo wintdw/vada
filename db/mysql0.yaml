@@ -19,6 +19,19 @@ services:
     networks:
       - mysql-network
 
+  mysqlrouter:
+    image: mysql/mysql-router:8.0
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_PORT: 3306
+      MYSQL_USER: mysql
+    secrets:
+      - db_root
+    command: >
+      sh -c "export MYSQL_PASSWORD=$(cat /run/secrets/db_root) && mysqlrouter"
+    networks:
+      - mysql-network
+
   mysqld-exporter:
     image: quay.io/prometheus/mysqld-exporter
     container_name: mysqld-exporter
