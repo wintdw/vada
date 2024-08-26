@@ -24,13 +24,18 @@ services:
     container_name: mysqlrouter
     restart: always
     environment:
-      MYSQL_HOST: localhost
+      MYSQL_HOST: mysql
       MYSQL_PORT: 3306
-      MYSQL_USER: mysql
+      MYSQL_USER: root
     secrets:
       - db_root
+    depends_on:
+      - mysql
+    ports:
+      - "6446:6446"
+      - "6447:6447"
     command: >
-      sh -c "export MYSQL_PASSWORD=$(cat /run/secrets/db_root) && mysqlrouter"
+      sh -c "export MYSQL_PASSWORD=$(cat /run/secrets/db_root) && /run.sh mysqlrouter"
     networks:
       - mysql-network
 
