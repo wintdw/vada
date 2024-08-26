@@ -20,7 +20,7 @@ services:
       - mysql-network
 
   mysqlrouter:
-    image: mysql/mysql-router
+    image: container-registry.oracle.com/mysql/community-router
     container_name: mysqlrouter
     restart: always
     environment:
