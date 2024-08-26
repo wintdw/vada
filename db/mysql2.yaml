@@ -27,6 +27,7 @@ services:
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_USER: root
+      MYSQL_CREATE_ROUTER_USER: 0
     secrets:
       - db_root
     depends_on:
