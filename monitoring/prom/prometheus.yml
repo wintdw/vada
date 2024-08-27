@@ -24,6 +24,9 @@ scrape_configs:
       - db00.internal.vadata.vn:9100
       - db01.internal.vadata.vn:9100
       - db02.internal.vadata.vn:9100
+      - bus00.internal.vadata.vn:9100
+      - bus01.internal.vadata.vn:9100
+      - bus02.internal.vadata.vn:9100
   - job_name: nginx
     static_configs:
     - targets:
