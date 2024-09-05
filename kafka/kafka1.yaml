@@ -5,7 +5,7 @@ services:
     restart: always
     network_mode: host
     environment:
-      KAFKA_NODE_ID: 2
+      KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://bus01.internal.vadata.vn:9092,CONTROLLER://bus01.internal.vadata.vn:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://bus01.internal.vadata.vn:9092
@@ -16,4 +16,5 @@ services:
       KAFKA_SECURITY_INTER_BROKER_PROTOCOL: PLAINTEXT
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
     volumes:
-      - ./kafka_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+      - /var/secret/docker/kafka/kafka_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+      - /mnt/bus/kafka:/tmp/kafka-logs
