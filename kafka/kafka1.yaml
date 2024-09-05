@@ -14,7 +14,9 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@bus00.internal.vadata.vn:9093,2@bus01.internal.vadata.vn:9093,3@bus02.internal.vadata.vn:9093
       KAFKA_SASL_ENABLED_MECHANISMS: SCRAM-SHA-256
       KAFKA_SECURITY_INTER_BROKER_PROTOCOL: PLAINTEXT
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.auth.SimpleAclAuthorizer
+      KAFKA_SUPER_USERS: User:admin
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/secret/kafka_jaas.conf"
     volumes:
-      - /var/secret/docker/kafka/kafka_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+      - /var/secret/docker/kafka:/etc/secret
       - /mnt/bus/kafka:/tmp/kafka-logs
