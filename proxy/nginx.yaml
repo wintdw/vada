@@ -4,13 +4,14 @@ networks:
 
 services:
   nginx:
-    #image: nginx
     image: nginx-vts:1.24
     container_name: nginx
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
+    secrets:
+      - kafka-ui
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/ssl/letsencrypt:/etc/nginx/ssl
@@ -26,3 +27,7 @@ services:
       - "--nginx.scrape-uri=http://nginx/stub"
     networks:
       - nginx-network
+
+secrets:
+  kafka-ui:
+    file: /var/secret/nginx/kafka.access
