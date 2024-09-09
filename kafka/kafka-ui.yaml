@@ -1,0 +1,11 @@
+services:
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    user: 1000
+    ports:
+      - 8080:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+    volumes:
+      - /etc/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
