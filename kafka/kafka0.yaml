@@ -24,4 +24,4 @@ services:
     container_name: kafka-exporter
     restart: always
     network_mode: host
-    command: ["--kafka.server=broker:9092"]
+    command: ["--kafka.server=bus00.internal.vadata.vn:9092"]
