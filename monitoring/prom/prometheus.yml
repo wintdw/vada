@@ -44,3 +44,9 @@ scrape_configs:
       - db00.internal.vadata.vn:9104
       - db01.internal.vadata.vn:9104
       - db02.internal.vadata.vn:9104
+  - job_name: kafka
+    static_configs:
+    - targets:
+      - bus00.internal.vadata.vn:9308
+      - bus01.internal.vadata.vn:9308
+      - bus02.internal.vadata.vn:9308
