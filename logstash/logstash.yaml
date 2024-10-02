@@ -1,0 +1,21 @@
+services:
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.0
+    container_name: logstash
+    restarts: always
+    secrets:
+      - elastic_passwd
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "9801:9801"
+    environment:
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
+      - XPACK_MONITORING_ENABLED=false
+    command: >
+      bash -c "export ELASTIC_PASSWORD=$(cat /run/secrets/elastic_passwd) &&
+      logstash -f /usr/share/logstash/pipeline/logstash.conf"
+
+secrets:
+  elastic_passwd:
+    file: /var/secret/docker/logstash/elastic
