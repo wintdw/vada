@@ -18,17 +18,6 @@ services:
     networks:
       - nginx-network
 
-  nginx-tcp:
-    image: nginx:latest
-    container_name: nginx-tcp
-    restart: unless-stopped
-    ports:
-      - "9801:9801"
-    volumes:
-      - ./nginx/tcp.conf:/etc/nginx/tcp.conf 
-    networks:
-      - nginx-network
-
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: nginx-exporter
