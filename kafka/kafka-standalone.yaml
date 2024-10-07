@@ -1,0 +1,27 @@
+services:
+  broker:
+    image: apache/kafka:latest
+    container_name: kafka
+    restart: always
+    network_mode: host
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://bus00.internal.vadata.vn:9092,CONTROLLER://bus00.internal.vadata.vn:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://bus00.internal.vadata.vn:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@bus00.internal.vadata.vn:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: false
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    volumes:
+      - /var/secret/docker/kafka:/etc/secret
+      - /mnt/bus/kafka:/tmp/kafka-logs
+  
+  kafka-exporter:
+    image: danielqsj/kafka-exporter 
+    container_name: kafka-exporter
+    restart: always
+    network_mode: host
+    command: ["--kafka.server=bus00.internal.vadata.vn:9092"]
