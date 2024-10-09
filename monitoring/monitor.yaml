@@ -19,10 +19,13 @@ services:
     restart: unless-stopped
     ports:
       - 3000:3000
+    secrets:
+      - admin_pass
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=011090
+      - GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/admin_pass
       - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_SERVER_DOMAIN="gr.vadata.vn"
     volumes:
       - ./gr/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
       - /var/lib/grafana/data:/var/lib/grafana
@@ -36,3 +39,7 @@ services:
     volumes:
       - ./cloudprober:/etc/cloudprober
     command: [ "--config_file", "/etc/cloudprober/cloudprober.conf" ]
+
+secrets:
+  admin_pass:
+    file: /var/secret/docker/gr_admin
