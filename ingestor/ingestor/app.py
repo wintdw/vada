@@ -1,10 +1,12 @@
 import json
+import logging
 from fastapi import FastAPI, HTTPException, Request
 from confluent_kafka import Producer
 from typing import Dict
 
 
 app = FastAPI()
+logging.basicConfig(level=logging.INFO)
 KAFKA_BROKER_URL = "kafka.ilb.vadata.vn:9092"
 KAFKA_TOPIC = "dev_input"
 PRODUCER = Producer({
@@ -15,16 +17,16 @@ PRODUCER = Producer({
 def delivery_report(err, msg):
     """ Callback function called once the message is delivered or fails """
     if err is not None:
-        print(f"Message delivery failed: {err}")
+        logging.info(f"Message delivery failed: {err}")
     else:
-        print(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+        logging.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
 
 
 def process_msg(msg: str) -> Dict:
     """
     Placeholder for further processing
     """
-    json_msg = json.loads(line)
+    json_msg = json.loads(msg)
     return json_msg
 
 
@@ -37,7 +39,7 @@ def produce_msg(producer: Producer, json_msg: Dict):
 
 
 @app.post("/jsonl")
-async def send_jsonl(req: Request):
+async def process_jsonl(req: Request):
     """
     Accept JSONL data as a string and send each line to Kafka.
     """
