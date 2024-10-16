@@ -36,7 +36,7 @@ def produce_msg(producer: Producer, json_msg: Dict):
     )
 
 
-@app.post("/send-jsonl/")
+@app.post("/jsonl")
 async def send_jsonl(req: Request):
     """
     Accept JSONL data as a string and send each line to Kafka.
