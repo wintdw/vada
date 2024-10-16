@@ -51,12 +51,14 @@ async def process_jsonl(req: Request):
     for line in lines:
         try:
             json_msg = process_msg(line)
-            produce_msg(PRODUCER, json_msg)
-            count += 1
         except json.JSONDecodeError:
             raise HTTPException(status_code=400, detail=f"Invalid JSONL format: {line}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        # meta
+        json_msg["__meta"] = {"clientip": req.client.host}
+        produce_msg(PRODUCER, json_msg)
+        count += 1
 
     # Flush all message in the buffer
     PRODUCER.flush()
