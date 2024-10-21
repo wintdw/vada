@@ -55,7 +55,7 @@ def delivery_report(err, msg):
         logging.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
 
 
-consumer.subscribe([KAFKA_INPUT_TOPIC])
+CONSUMER.subscribe([KAFKA_INPUT_TOPIC])
 
 # Main service loop
 try:
@@ -64,7 +64,7 @@ try:
         produce_msg(PRODUCER, KAFKA_OUTPUT_TOPIC, process_msg(json_msg))
 
         # Flush the producer to ensure messages are sent
-        producer.flush()
+        PRODUCER.flush()
 
 except KeyboardInterrupt:
     pass
