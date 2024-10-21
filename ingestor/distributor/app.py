@@ -1,6 +1,7 @@
 import json
 import logging
 from confluent_kafka import Consumer, Producer
+from typing import Dict
 
 
 KAFKA_BROKER_URL = "kafka.ilb.vadata.vn:9092"
@@ -10,13 +11,13 @@ KAFKA_OUTPUT_TOPIC = "dev_output"
 logging.basicConfig(level=logging.INFO)
 
 
-consumer = Consumer({
+CONSUMER = Consumer({
     'bootstrap.servers': KAFKA_BROKER_URL,
     'group.id': 'dev_distributor_group',
     'auto.offset.reset': 'earliest'
 })
 
-producer = Producer({
+PRODUCER = Producer({
     'bootstrap.servers': KAFKA_BROKER_URL
 })
 
@@ -37,11 +38,13 @@ def process_msg(msg: Dict) -> Dict:
     return msg
 
 def produce_msg(producer: Producer, topic: str, json_msg: Dict):
-    producer.produce(
-        topic,
-        value=json.dumps(json_msg).encode('utf-8'),
-        callback=delivery_report
-    )
+    # only produce non-empty message
+    if json_msg:
+        producer.produce(
+            topic,
+            value=json.dumps(json_msg).encode('utf-8'),
+            callback=delivery_report
+        )
 
 
 def delivery_report(err, msg):
@@ -57,8 +60,8 @@ consumer.subscribe([KAFKA_INPUT_TOPIC])
 # Main service loop
 try:
     while True:
-        json_msg = consume_msg(consumer)
-        produce_msg(produce, KAFKA_OUTPUT_TOPIC, process_msg(json_msg))
+        json_msg = consume_msg(CONSUMER)
+        produce_msg(PRODUCER, KAFKA_OUTPUT_TOPIC, process_msg(json_msg))
 
         # Flush the producer to ensure messages are sent
         producer.flush()
