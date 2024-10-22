@@ -49,12 +49,14 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
     return response
         
 
+# This function can deal with duplicate messages
 @app.post("/jsonl")
-async def receive_logs(request: Request):
+async def receive_jsonl(request: Request):
     try:
         body = await request.body()
         json_lines = body.decode('utf-8').splitlines()
 
+        count = 0
         for line in json_lines:
             event = json.loads(line)
             # Check for required index_name
@@ -67,12 +69,12 @@ async def receive_logs(request: Request):
             logging.info(doc)
 
             response = await send_to_es(index_name, doc_id, doc)
-
-            # Check response from Elasticsearch
             if response.status not in {200, 201}:
                 raise HTTPException(status_code=response.status, detail=response.json())
+            
+            count += 1
 
-            return JSONResponse(content={"status": "success", "docid": doc_id})
+        return JSONResponse(content={"status": "success", "detail": f"{count} messages successfully written"})
 
     except Exception as e:
         logging.error(e)
