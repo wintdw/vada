@@ -16,6 +16,6 @@ services:
     secrets:
       - es_elastic
     ports:
-      - "8082:8082"
+      - "8002:8002"
     networks:
       - etl-network
