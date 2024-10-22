@@ -89,9 +89,6 @@ try:
 
         # Flush the producer to ensure messages are sent
         PRODUCER.flush()
-
-except KeyboardInterrupt:
-    pass
 finally:
     # Clean up
     consumer.close()
