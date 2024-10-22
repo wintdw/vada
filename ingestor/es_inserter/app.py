@@ -9,7 +9,7 @@ from typing import Dict, List
 
 
 app = FastAPI()
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 ELASTIC_URL = "http://demo.internal.vadata.vn:9200"
 # Passwd
 elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE')
@@ -39,9 +39,9 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
                                json=msg, 
                                auth=BasicAuth(es_user, es_pass)) as response:
             if response.status == 201:
-                logging.info("Document created successfully.")
+                logging.debug("Document created successfully.")
             elif response.status == 200:
-                logging.info("Document updated successfully.")
+                logging.debug("Document updated successfully.")
             else:
                 logging.error(f"Failed to send data to Elasticsearch. Status code: {response.status}")
                 logging.error(await response.text())
@@ -66,7 +66,7 @@ async def receive_jsonl(request: Request):
             index_name = event["index_name"]
             doc = remove_fields(event, ["index_name", "__meta"])
             doc_id = generate_docid(doc)
-            logging.info(doc)
+            logging.debug(doc)
 
             response = await send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
