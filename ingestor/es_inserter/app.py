@@ -69,13 +69,11 @@ async def receive_logs(request: Request):
             response = await send_to_es(index_name, doc_id, doc)
 
             # Check response from Elasticsearch
-            if response.status_code not in {200, 201}:
-                raise HTTPException(status_code=response.status_code, detail=response.json())
+            if response.status not in {200, 201}:
+                raise HTTPException(status_code=response.status, detail=response.json())
 
-            return JSONResponse(content={"status": "success", "fingerprint": fingerprint})
+            return JSONResponse(content={"status": "success", "docid": doc_id})
 
     except Exception as e:
         logging.error(e)
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-# To run the FastAPI app, use: uvicorn filename:app --host 0.0.0.0 --port 9801
