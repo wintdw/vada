@@ -52,25 +52,30 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
 @app.post("/jsonl")
 async def receive_logs(request: Request):
     try:
-        event = await request.json()
+        body = await request.body()
+        json_lines = body.decode('utf-8').splitlines()
 
-        # Check for required index_name
-        if not event["index_name"]:
-            raise HTTPException(status_code=400, detail="Missing index_name")
+        for line in json_lines:
+            event = json.loads(line)
+            # Check for required index_name
+            if not event["index_name"]:
+                raise HTTPException(status_code=400, detail="Missing index_name")
 
-        index_name = event["index_name"]
-        doc = remove_fields(event, ["index_name", "__meta"])
-        doc_id = generate_docid(doc)
+            index_name = event["index_name"]
+            doc = remove_fields(event, ["index_name", "__meta"])
+            doc_id = generate_docid(doc)
+            logging.info(doc)
 
-        response = await send_to_es(index_name, doc_id, doc)
+            response = await send_to_es(index_name, doc_id, doc)
 
-        # Check response from Elasticsearch
-        if response.status_code not in {200, 201}:
-            raise HTTPException(status_code=response.status_code, detail=response.json())
+            # Check response from Elasticsearch
+            if response.status_code not in {200, 201}:
+                raise HTTPException(status_code=response.status_code, detail=response.json())
 
-        return JSONResponse(content={"status": "success", "fingerprint": fingerprint})
+            return JSONResponse(content={"status": "success", "fingerprint": fingerprint})
 
     except Exception as e:
+        logging.error(e)
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 # To run the FastAPI app, use: uvicorn filename:app --host 0.0.0.0 --port 9801
