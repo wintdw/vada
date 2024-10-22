@@ -1,0 +1,22 @@
+secrets:
+  es_elastic:
+    file: /var/secret/docker/es/elastic
+
+networks:
+  etl-network:
+    driver: bridge
+
+services:
+  es_inserter:
+    image: es-inserter:latest
+    container_name: es_inserter
+    restart: always
+    environment:
+      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+    secrets:
+      - es_elastic
+    ports:
+      - "8082:8082"
+    networks:
+      - mysql-network
+

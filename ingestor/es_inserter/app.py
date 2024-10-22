@@ -11,7 +11,13 @@ from typing import Dict, List
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 ELASTIC_URL = "http://demo.internal.vadata.vn:9200"
-ELASTIC_PASSWD = os.getenv('ELASTIC_PASSWD')
+# Passwd
+elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE')
+if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
+    with open(elastic_passwd_file, 'r') as file:
+        ELASTIC_PASSWD = file.read().strip()
+else:
+    ELASTIC_PASSWD = ""
 
 
 def generate_docid(msg: Dict) -> str:
