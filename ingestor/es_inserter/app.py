@@ -10,6 +10,7 @@ from typing import Dict, List
 
 app = FastAPI()
 logging.basicConfig(level=logging.DEBUG)
+ELASTIC_USER = "elastic"
 ELASTIC_URL = "http://demo.internal.vadata.vn:9200"
 # Passwd
 elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE')
@@ -30,7 +31,7 @@ def remove_fields(msg: Dict, fields_to_remove: List) -> Dict:
 
 
 async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
-    es_user = "elastic"
+    es_user = ELASTIC_USER
     es_pass = ELASTIC_PASSWD
     es_url = f"{ELASTIC_URL}/{index_name}/_doc/{doc_id}"
     
@@ -39,15 +40,38 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
                                json=msg, 
                                auth=BasicAuth(es_user, es_pass)) as response:
             if response.status == 201:
-                logging.debug("Document created successfully.")
+                logging.debug("Document created successfully")
             elif response.status == 200:
-                logging.debug("Document updated successfully.")
+                logging.debug("Document updated successfully")
             else:
                 logging.error(f"Failed to send data to Elasticsearch. Status code: {response.status}")
                 logging.error(await response.text())
     
     return response
-        
+
+
+async def check_es_health() -> ClientResponse:
+    es_user = ELASTIC_USER
+    es_pass = ELASTIC_PASSWD
+    es_url = f"{ELASTIC_URL}/_cluster/health"
+
+    async with ClientSession() as session:
+        async with session.get(es_url, auth=BasicAuth(es_user, es_pass)) as response:
+            if response.status == 200:
+                health_info = await response.json()
+            else:
+                logging.error(f"Failed to get health info: {response.status} - {await response.text()}")
+
+    return response
+
+@app.get("/health")
+async def check_health():
+    response = await check_es_health()
+
+    if response.status < 400:
+        return JSONResponse(content={"status": "success", "detail": "Service Available"})
+    else:
+        return JSONResponse(content={"status": "error", "detail": f"{response.text}"}, status_code=500)
 
 # This function can deal with duplicate messages
 @app.post("/jsonl")
@@ -70,7 +94,7 @@ async def receive_jsonl(request: Request):
 
             response = await send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
-                raise HTTPException(status_code=response.status, detail=response.json())
+                raise HTTPException(status_code=response.status, detail=response.text())
             
             count += 1
 
