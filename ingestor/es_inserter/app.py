@@ -9,16 +9,20 @@ from typing import Dict, List
 
 
 app = FastAPI()
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    filename='HISTORYlistener.log',
+    level=logging.DEBUG,
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 ELASTIC_USER = "elastic"
+ELASTIC_PASSWD = ""
 ELASTIC_URL = "http://demo.internal.vadata.vn:9200"
 # Passwd
 elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE')
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
     with open(elastic_passwd_file, 'r') as file:
         ELASTIC_PASSWD = file.read().strip()
-else:
-    ELASTIC_PASSWD = ""
 
 
 def generate_docid(msg: Dict) -> str:
@@ -39,6 +43,7 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
         async with session.put(es_url, 
                                json=msg, 
                                auth=BasicAuth(es_user, es_pass)) as response:
+            logging.debug(f"Index: {index_name}")
             if response.status == 201:
                 logging.debug("Document created successfully")
             elif response.status == 200:
@@ -72,6 +77,7 @@ async def check_health():
         return JSONResponse(content={"status": "success", "detail": "Service Available"})
     else:
         return JSONResponse(content={"status": "error", "detail": f"{response.text}"}, status_code=500)
+
 
 # This function can deal with duplicate messages
 @app.post("/jsonl")
