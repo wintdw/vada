@@ -14,11 +14,12 @@ logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
-ELASTIC_URL = os.getenv('ELASTIC_URL')
-ELASTIC_USER = os.getenv('ELASTIC_USER')
+
+ELASTIC_URL = os.getenv('ELASTIC_URL', "")
+ELASTIC_USER = os.getenv('ELASTIC_USER', "")
 ELASTIC_PASSWD = ""
 # Passwd
-elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE')
+elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE', "")
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
     with open(elastic_passwd_file, 'r') as file:
         ELASTIC_PASSWD = file.read().strip()
