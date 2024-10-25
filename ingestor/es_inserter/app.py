@@ -14,9 +14,9 @@ logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
-ELASTIC_USER = "elastic"
+ELASTIC_URL = os.getenv('ELASTIC_URL')
+ELASTIC_USER = os.getenv('ELASTIC_USER')
 ELASTIC_PASSWD = ""
-ELASTIC_URL = "http://demo.internal.vadata.vn:9200"
 # Passwd
 elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE')
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):

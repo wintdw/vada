@@ -13,6 +13,8 @@ services:
     restart: always
     environment:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_USER: "elastic"
+      ELASTIC_URL: "http://demo.internal.vadata.vn:9200"
     secrets:
       - es_elastic
     ports:
