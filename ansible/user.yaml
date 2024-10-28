@@ -1,0 +1,30 @@
+---
+- name: Add user with SSH public key authentication
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create users
+      ansible.builtin.user:
+        name: "{{ item.user }}"
+        state: present
+        shell: /bin/bash
+      loop: "{{ users }}"
+
+    - name: Create .ssh directory for each user
+      ansible.builtin.file:
+        path: "/home/{{ item.user }}/.ssh"
+        state: directory
+        owner: "{{ item.user }}"
+        group: "{{ item.user }}"
+        mode: '0755'
+      loop: "{{ users }}"
+
+    - name: Add public key to authorized_keys for each user
+      ansible.builtin.copy:
+        content: "{{ item.pubkey }}"
+        dest: "/home/{{ item.user }}/.ssh/authorized_keys"
+        owner: "{{ item.user }}"
+        group: "{{ item.user }}"
+        mode: '0644'
+      loop: "{{ users }}"
