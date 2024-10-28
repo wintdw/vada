@@ -9,6 +9,7 @@ all:
             proxy01.internal.vadata.vn:
             proxy02.internal.vadata.vn:
             bus00.internal.vadata.vn:
+            k8s-jump.internal.vadata.vn:
         backend:
           hosts:
             backend00.internal.vadata.vn:
