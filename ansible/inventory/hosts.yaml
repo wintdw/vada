@@ -3,14 +3,16 @@ all:
     common:
       children:
         inf:
-          setup.internal.vadata.vn:
-          mon.internal.vadata.vn:
-          proxy01.internal.vadata.vn:
-          proxy02.internal.vadata.vn:
-          bus00.internal.vadata.vn:
+          hosts:
+            setup.internal.vadata.vn:
+            mon.internal.vadata.vn:
+            proxy01.internal.vadata.vn:
+            proxy02.internal.vadata.vn:
+            bus00.internal.vadata.vn:
         backend:
-          backend00.internal.vadata.vn:
-          backend01.internal.vadata.vn:
-          demo.internal.vadata.vn:
-          prod.internal.vadata.vn:
-          web.internal.vadata.vn:
+          hosts:
+            backend00.internal.vadata.vn:
+            backend01.internal.vadata.vn:
+            demo.internal.vadata.vn:
+            prod.internal.vadata.vn:
+            web.internal.vadata.vn:
