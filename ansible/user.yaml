@@ -4,8 +4,8 @@
   become: true
 
   vars:
-    # Combine common users with host-specific users
     all_users: "{{ users | default([]) + host_users | default([]) }}"
+    sudoers_entries: "{{ all_users | selectattr('sudo', 'equalto', true) | map(attribute='user') | map('regex_replace', '^(.*)$', '\\1 ALL=(ALL) NOPASSWD:ALL') | list }}"
 
   tasks:
     - name: Create users
@@ -32,3 +32,13 @@
         group: "{{ item.user }}"
         mode: '0644'
       loop: "{{ all_users }}"
+
+    - name: Create or update the sudoers file for users with sudo access
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/90-cloud-init-users"
+        content: |
+          {% for entry in sudoers_entries %}
+          {{ entry }}
+          {% endfor %}
+        mode: '0440'
+      when: sudoers_entries | length > 0
