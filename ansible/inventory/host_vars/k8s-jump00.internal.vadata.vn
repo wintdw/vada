@@ -1,0 +1,4 @@
+---
+host_users:
+  - user: mrfatmeow
+    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMwCrOkgEHmYF2oblOTMgcoUH5ibkPM/ssnD2c8qutDN jarvis

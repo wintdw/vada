@@ -3,13 +3,17 @@
   hosts: all
   become: true
 
+  vars:
+    # Combine common users with host-specific users
+    all_users: "{{ users | default([]) + host_users | default([]) }}"
+
   tasks:
     - name: Create users
       ansible.builtin.user:
         name: "{{ item.user }}"
         state: present
         shell: /bin/bash
-      loop: "{{ users }}"
+      loop: "{{ all_users }}"
 
     - name: Create .ssh directory for each user
       ansible.builtin.file:
@@ -18,7 +22,7 @@
         owner: "{{ item.user }}"
         group: "{{ item.user }}"
         mode: '0755'
-      loop: "{{ users }}"
+      loop: "{{ all_users }}"
 
     - name: Add public key to authorized_keys for each user
       ansible.builtin.copy:
@@ -27,4 +31,4 @@
         owner: "{{ item.user }}"
         group: "{{ item.user }}"
         mode: '0644'
-      loop: "{{ users }}"
+      loop: "{{ all_users }}"
