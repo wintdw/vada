@@ -41,9 +41,7 @@ scrape_configs:
   - job_name: mysql
     static_configs:
     - targets:
-      - db00.internal.vadata.vn:9104
-      - db01.internal.vadata.vn:9104
-      - db02.internal.vadata.vn:9104
+      - mysql00.internal.vadata.vn:9104
   - job_name: kafka
     static_configs:
     - targets:
