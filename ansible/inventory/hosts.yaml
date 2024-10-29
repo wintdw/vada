@@ -12,6 +12,7 @@ all:
             k8s-jump.internal.vadata.vn:
         backend:
           hosts:
+            mysql00.internal.vadata.vn:
             backend00.internal.vadata.vn:
             backend01.internal.vadata.vn:
             demo.internal.vadata.vn:
