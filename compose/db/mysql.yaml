@@ -1,0 +1,44 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    command: --innodb-buffer-pool-size=8G --innodb-redo-log-capacity=8G
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    secrets:
+      - mysql_root_password
+    networks:
+      - mysql-network
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: mysqld-exporter
+    command:
+      - --mysqld.username=exporter
+      - --mysqld.address=mysql:3306
+      - --config.my-cnf=/exporter/exporter.cnf
+    restart: always
+    ports:
+      - "9104:9104"
+    volumes:
+      - /var/secret/docker/exporter.cnf:/exporter/exporter.cnf
+    networks:
+      - mysql-network
+    depends_on:
+      - mysql
+
+secrets:
+  mysql_root_password:
+    file: /var/secret/docker/mysql_root_password
+
+volumes:
+  mysql_data:
+
+networks:
+  mysql-network:
+    driver: bridge
