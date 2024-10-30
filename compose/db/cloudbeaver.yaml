@@ -1,0 +1,7 @@
+services:
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:24.2.3
+    container_name: cloudbeaver
+    restart: always
+    ports:
+      - "8978:8978"

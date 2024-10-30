@@ -32,17 +32,6 @@ services:
     depends_on:
       - mysql
 
-  cloudbeaver:
-    image: dbeaver/cloudbeaver:24.2.3
-    container_name: cloudbeaver
-    restart: always
-    ports:
-      - "8978:8978"
-    networks:
-      - mysql-network
-    depends_on:
-      - mysql
-
 secrets:
   mysql_root_password:
     file: /var/secret/docker/mysql_root_password
