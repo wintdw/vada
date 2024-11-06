@@ -6,9 +6,14 @@ from typing import Dict
 
 
 app = FastAPI()
-logging.basicConfig(level=logging.INFO)
-KAFKA_BROKER_URL = "kafka.ilb.vadata.vn:9092"
-KAFKA_TOPIC = "dev_input"
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
+
+KAFKA_BROKER_URL = os.getenv('KAFKA_BROKER_URL', "kafka.ilb.vadata.vn:9092")
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', "dev_input") 
 PRODUCER = Producer({
     'bootstrap.servers': KAFKA_BROKER_URL
 })

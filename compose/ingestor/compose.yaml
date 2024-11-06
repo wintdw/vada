@@ -7,6 +7,18 @@ networks:
     driver: bridge
 
 services:
+  ingestor:
+    image: ingestor:latest
+    container_name: ingestor
+    restart: always
+    environment:
+      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
+      KAFKA_TOPIC: dev_input
+    ports:
+      - "8000:8000"
+    networks:
+      - etl-network
+
   es_inserter:
     image: es-inserter:latest
     container_name: es_inserter
