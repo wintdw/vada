@@ -68,11 +68,13 @@ async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_
         try:
             json_msg = process_msg(line)
         except json.JSONDecodeError:
+            logging.error(f"Invalid JSONL format: {line}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid JSONL format: {line}",
             )
         except Exception as e:
+            logging.error(e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
             )
