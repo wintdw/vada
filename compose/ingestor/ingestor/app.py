@@ -36,6 +36,13 @@ def process_msg(msg: str) -> Dict:
 
 
 def produce_msg(producer: Producer, json_msg: Dict):
+    """
+    Function to produce message to Kafka topic
+
+    Args:
+        producer (Producer): _description_
+        json_msg (Dict): _description_
+    """
     producer.produce(
         KAFKA_TOPIC,
         value=json.dumps(json_msg).encode("utf-8"),

@@ -17,6 +17,18 @@ logging.basicConfig(
 
 
 def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
+    """
+    Function to verify the JWT Token header from client
+
+    Args:
+        token (str, optional): the JWT token provided. Defaults to Depends(oauth2_scheme).
+
+    Raises:
+        HTTPException: 401 upon Expired or Invalid tokens
+
+    Returns:
+        Dict: The decoded JWT info
+    """
     try:
         payload = jwt.decode(token, TOKEN_SECRET, algorithms=["HS256"])
         logging.debug(f"Authenticated as {payload.get('name')}")
