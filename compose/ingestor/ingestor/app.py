@@ -31,8 +31,12 @@ def process_msg(msg: str) -> Dict:
     """
     Placeholder for further processing
     """
-    json_msg = json.loads(msg)
-    return json_msg
+    try:
+        json_msg = json.loads(msg)
+        if not isinstance(json_msg, dict):
+            raise ValueError(f"Expected a JSON object (dictionary), but got a different JSON type: {msg}")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON format: {e}")
 
 
 def produce_msg(producer: Producer, json_msg: Dict):
