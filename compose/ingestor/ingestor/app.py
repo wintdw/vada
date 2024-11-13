@@ -3,6 +3,7 @@ import json
 import logging
 import traceback
 from fastapi import FastAPI, HTTPException, Request, Depends, status
+from fastapi.responses import JSONResponse
 from confluent_kafka import Producer
 from typing import Dict
 
@@ -105,4 +106,6 @@ async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_
     # Flush all message in the buffer
     PRODUCER.flush()
 
-    return {"status": "success", "message": f"{count} messages sent to Kafka"}
+    return JSONResponse(
+        content={"status": "success", "detail": f"{count} messages sent to Kafka"}
+    )
