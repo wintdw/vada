@@ -2,10 +2,9 @@ import os
 import json
 import logging
 import traceback
+from confluent_kafka import Consumer
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
-from confluent_kafka import Consumer
-from typing import Dict, List
 
 import utils
 

@@ -1,7 +1,7 @@
 import json
 import logging
 import hashlib
-from typing import Dict
+from typing import Dict, List
 from confluent_kafka import Consumer
 from aiohttp import ClientSession, ClientResponse, BasicAuth
 
