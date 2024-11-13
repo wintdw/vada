@@ -28,7 +28,7 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 
 @app.get("/health")
 async def check_health():
-    response = await check_es_health()
+    response = await utils.check_es_health()
 
     if response.status < 400:
         return JSONResponse(

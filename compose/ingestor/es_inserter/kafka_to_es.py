@@ -42,7 +42,6 @@ async def check_health():
 
 
 # Flow: consume from kafka -> process -> send to es
-@app.on_event("startup")
 async def consume_then_produce():
     try:
         while True:
@@ -67,3 +66,8 @@ async def consume_then_produce():
         logging.error(f"Exception: {e}\nTraceback: {error_trace}")
     finally:
         CONSUMER.close()
+
+
+@app.on_event("startup")
+async def background():
+    asyncio.create_task(consume_then_produce())
