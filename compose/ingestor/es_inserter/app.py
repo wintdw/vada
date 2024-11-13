@@ -176,7 +176,7 @@ async def background_task():
             output_msg = process_msg(input_msg)
 
             # if message is not valid (no index_name), do not process
-            if index_name in output_msg:
+            if "index_name" in output_msg:
                 index_name = output_msg["index_name"]
             else:
                 continue
