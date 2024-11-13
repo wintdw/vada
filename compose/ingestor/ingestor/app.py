@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import traceback
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from confluent_kafka import Producer
 from typing import Dict
@@ -35,10 +36,12 @@ def process_msg(msg: str) -> Dict:
         json_msg = json.loads(msg)
         if not isinstance(json_msg, dict):
             raise json.JSONDecodeError(
-                f"Expected a JSON object (dictionary), but got a different JSON type: {msg}"
+                "Expected a JSON object (dictionary)", doc=msg, pos=0
             )
+        return json_msg
     except json.JSONDecodeError as e:
-        raise json.JSONDecodeError(f"Invalid JSON format: {e}")
+        # Re-raise the error with proper arguments for clarity
+        raise json.JSONDecodeError("Invalid JSON format", doc=msg, pos=e.pos)
 
 
 def produce_msg(producer: Producer, json_msg: Dict):
@@ -80,7 +83,8 @@ async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_
                 detail=f"Invalid JSONL format: {line}",
             )
         except Exception as e:
-            logging.error(e)
+            error_trace = traceback.format_exc()
+            logging.error(f"Exception: {e}\nTraceback: {error_trace}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
             )
