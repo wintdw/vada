@@ -175,7 +175,12 @@ async def background_task():
             input_msg = consume_msg(CONSUMER)
             output_msg = process_msg(input_msg)
 
-            index_name = output_msg["index_name"]
+            # if message is not valid (no index_name), do not process
+            if index_name in output_msg:
+                index_name = output_msg["index_name"]
+            else:
+                continue
+
             doc = remove_fields(output_msg, ["index_name", "__meta"])
             doc_id = generate_docid(doc)
             logging.debug(doc)
