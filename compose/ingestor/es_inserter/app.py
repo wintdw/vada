@@ -11,23 +11,23 @@ from typing import Dict, List
 app = FastAPI()
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-ELASTIC_URL = os.getenv('ELASTIC_URL', "")
-ELASTIC_USER = os.getenv('ELASTIC_USER', "")
+ELASTIC_URL = os.getenv("ELASTIC_URL", "")
+ELASTIC_USER = os.getenv("ELASTIC_USER", "")
 ELASTIC_PASSWD = ""
 # Passwd
-elastic_passwd_file = os.getenv('ELASTIC_PASSWD_FILE', "")
+elastic_passwd_file = os.getenv("ELASTIC_PASSWD_FILE", "")
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
-    with open(elastic_passwd_file, 'r') as file:
+    with open(elastic_passwd_file, "r") as file:
         ELASTIC_PASSWD = file.read().strip()
 
 
 def generate_docid(msg: Dict) -> str:
     serialized_data = json.dumps(msg, sort_keys=True)
-    return hashlib.sha256(serialized_data.encode('utf-8')).hexdigest()
+    return hashlib.sha256(serialized_data.encode("utf-8")).hexdigest()
 
 
 def remove_fields(msg: Dict, fields_to_remove: List) -> Dict:
@@ -38,20 +38,22 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
     es_user = ELASTIC_USER
     es_pass = ELASTIC_PASSWD
     es_url = f"{ELASTIC_URL}/{index_name}/_doc/{doc_id}"
-    
+
     async with ClientSession() as session:
-        async with session.put(es_url, 
-                               json=msg, 
-                               auth=BasicAuth(es_user, es_pass)) as response:
+        async with session.put(
+            es_url, json=msg, auth=BasicAuth(es_user, es_pass)
+        ) as response:
             logging.debug(f"Index: {index_name}")
             if response.status == 201:
                 logging.debug("Document created successfully")
             elif response.status == 200:
                 logging.debug("Document updated successfully")
             else:
-                logging.error(f"Failed to send data to Elasticsearch. Status code: {response.status}")
+                logging.error(
+                    f"Failed to send data to Elasticsearch. Status code: {response.status}"
+                )
                 logging.error(await response.text())
-    
+
     return response
 
 
@@ -65,18 +67,25 @@ async def check_es_health() -> ClientResponse:
             if response.status == 200:
                 health_info = await response.json()
             else:
-                logging.error(f"Failed to get health info: {response.status} - {await response.text()}")
+                logging.error(
+                    f"Failed to get health info: {response.status} - {await response.text()}"
+                )
 
     return response
+
 
 @app.get("/health")
 async def check_health():
     response = await check_es_health()
 
     if response.status < 400:
-        return JSONResponse(content={"status": "success", "detail": "Service Available"})
+        return JSONResponse(
+            content={"status": "success", "detail": "Service Available"}
+        )
     else:
-        return JSONResponse(content={"status": "error", "detail": f"{response.text}"}, status_code=500)
+        return JSONResponse(
+            content={"status": "error", "detail": f"{response.text}"}, status_code=500
+        )
 
 
 # This function can deal with duplicate messages
@@ -84,7 +93,7 @@ async def check_health():
 async def receive_jsonl(request: Request):
     try:
         body = await request.body()
-        json_lines = body.decode('utf-8').splitlines()
+        json_lines = body.decode("utf-8").splitlines()
 
         count = 0
         for line in json_lines:
@@ -101,10 +110,15 @@ async def receive_jsonl(request: Request):
             response = await send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
                 raise HTTPException(status_code=response.status, detail=response.text())
-            
+
             count += 1
 
-        return JSONResponse(content={"status": "success", "detail": f"{count} messages successfully written"})
+        return JSONResponse(
+            content={
+                "status": "success",
+                "detail": f"{count} messages successfully written",
+            }
+        )
 
     except Exception as e:
         logging.error(e)

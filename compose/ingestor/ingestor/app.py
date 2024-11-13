@@ -66,6 +66,11 @@ def produce_msg(producer: Producer, json_msg: Dict):
     )
 
 
+@app.get("/health")
+async def check_health():
+    return JSONResponse(content={"status": "success", "detail": "Service Available"})
+
+
 @app.post("/v1/jsonl")
 async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_jwt)):
     """
