@@ -2,8 +2,9 @@ import os
 import json
 import hashlib
 import logging
+import traceback
 from aiohttp import ClientSession, ClientResponse, BasicAuth
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from typing import Dict, List
 
@@ -84,7 +85,8 @@ async def check_health():
         )
     else:
         return JSONResponse(
-            content={"status": "error", "detail": f"{response.text}"}, status_code=500
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"status": "error", "detail": f"{response.text}"},
         )
 
 
@@ -100,7 +102,9 @@ async def receive_jsonl(request: Request):
             event = json.loads(line)
             # Check for required index_name
             if not event["index_name"]:
-                raise HTTPException(status_code=400, detail="Missing index_name")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index_name"
+                )
 
             index_name = event["index_name"]
             doc = remove_fields(event, ["index_name", "__meta"])
@@ -121,5 +125,9 @@ async def receive_jsonl(request: Request):
         )
 
     except Exception as e:
-        logging.error(e)
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        error_trace = traceback.format_exc()
+        logging.error(f"Exception: {e}\nTraceback: {error_trace}")
+        return JSONResponse(
+            content={"detail": "Internal Error"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
