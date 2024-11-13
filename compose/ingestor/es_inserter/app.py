@@ -151,6 +151,7 @@ async def receive_jsonl(request: Request):
 
 def consume_msg(consumer: Consumer, poll_timeout: float = 3.0) -> Dict:
     msg = consumer.poll(poll_timeout)
+    logging.debug(f"Polling: {msg}")
 
     if msg is None:
         return {}
