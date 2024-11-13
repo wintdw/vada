@@ -1,6 +1,8 @@
 import os
 import fastapi
 import logging
+from confluent_kafka import Consumer
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 import utils
