@@ -28,20 +28,27 @@ def delivery_report(err, msg):
         logging.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
 
 
-def process_msg(msg: str) -> Dict:
+def process_msg(msg: Dict) -> Dict:
     """
-    Placeholder for further processing
+    This function is for further processing the message input by client
+
+    Args:
+        msg (str): message from client, expected a dict
+
+    Raises:
+        json.JSONDecodeError: if parse error or msg is not a dict
+
+    Returns:
+        Dict: A json object
     """
-    try:
-        json_msg = json.loads(msg)
-        if not isinstance(json_msg, dict):
-            raise json.JSONDecodeError(
-                "Expected a JSON object (dictionary)", doc=msg, pos=0
-            )
-        return json_msg
-    except json.JSONDecodeError as e:
-        # Re-raise the error with proper arguments for clarity
-        raise json.JSONDecodeError("Invalid JSON format", doc=msg, pos=e.pos)
+    # msg must be a json
+    if not isinstance(msg, dict):
+        raise json.JSONDecodeError(
+            "Expected a JSON object (dictionary)", doc=msg, pos=0
+        )
+    json_msg = json.loads(msg)
+
+    return json_msg
 
 
 def produce_msg(producer: Producer, json_msg: Dict):
@@ -49,8 +56,8 @@ def produce_msg(producer: Producer, json_msg: Dict):
     Function to produce message to Kafka topic
 
     Args:
-        producer (Producer): _description_
-        json_msg (Dict): _description_
+        producer (Producer): the Kafka Producer object
+        json_msg (Dict): the dict to be produced
     """
     producer.produce(
         KAFKA_TOPIC,
