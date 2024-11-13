@@ -34,9 +34,11 @@ def process_msg(msg: str) -> Dict:
     try:
         json_msg = json.loads(msg)
         if not isinstance(json_msg, dict):
-            raise ValueError(f"Expected a JSON object (dictionary), but got a different JSON type: {msg}")
+            raise json.JSONDecodeError(
+                f"Expected a JSON object (dictionary), but got a different JSON type: {msg}"
+            )
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON format: {e}")
+        raise json.JSONDecodeError(f"Invalid JSON format: {e}")
 
 
 def produce_msg(producer: Producer, json_msg: Dict):
@@ -67,6 +69,10 @@ async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_
     for line in lines:
         try:
             json_msg = process_msg(line)
+            # meta
+            json_msg["__meta"] = {"clientip": req.client.host}
+            produce_msg(PRODUCER, json_msg)
+            count += 1
         except json.JSONDecodeError:
             logging.error(f"Invalid JSONL format: {line}")
             raise HTTPException(
@@ -78,10 +84,6 @@ async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
             )
-        # meta
-        json_msg["__meta"] = {"clientip": req.client.host}
-        produce_msg(PRODUCER, json_msg)
-        count += 1
 
     # Flush all message in the buffer
     PRODUCER.flush()
