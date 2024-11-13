@@ -42,12 +42,12 @@ def process_msg(msg: Dict) -> Dict:
     Returns:
         Dict: A json object
     """
-    # msg must be a json
-    if not isinstance(msg, dict):
-        raise json.JSONDecodeError(
-            "Expected a JSON object (dictionary)", doc=msg, pos=0
-        )
     json_msg = json.loads(msg)
+
+    if not isinstance(json_msg, dict):
+        raise json.JSONDecodeError(
+            "Expected a JSON object (dictionary)", doc=json_msg, pos=0
+        )
 
     return json_msg
 
