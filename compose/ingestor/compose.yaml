@@ -35,3 +35,21 @@ services:
       - "8002:8002"
     networks:
       - etl-network
+  
+  kafka_to_es:
+    image: kafka-to-es:latest
+    container_name: kafka_to_es
+    restart: always
+    environment:
+      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_USER: elastic
+      ELASTIC_URL: http://demo.internal.vadata.vn:9200
+      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
+      KAFKA_TOPIC: dev_input
+    secrets:
+      - es_elastic
+    ports:
+      - "8002:8002"
+    networks:
+      - etl-network
+
