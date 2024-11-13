@@ -6,6 +6,7 @@ import traceback
 from aiohttp import ClientSession, ClientResponse, BasicAuth
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
+from confluent_kafka import Consumer
 from typing import Dict, List
 
 
@@ -15,6 +16,19 @@ logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+
+
+KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
+KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
+CONSUMER = Consumer(
+    {
+        "bootstrap.servers": KAFKA_BROKER_URL,
+        "group.id": "es_inserter_group",
+        "auto.offset.reset": "earliest",
+    }
+)
+CONSUMER.subscribe([KAFKA_TOPIC])
+
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
 ELASTIC_USER = os.getenv("ELASTIC_USER", "")
@@ -54,6 +68,8 @@ async def send_to_es(index_name: str, doc_id: str, msg: Dict) -> ClientResponse:
                     f"Failed to send data to Elasticsearch. Status code: {response.status}"
                 )
                 logging.error(await response.text())
+
+            response.raise_for_status()
 
     return response
 
@@ -131,3 +147,45 @@ async def receive_jsonl(request: Request):
             content={"detail": "Internal Error"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+def consume_msg(consumer: Consumer, poll_timeout: float = 3.0) -> Dict:
+    msg = consumer.poll(poll_timeout)
+
+    if msg is None:
+        return {}
+
+    return json.loads(msg.value().decode("utf-8"))
+
+
+def process_msg(msg: Dict) -> Dict:
+    """
+    Placeholder for processing the message.
+    Currently does nothing and just returns the input.
+    """
+    return msg
+
+
+# Flow: consume from kafka -> process -> send to es
+async def background_task():
+    try:
+        while True:
+            input_msg = consume_msg(CONSUMER)
+            output_msg = process_msg(input_msg)
+
+            index_name = output_msg["index_name"]
+            doc = remove_fields(output_msg, ["index_name", "__meta"])
+            doc_id = generate_docid(doc)
+            logging.debug(doc)
+
+            await send_to_es(index_name, doc_id, doc)
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        logging.error(f"Exception: {e}\nTraceback: {error_trace}")
+    finally:
+        CONSUMER.close()
+
+
+@app.on_event("startup")
+async def start_background_task():
+    asyncio.create_task(background_task())
