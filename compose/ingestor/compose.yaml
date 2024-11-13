@@ -20,6 +20,9 @@ services:
       - etl-network
 
   es_inserter:
+    build:
+      context: ./es_inserter
+      dockerfile: Dockerfile.es_inserter
     image: es-inserter:latest
     container_name: es_inserter
     restart: always
@@ -37,6 +40,9 @@ services:
       - etl-network
   
   kafka_to_es:
+    build:
+      context: ./es_inserter
+      dockerfile: Dockerfile.kafka_to_es
     image: kafka-to-es:latest
     container_name: kafka_to_es
     restart: always
