@@ -49,13 +49,12 @@ async def consume_then_produce():
             input_msg = utils.consume_msg(CONSUMER)
             output_msg = utils.process_msg(input_msg)
 
-            # if message is not valid (no index_name), do not process
-            if "index_name" in output_msg:
-                index_name = output_msg["index_name"]
-            else:
+            # Attempt to get index_name from __meta, and continue if not found
+            index_name = output_msg.get("__meta", {}).get("index_name")
+            if not index_name:
                 continue
 
-            doc = utils.remove_fields(output_msg, ["index_name", "__meta"])
+            doc = utils.remove_fields(output_msg, ["__meta"])
             doc_id = utils.generate_docid(doc)
             logging.debug(doc)
 

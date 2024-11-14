@@ -81,6 +81,6 @@ async def receive_jsonl(request: Request):
         error_trace = traceback.format_exc()
         logging.error(f"Exception: {e}\nTraceback: {error_trace}")
         return JSONResponse(
-            content={"detail": "Internal Error"},
+            content={"detail": "Internal Server Error"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
