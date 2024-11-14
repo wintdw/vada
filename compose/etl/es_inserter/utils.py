@@ -16,10 +16,10 @@ def remove_fields(msg: Dict, fields_to_remove: List) -> Dict:
 
 
 async def consume_msg(consumer: AIOKafkaConsumer) -> Dict:
-    try:
-        msg_obj = await consumer.getone()
-    except Exception as e:
-        logging.debug(f"An error occurred: {e}")
+    msg_obj = await consumer.getone()
+
+    if not msg_obj:
+        logging.debug(f"Polling: {msg_obj}")
         return {}
 
     msg = msg_obj.value.decode("utf-8")

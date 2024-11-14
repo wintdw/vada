@@ -72,10 +72,12 @@ class BackgroundRunner:
             CONSUMER.close()
 
 
-runner = BackgroundRunner()
-
-
 @app.get("/health")
 async def check_health():
-    asyncio.create_task(runner.consume_then_produce())
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
+
+
+@app.on_event("startup")
+async def background():
+    runner = BackgroundRunner()
+    asyncio.create_task(runner.consume_then_produce())
