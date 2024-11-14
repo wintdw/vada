@@ -3,7 +3,7 @@ import fastapi
 import logging
 import traceback
 import asyncio
-from confluent_kafka import Consumer
+from aiokafka import AIOKafkaConsumer
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
@@ -27,14 +27,15 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
-CONSUMER = Consumer(
-    {
-        "bootstrap.servers": KAFKA_BROKER_URL,
-        "group.id": "es_inserter_group",
-        "auto.offset.reset": "earliest",
-    }
+
+# Set up the AIOKafkaConsumer for asynchronous consumption
+CONSUMER = AIOKafkaConsumer(
+    KAFKA_TOPIC,
+    loop=asyncio.get_event_loop(),  # Provide the event loop explicitly
+    bootstrap_servers=KAFKA_BROKER_URL,
+    group_id="es_inserter_group",
+    auto_offset_reset="earliest",
 )
-CONSUMER.subscribe([KAFKA_TOPIC])
 
 
 class BackgroundRunner:
@@ -45,7 +46,11 @@ class BackgroundRunner:
     async def consume_then_produce(self):
         try:
             while True:
-                input_msg = utils.consume_msg(CONSUMER)
+                input_msg = await utils.consume_msg(CONSUMER)
+                # If no message retrived
+                if not input_msg:
+                    continue
+
                 output_msg = utils.process_msg(input_msg)
 
                 # Attempt to get index_name from __meta, and continue if not found

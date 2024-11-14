@@ -2,7 +2,7 @@ import json
 import logging
 import hashlib
 from typing import Dict, List
-from confluent_kafka import Consumer
+from aiokafka import AIOKafkaConsumer
 from aiohttp import ClientSession, ClientResponse, BasicAuth
 
 
@@ -15,14 +15,14 @@ def remove_fields(msg: Dict, fields_to_remove: List) -> Dict:
     return {k: v for k, v in msg.items() if k not in fields_to_remove}
 
 
-def consume_msg(consumer: Consumer, poll_timeout: float = 3.0) -> Dict:
-    msg_obj = consumer.poll(poll_timeout)
-
-    if msg_obj is None:
-        logging.debug("No msg received")
+async def consume_msg(consumer: AIOKafkaConsumer) -> Dict:
+    try:
+        msg_obj = await consumer.getone()
+    except Exception as e:
+        logging.debug(f"An error occurred: {e}")
         return {}
 
-    msg = msg_obj.value().decode("utf-8")
+    msg = msg_obj.value.decode("utf-8")
     logging.debug(f"Polling: {msg}")
 
     return json.loads(msg)
