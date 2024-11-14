@@ -28,25 +28,23 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
 
-# Set up the AIOKafkaConsumer for asynchronous consumption
-CONSUMER = AIOKafkaConsumer(
-    KAFKA_TOPIC,
-    loop=asyncio.get_event_loop(),  # Provide the event loop explicitly
-    bootstrap_servers=KAFKA_BROKER_URL,
-    group_id="es_inserter_group",
-    auto_offset_reset="earliest",
-)
 
-
-class BackgroundRunner:
+class AsyncKafkaProcessor:
     def __init__(
         self,
-        consumer: AIOKafkaConsumer,
+        kafka_broker_url: str,
+        kafka_topic: str,
         elastic_url: str,
         elastic_user: str,
         elastic_passwd: str,
     ):
-        self.consumer = consumer
+        self.consumer = AIOKafkaConsumer(
+            kafka_topic,
+            loop=asyncio.get_event_loop(),  # Provide the event loop explicitly
+            bootstrap_servers=kafka_broker_url,
+            group_id="es_inserter_group",
+            auto_offset_reset="earliest",
+        )
         self.elastic_url = elastic_url
         self.elastic_user = elastic_user
         self.elastic_passwd = elastic_passwd
@@ -54,9 +52,12 @@ class BackgroundRunner:
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self):
         try:
+            # Ensure the consumer is started before polling for messages
+            await self.consumer.start()
+
             while True:
                 input_msg = await utils.consume_msg(self.consumer)
-                # If no message retrived
+                # If no message retrieved
                 if not input_msg:
                     continue
 
@@ -82,6 +83,9 @@ class BackgroundRunner:
         except Exception as e:
             error_trace = traceback.format_exc()
             logging.error(f"Exception: {e}\nTraceback: {error_trace}")
+        finally:
+            # Ensure the consumer is stopped gracefully
+            await self.consumer.stop()
 
 
 @app.get("/health")
@@ -91,5 +95,7 @@ async def check_health():
 
 @app.on_event("startup")
 async def background():
-    runner = BackgroundRunner()
+    runner = AsyncKafkaProcessor(
+        KAFKA_BROKER_URL, KAFKA_TOPIC, ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD
+    )
     asyncio.create_task(runner.consume_then_produce())
