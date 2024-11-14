@@ -16,13 +16,16 @@ def remove_fields(msg: Dict, fields_to_remove: List) -> Dict:
 
 
 def consume_msg(consumer: Consumer, poll_timeout: float = 3.0) -> Dict:
-    msg = consumer.poll(poll_timeout)
-    logging.debug(f"Polling: {msg}")
+    msg_obj = consumer.poll(poll_timeout)
 
-    if msg is None:
+    if msg_obj is None:
+        # logging.debug("No msg received")
         return {}
 
-    return json.loads(msg.value().decode("utf-8"))
+    msg = msg_obj.value().decode("utf-8")
+    logging.debug(f"Polling: {msg}")
+
+    return json.loads(msg)
 
 
 def process_msg(msg: Dict) -> Dict:
