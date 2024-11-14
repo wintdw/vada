@@ -5,7 +5,7 @@ import traceback
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.responses import JSONResponse
 from confluent_kafka import Producer
-from typing import Dict
+from typing import Dict, List
 
 import security
 
