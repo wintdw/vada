@@ -19,11 +19,10 @@ async def consume_msg(consumer: AIOKafkaConsumer) -> Dict:
     msg_obj = await consumer.getone()
 
     if not msg_obj:
-        logging.debug(f"Polling: {msg_obj}")
         return {}
 
     msg = msg_obj.value.decode("utf-8")
-    logging.debug(f"Polling: {msg}")
+    logging.info(f"Polling: {msg}")
 
     return json.loads(msg)
 
@@ -62,11 +61,11 @@ async def send_to_es(
         async with session.put(
             es_url, json=msg, auth=BasicAuth(es_user, es_pass)
         ) as response:
-            logging.debug(f"Index: {index_name}")
+            logging.info(f"Index: {index_name}")
             if response.status == 201:
-                logging.debug("Document created successfully")
+                logging.info("Document created successfully")
             elif response.status == 200:
-                logging.debug("Document updated successfully")
+                logging.info("Document updated successfully")
             else:
                 logging.error(
                     f"Failed to send data to Elasticsearch. Status code: {response.status}"

@@ -11,7 +11,7 @@ import utils
 
 app = FastAPI()
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
@@ -70,7 +70,7 @@ class AsyncKafkaProcessor:
 
                 doc = utils.remove_fields(output_msg, ["__meta"])
                 doc_id = utils.generate_docid(doc)
-                logging.debug(doc)
+                logging.info(doc)
 
                 await utils.send_to_es(
                     self.elastic_url,
