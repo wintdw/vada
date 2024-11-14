@@ -19,7 +19,7 @@ def consume_msg(consumer: Consumer, poll_timeout: float = 3.0) -> Dict:
     msg_obj = consumer.poll(poll_timeout)
 
     if msg_obj is None:
-        # logging.debug("No msg received")
+        logging.debug("No msg received")
         return {}
 
     msg = msg_obj.value().decode("utf-8")
