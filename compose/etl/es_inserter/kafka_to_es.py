@@ -39,14 +39,23 @@ CONSUMER = AIOKafkaConsumer(
 
 
 class BackgroundRunner:
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        consumer: AIOKafkaConsumer,
+        elastic_url: str,
+        elastic_user: str,
+        elastic_passwd: str,
+    ):
+        self.consumer = consumer
+        self.elastic_url = elastic_url
+        self.elastic_user = elastic_user
+        self.elastic_passwd = elastic_passwd
 
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self):
         try:
             while True:
-                input_msg = await utils.consume_msg(CONSUMER)
+                input_msg = await utils.consume_msg(self.consumer)
                 # If no message retrived
                 if not input_msg:
                     continue
@@ -63,13 +72,16 @@ class BackgroundRunner:
                 logging.debug(doc)
 
                 await utils.send_to_es(
-                    ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD, index_name, doc_id, doc
+                    self.elastic_url,
+                    self.elastic_user,
+                    self.elastic_passwd,
+                    index_name,
+                    doc_id,
+                    doc,
                 )
         except Exception as e:
             error_trace = traceback.format_exc()
             logging.error(f"Exception: {e}\nTraceback: {error_trace}")
-        finally:
-            CONSUMER.close()
 
 
 @app.get("/health")
