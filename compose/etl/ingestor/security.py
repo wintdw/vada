@@ -30,7 +30,7 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
         Dict: The decoded JWT info
     """
     try:
-        payload = jwt.decode(token, TOKEN_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True})
         logging.debug(f"Authenticated as {payload.get('name')}")
 
         # Convert payload to JWTPayload model for validation
