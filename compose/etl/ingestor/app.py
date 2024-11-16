@@ -84,7 +84,7 @@ async def check_health():
 
 
 @app.post("/v1/jsonl")
-async def process_jsonl(req: Request, jwt_token: Dict = Depends(security.verify_jwt)):
+async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_jwt)):
     """
     Accept JSONL data as a string and send each line to Kafka.
     """
