@@ -8,7 +8,7 @@ class JWTPayload(BaseModel):
     exp: Union[int, float]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "user7500",
                 "id": "65422b6aa2bbacc10b7a22a3",
