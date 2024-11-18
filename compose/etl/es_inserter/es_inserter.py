@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 
 import utils
+from async_es import AsyncESProcessor
 
 
 app = FastAPI()
@@ -25,10 +26,12 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
     with open(elastic_passwd_file, "r") as file:
         ELASTIC_PASSWD = file.read().strip()
 
+es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
+
 
 @app.get("/health")
 async def check_health():
-    response = await utils.check_es_health(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
+    response = await es_processor.check_es_health()
 
     if response.status < 400:
         return JSONResponse(
@@ -62,9 +65,7 @@ async def receive_jsonl(request: Request):
             doc_id = utils.generate_docid(doc)
             logging.debug(doc)
 
-            response = await utils.send_to_es(
-                ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD, index_name, doc_id, doc
-            )
+            response = await es_processor.send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
                 raise HTTPException(status_code=response.status, detail=response.text())
 
@@ -84,3 +85,6 @@ async def receive_jsonl(request: Request):
             content={"detail": "Internal Server Error"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+    finally:
+        await es_processor.close_session()
