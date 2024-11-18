@@ -31,7 +31,9 @@ logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-kafka_processor = AsyncKafkaProcessor(KAFKA_BROKER_URL, KAFKA_TOPIC)
+kafka_processor = AsyncKafkaProcessor(
+    KAFKA_BROKER_URL, KAFKA_TOPIC, "es_inserter_group"
+)
 es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
 
 
@@ -39,13 +41,12 @@ class AsyncProcessor:
     def __init__(self, kafka: AsyncKafkaProcessor, es: AsyncESProcessor):
         self.kafka = kafka
         self.es = es
-        self.kafka_group_id = "es_inserter_group"
 
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self):
         try:
             while True:
-                input_msg = await self.kafka.consume_msg(self.kafka_group_id)
+                input_msg = await self.kafka.consume_msg()
                 # If no message retrieved
                 if not input_msg:
                     continue

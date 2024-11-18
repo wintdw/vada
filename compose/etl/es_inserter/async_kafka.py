@@ -6,12 +6,14 @@ import asyncio
 
 
 class AsyncKafkaProcessor:
-    def __init__(self, kafka_broker: str, kafka_topic: str):
+    def __init__(
+        self, kafka_broker: str, kafka_topic: str, kafka_group_id: str = "default"
+    ):
         self.kafka_broker = kafka_broker
         self.kafka_topic = kafka_topic
         self.consumer = None
 
-    async def _create_consumer(self, kafka_group_id: str = "default"):
+    async def _create_consumer(self):
         """Create and start a Kafka consumer."""
         if not self.consumer:
             self.consumer = AIOKafkaConsumer(
