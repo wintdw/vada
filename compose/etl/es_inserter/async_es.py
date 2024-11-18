@@ -25,8 +25,8 @@ class AsyncESProcessor:
                     f"Failed to get health info. Status Code: {response.status} - {await response.text()}"
                 )
 
-        logging.info(f"Cluster health: {await response.text()}")
-        return response
+            logging.info(f"Cluster health: {await response.text()}")
+            return response
 
     async def get_es_index_mapping(self, index_name: str) -> Dict:
         """Get the mapping of a specific Elasticsearch index."""
@@ -39,9 +39,9 @@ class AsyncESProcessor:
                     f"Failed to get mappings. Status Code: {response.status} - {await response.text()}"
                 )
 
-        mappings = await response.json()
-        logging.info(f"Retrieved mappings for index: {index_name}")
-        return mappings
+            mappings = await response.json()
+            logging.info(f"Retrieved mappings for index: {index_name}")
+            return mappings
 
     async def send_to_es(
         self, index_name: str, doc_id: str, msg: Dict
@@ -61,7 +61,7 @@ class AsyncESProcessor:
                     f"Failed to send data to Elasticsearch. Status code: {response.status} - {await response.text()}"
                 )
 
-        return response
+            return response
 
     async def close_session(self):
         """Close the session."""
