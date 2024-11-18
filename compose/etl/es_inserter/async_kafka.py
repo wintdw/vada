@@ -6,29 +6,27 @@ import asyncio
 
 
 class AsyncKafkaProcessor:
-    def __init__(
-        self, kafka_broker: str, kafka_topic: str, kafka_group_id: str = "default"
-    ):
+    def __init__(self, kafka_broker: str):
         self.kafka_broker = kafka_broker
-        self.kafka_topic = kafka_topic
-        self.kafka_group_id = kafka_group_id
         self.consumer = None
 
-    async def _create_consumer(self):
+    async def _create_consumer(self, kafka_topic: str, kafka_group_id: str = "default"):
         """Create and start a Kafka consumer."""
         if not self.consumer:
             self.consumer = AIOKafkaConsumer(
-                self.kafka_topic,
+                kafka_topic,
                 loop=asyncio.get_event_loop(),
                 bootstrap_servers=self.kafka_broker,
-                group_id=self.kafka_group_id,
+                group_id=kafka_group_id,
             )
             await self.consumer.start()
-            logging.info(f"Kafka consumer started for topic: {self.kafka_topic}")
+            logging.info(f"Kafka consumer started for topic: {kafka_topic}")
 
-    async def consume_msg(self) -> Dict:
+    async def consume_msg(
+        self, kafka_topic: str, kafka_group_id: str = "default"
+    ) -> Dict:
         """Consume a message from Kafka."""
-        await self._create_consumer()
+        await self._create_consumer(kafka_topic, kafka_group_id)
 
         try:
             # Consume a message

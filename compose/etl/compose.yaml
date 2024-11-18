@@ -1,6 +1,8 @@
 secrets:
   es_elastic:
     file: /var/secret/docker/es/elastic
+  mongo_vada:
+    file: /var/secret/docker/mongo/vada
 
 networks:
   etl-network:
@@ -55,8 +57,10 @@ services:
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
+      MONGO_URI_FILE: /run/secrets/mongo_vada
     secrets:
       - es_elastic
+      - mongo_vada
     ports:
       - "8003:8003"
     networks:
