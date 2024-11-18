@@ -71,8 +71,7 @@ class AsyncProcessor:
             error_trace = traceback.format_exc()
             logging.error(f"Exception: {e}\nTraceback: {error_trace}")
         finally:
-            # Ensure the consumer is stopped gracefully
-            await self.consumer.stop()
+            await self.kafka.close_consumer()
 
     async def set_mapping(self):
         pass

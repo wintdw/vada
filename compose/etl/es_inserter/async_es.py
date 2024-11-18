@@ -25,7 +25,7 @@ class AsyncESProcessor:
                     f"Failed to get health info. Status Code: {response.status} - {await response.text()}"
                 )
 
-            logging.info(f"Cluster health: {await response.text()}")
+            logging.debug(f"Cluster health: {await response.text()}")
             return response
 
     async def get_es_index_mapping(self, index_name: str) -> Dict:
