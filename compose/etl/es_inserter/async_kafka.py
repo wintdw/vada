@@ -11,6 +11,7 @@ class AsyncKafkaProcessor:
     ):
         self.kafka_broker = kafka_broker
         self.kafka_topic = kafka_topic
+        self.kafka_group_id = kafka_group_id
         self.consumer = None
 
     async def _create_consumer(self):
@@ -20,7 +21,7 @@ class AsyncKafkaProcessor:
                 self.kafka_topic,
                 loop=asyncio.get_event_loop(),
                 bootstrap_servers=self.kafka_broker,
-                group_id=kafka_group_id,
+                group_id=self.kafka_group_id,
             )
             await self.consumer.start()
             logging.info(f"Kafka consumer started for topic: {self.kafka_topic}")
