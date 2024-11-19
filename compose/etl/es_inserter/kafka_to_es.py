@@ -78,14 +78,14 @@ class AsyncProcessor:
                 doc_id = utils.generate_docid(doc)
                 logging.info(doc)
 
-            # send to ES
-            response = await self.es.send_to_es(index_name, doc_id, doc)
-            if response.status not in {200, 201}:
-                raise HTTPException(
-                    status_code=response.status, detail=await response.text()
-                )
+                # send to ES
+                response = await self.es.send_to_es(index_name, doc_id, doc)
+                if response.status not in {200, 201}:
+                    raise HTTPException(
+                        status_code=response.status, detail=await response.text()
+                    )
 
-            await self.set_mapping(index_name)
+                await self.set_mapping(index_name)
 
         except Exception as e:
             error_trace = traceback.format_exc()
