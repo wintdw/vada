@@ -36,7 +36,7 @@ if mongo_uri_file and os.path.isfile(mongo_uri_file):
 
 app = FastAPI()
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
@@ -107,7 +107,7 @@ class AsyncProcessor:
         )
         es_mapping = await self.es.get_es_index_mapping(index_name)
 
-        logging.debug(mongo_mapping)
+        logging.info(mongo_mapping)
 
         if mongo_mapping:
             return
