@@ -84,11 +84,16 @@ class AsyncProcessor:
                 raise HTTPException(
                     status_code=response.status, detail=await response.text()
                 )
+
+            await self.set_mapping(index_name)
+
         except Exception as e:
             error_trace = traceback.format_exc()
             logging.error(f"Exception: {e}\nTraceback: {error_trace}")
         finally:
             await self.kafka.close_consumer()
+            await self.mongo.close_client()
+            await self.es.close_session()
 
     # Set mapping if only mongo doesnt have mapping for the index
     async def set_mapping(
@@ -101,8 +106,13 @@ class AsyncProcessor:
             mongo_db, mongo_coll, {"name": index_name}
         )
         es_mapping = await self.es.get_es_index_mapping(index_name)
-        logging.info(mongo_mapping)
-        logging.info(es_mapping)
+
+        if mongo_mapping:
+            return
+        else:
+            mapping_dict = {"name": index_name}
+            mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
+            await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
 
 
 @app.get("/health")
@@ -123,5 +133,4 @@ async def check_health():
 @app.on_event("startup")
 async def background():
     processor = AsyncProcessor(kafka_processor, es_processor, mongo_processor)
-    await processor.set_mapping("demo_sale_data")
     asyncio.create_task(processor.consume_then_produce())
