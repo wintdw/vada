@@ -105,12 +105,11 @@ class AsyncProcessor:
         mongo_mapping = await self.mongo.find_document(
             mongo_db, mongo_coll, {"name": index_name}
         )
-        es_mapping = await self.es.get_es_index_mapping(index_name)
-
         if mongo_mapping:
             logging.info(f"Mapping exists, do nothing: {mongo_mapping}")
             return
         else:
+            es_mapping = await self.es.get_es_index_mapping(index_name)
             mapping_dict = {"name": index_name}
             mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
             logging.info(f"Set mapping: {mapping_dict}")
