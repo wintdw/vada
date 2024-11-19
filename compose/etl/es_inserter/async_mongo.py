@@ -51,7 +51,7 @@ class AsyncMongoProcessor:
         try:
             document = await self.client[db][coll].find_one(query)
             if document:
-                logging.info(f"Document found: {document}")
+                logging.debug(f"Document found: {document}")
             else:
                 logging.info(
                     f"No document found in {db}.{coll} matching query: {query}"

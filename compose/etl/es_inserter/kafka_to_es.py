@@ -101,8 +101,8 @@ class AsyncProcessor:
             mongo_db, mongo_coll, {"name": index_name}
         )
         es_mapping = await self.es.get_es_index_mapping(index_name)
-        logging.debug(mongo_mapping)
-        logging.debug(es_mapping)
+        logging.info(mongo_mapping)
+        logging.info(es_mapping)
 
 
 @app.get("/health")
