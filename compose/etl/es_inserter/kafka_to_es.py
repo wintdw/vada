@@ -67,7 +67,7 @@ class AsyncProcessor:
                 if not input_msg:
                     continue
 
-                output_msg = self.kafka.process_msg(input_msg)
+                output_msg = await self.kafka.process_msg(input_msg)
 
                 # Attempt to get index_name from __meta, and continue if not found
                 index_name = output_msg.get("__meta", {}).get("index_name")
@@ -97,11 +97,12 @@ class AsyncProcessor:
         mongo_db: str = "vada",
         mongo_coll: str = "master_indices",
     ):
-        pass
-        # mongo_mapping = self.mongo.find_document(
-        #     mongo_db, mongo_coll, {"name": index_name}
-        # )
-        # es_mapping = self.es.get_es_index_mapping(index_name)
+        mongo_mapping = self.mongo.find_document(
+            mongo_db, mongo_coll, {"name": index_name}
+        )
+        es_mapping = self.es.get_es_index_mapping(index_name)
+        logging.debug(mongo_mapping)
+        logging.debug(es_mapping)
 
 
 @app.get("/health")
@@ -122,4 +123,5 @@ async def check_health():
 @app.on_event("startup")
 async def background():
     processor = AsyncProcessor(kafka_processor, es_processor, mongo_processor)
+    await processor.set_mapping("demo_sale_data")
     asyncio.create_task(processor.consume_then_produce())

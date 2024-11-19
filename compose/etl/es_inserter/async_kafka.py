@@ -42,7 +42,7 @@ class AsyncKafkaProcessor:
             logging.error(f"Error consuming message: {str(e)}")
             return {}
 
-    def process_msg(self, msg: Dict) -> Dict:
+    async def process_msg(self, msg: Dict) -> Dict:
         """Process the message."""
         # Placeholder processing function - can be customized for business logic
         return msg
