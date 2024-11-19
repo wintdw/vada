@@ -107,13 +107,13 @@ class AsyncProcessor:
         )
         es_mapping = await self.es.get_es_index_mapping(index_name)
 
-        logging.info(mongo_mapping)
-
         if mongo_mapping:
+            logging.info(f"Mapping exists, do nothing: {mongo_mapping}")
             return
         else:
             mapping_dict = {"name": index_name}
             mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
+            logging.info(f"Set mapping: {mapping_dict}")
             await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
 
 
