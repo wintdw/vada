@@ -97,10 +97,10 @@ class AsyncProcessor:
         mongo_db: str = "vada",
         mongo_coll: str = "master_indices",
     ):
-        mongo_mapping = self.mongo.find_document(
+        mongo_mapping = await self.mongo.find_document(
             mongo_db, mongo_coll, {"name": index_name}
         )
-        es_mapping = self.es.get_es_index_mapping(index_name)
+        es_mapping = await self.es.get_es_index_mapping(index_name)
         logging.debug(mongo_mapping)
         logging.debug(es_mapping)
 
