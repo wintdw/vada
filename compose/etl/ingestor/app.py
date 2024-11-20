@@ -58,7 +58,13 @@ def process_msg(msg: str) -> Dict:
 
     # move IndexName to meta
     json_msg["__meta"] = {"index_name": json_msg["IndexName"]}
-    ret_msg = remove_fields(json_msg, ["IndexName"])
+    # will be correct
+    if "FiendlyName" in json_msg:
+        json_msg["__meta"]["index_friendly_name"] = json_msg["FiendlyName"]
+    elif "FriendlyName" in json_msg:
+        json_msg["__meta"]["index_friendly_name"] = json_msg["FriendlyName"]
+
+    ret_msg = remove_fields(json_msg, ["IndexName", "FiendlyName", "FriendlyName"])
 
     return ret_msg
 

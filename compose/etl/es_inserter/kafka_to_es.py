@@ -73,6 +73,9 @@ class AsyncProcessor:
 
                 # Attempt to get info from __meta, and do not proceed if not found
                 index_name = output_msg.get("__meta", {}).get("index_name")
+                index_friendly_name = output_msg.get("__meta", {}).get(
+                    "index_friendly_name", index_name
+                )
                 user_id = output_msg.get("__meta", {}).get("user_id")
                 if not index_name or not user_id:
                     continue
@@ -106,6 +109,7 @@ class AsyncProcessor:
         self,
         user_id: str,
         index_name: str,
+        index_friendly_name: str,
         mongo_db: str,
         mongo_coll: str,
     ):
@@ -119,8 +123,7 @@ class AsyncProcessor:
             es_mapping = await self.es.get_es_index_mapping(index_name)
             mapping_dict = {"name": index_name}
             mapping_dict["userID"] = bson.ObjectId(user_id)
-            # friendly_name = index_name # TODO better friendly_name
-            mapping_dict["friendly_name"] = index_name
+            mapping_dict["friendly_name"] = index_friendly_name
             mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
             logging.info(f"Set mapping: {mapping_dict}")
             await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
