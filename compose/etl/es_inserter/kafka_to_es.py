@@ -3,6 +3,7 @@ import fastapi
 import logging
 import traceback
 import asyncio
+import bson
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from aiohttp import ClientResponse
@@ -65,13 +66,15 @@ class AsyncProcessor:
                 )
                 # If no message retrieved
                 if not input_msg:
+                    await asyncio.sleep(3.0)
                     continue
 
                 output_msg = await self.kafka.process_msg(input_msg)
 
-                # Attempt to get index_name from __meta, and continue if not found
+                # Attempt to get info from __meta, and do not proceed if not found
                 index_name = output_msg.get("__meta", {}).get("index_name")
-                if not index_name:
+                user_id = output_msg.get("__meta", {}).get("user_id")
+                if not index_name or not user_id:
                     continue
 
                 doc = utils.remove_fields(output_msg, ["__meta"])
@@ -85,7 +88,10 @@ class AsyncProcessor:
                         status_code=response.status, detail=await response.text()
                     )
 
-                await self.set_mapping(index_name)
+                # copy mapping to mongo
+                await self.set_mapping(
+                    user_id, index_name, mongo_db="vada", mongo_coll="master_indices"
+                )
 
         except Exception as e:
             error_trace = traceback.format_exc()
@@ -98,9 +104,10 @@ class AsyncProcessor:
     # Set mapping if only mongo doesnt have mapping for the index
     async def set_mapping(
         self,
+        user_id: str,
         index_name: str,
-        mongo_db: str = "vada",
-        mongo_coll: str = "master_indices",
+        mongo_db: str,
+        mongo_coll: str,
     ):
         mongo_mapping = await self.mongo.find_document(
             mongo_db, mongo_coll, {"name": index_name}
@@ -111,6 +118,7 @@ class AsyncProcessor:
         else:
             es_mapping = await self.es.get_es_index_mapping(index_name)
             mapping_dict = {"name": index_name}
+            mapping_dict["userID"] = bson.ObjectId(user_id)
             mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
             logging.info(f"Set mapping: {mapping_dict}")
             await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)

@@ -97,7 +97,8 @@ async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_j
         try:
             json_msg = process_msg(line)
             # update meta
-            json_msg["__meta"]["clientip"] = req.client.host
+            json_msg["__meta"]["client_ip"] = req.client.host
+            json_msg["__meta"]["user_id"] = jwt_dict.get("id")
             produce_msg(PRODUCER, json_msg)
             count += 1
         except json.JSONDecodeError as json_err:
