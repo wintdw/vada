@@ -119,6 +119,8 @@ class AsyncProcessor:
             es_mapping = await self.es.get_es_index_mapping(index_name)
             mapping_dict = {"name": index_name}
             mapping_dict["userID"] = bson.ObjectId(user_id)
+            # friendly_name = index_name # TODO better friendly_name
+            mapping_dict["friendly_name"] = index_name
             mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
             logging.info(f"Set mapping: {mapping_dict}")
             await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
