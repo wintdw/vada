@@ -93,7 +93,11 @@ class AsyncProcessor:
 
                 # copy mapping to mongo
                 await self.set_mapping(
-                    user_id, index_name, mongo_db="vada", mongo_coll="master_indices"
+                    user_id,
+                    index_name,
+                    index_friendly_name,
+                    mongo_db="vada",
+                    mongo_coll="master_indices",
                 )
 
         except Exception as e:
