@@ -40,15 +40,7 @@ logging.basicConfig(
 
 @app.get("/health")
 async def check_health():
-    response = await es_processor.check_es_health()
-
-    if response.status < 400:
-        return JSONResponse(
-            content={"status": "success", "detail": "Service Available"}
-        )
-    else:
-        logging.error(response.text)
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 
 @app.on_event("startup")

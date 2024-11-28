@@ -26,7 +26,7 @@ class AsyncProcessor:
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
         # init the consumer explicitly
-        self.kafka.create_consumer(topic, group_id)
+        await self.kafka.create_consumer(topic, group_id)
 
         try:
             while True:
