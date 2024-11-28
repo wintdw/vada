@@ -63,7 +63,7 @@ class AsyncESProcessor:
 
             return response
 
-    async def close_session(self):
+    async def close(self):
         """Close the session."""
         if self.session:
             await self.session.close()

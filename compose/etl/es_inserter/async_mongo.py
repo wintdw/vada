@@ -61,7 +61,7 @@ class AsyncMongoProcessor:
             logging.error(f"Error finding document in {db}.{coll}: {e}")
             return None
 
-    async def close_client(self):
+    async def close(self):
         """
         Close MongoDB client connection gracefully.
         """
