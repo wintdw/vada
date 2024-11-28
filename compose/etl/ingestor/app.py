@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 import logging
 import traceback
 from fastapi import FastAPI, HTTPException, Request, Depends, status
@@ -62,7 +63,7 @@ async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_j
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(KAFKA_TOPIC, json_msg))
                 successful_count += 1
-            except json.JSONDecodeError as json_err:
+            except utils.ValidationError as json_err:
                 logging.error(f"Invalid JSON format: {line} - {json_err}")
                 failed_lines.append({"line": line, "error": str(json_err)})
             except Exception as e:
