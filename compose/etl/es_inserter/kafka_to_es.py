@@ -6,6 +6,8 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from aiohttp import ClientResponse
 
+from async_proc import AsyncProcessor
+
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
 ELASTIC_USER = os.getenv("ELASTIC_USER", "")
