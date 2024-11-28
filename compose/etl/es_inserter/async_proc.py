@@ -21,14 +21,14 @@ class AsyncProcessor:
         )
         self.mongo = AsyncMongoProcessor(mongo_url)
 
-        # init the consumer explicitly
-        self.kafka.create_consumer()
-
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
+        # init the consumer explicitly
+        self.kafka.create_consumer(topic, group_id)
+
         try:
             while True:
-                input_msg = await self.kafka.consume_message(topic, group_id)
+                input_msg = await self.kafka.consume_message()
                 # If no message retrieved
                 if not input_msg:
                     await asyncio.sleep(3.0)
