@@ -76,6 +76,7 @@ class AsyncProcessor:
             await self.es.close()
 
     # Set mapping if only mongo doesnt have mapping for the index
+    # TODO: Use crm-api set mapping?
     async def set_mapping(
         self,
         user_id: str,

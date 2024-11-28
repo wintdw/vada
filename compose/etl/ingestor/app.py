@@ -46,26 +46,32 @@ async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_j
             detail="User ID not found in JWT",
         )
 
-    # Start the producer
-    await kafka_processor.create_producer()
+    # Reconstruct the list of json data
+    json_msgs = []
+    for line in lines:
+        try:
+            json_msg = utils.process_msg(line)
+            json_msgs.append(json_msg)
+        except utils.ValidationError as json_err:
+            logging.error(f"Invalid JSON format: {line} - {json_err}")
+            failed_lines.append({"line": line, "error": str(json_err)})
 
+    json_converted_msgs = utils.convert_dict_values(json_msgs)
+
+    # Start producing to Kafka topic
     successful_count = 0
     failed_lines = []
-
     try:
+        # Start the producer
+        await kafka_processor.create_producer()
         # Concurrently process messages
         tasks = []
-        for line in lines:
+        for json_msg in json_converted_msgs:
             try:
-                json_msg = utils.process_msg(line)
-                # Update metadata
                 json_msg["__meta"]["user_id"] = user_id
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(KAFKA_TOPIC, json_msg))
                 successful_count += 1
-            except utils.ValidationError as json_err:
-                logging.error(f"Invalid JSON format: {line} - {json_err}")
-                failed_lines.append({"line": line, "error": str(json_err)})
             except Exception as e:
                 logging.error(f"Error processing line: {line} - {e}")
                 failed_lines.append({"line": line, "error": str(e)})
