@@ -38,10 +38,8 @@ async def check_health():
             content={"status": "success", "detail": "Service Available"}
         )
     else:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"status": "error", "detail": f"{response.text}"},
-        )
+        logging.error(response.text)
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # This function can deal with duplicate messages

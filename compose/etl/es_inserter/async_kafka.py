@@ -43,7 +43,7 @@ class AsyncKafkaProcessor:
             return {}
 
     async def process_msg(self, msg: Dict) -> Dict:
-        """Process the message."""
+        """Processing the message after consuming from a topic"""
         # Placeholder processing function - can be customized for business logic
         return msg
 
