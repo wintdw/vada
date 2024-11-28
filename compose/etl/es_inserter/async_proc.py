@@ -1,5 +1,6 @@
 import bson
 import traceback
+from typing import Dict
 
 import utils
 from async_es import AsyncESProcessor
@@ -10,13 +11,15 @@ from async_mongo import AsyncMongoProcessor
 class AsyncProcessor:
     def __init__(
         self,
-        kafka: AsyncKafkaProcessor,
-        es: AsyncESProcessor,
-        mongo: AsyncMongoProcessor,
+        kafka_broker: str,
+        es_conf_dict: Dict,
+        mongo_url: str,
     ):
-        self.kafka = kafka
-        self.es = es
-        self.mongo = mongo
+        self.kafka = AsyncKafkaProcessor(kafka_broker)
+        self.es = AsyncESProcessor(
+            es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
+        )
+        self.mongo = AsyncMongoProcessor(mongo_url)
 
         # init the consumer explicitly
         self.kafka.create_consumer()

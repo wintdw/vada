@@ -53,11 +53,8 @@ async def check_health():
 
 @app.on_event("startup")
 async def background():
-    kafka_processor = AsyncKafkaProcessor(KAFKA_BROKER_URL)
-    es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
-    mongo_processor = AsyncMongoProcessor(MONGO_URI)
-
-    processor = AsyncProcessor(kafka_processor, es_processor, mongo_processor)
+    es_conf_dict = {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
+    processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, MONGO_URI)
 
     asyncio.create_task(
         processor.consume_then_produce(KAFKA_TOPIC, "es_inserter_group")
