@@ -21,6 +21,8 @@ scrape_configs:
       - setup.internal.vadata.vn:9100
       - proxy01.internal.vadata.vn:9100 
       - proxy02.internal.vadata.vn:9100
+      - backend00.internal.vadata.vn:9100
+      - backend01.internal.vadata.vn:9100
       - db00.internal.vadata.vn:9100
       - db01.internal.vadata.vn:9100
       - db02.internal.vadata.vn:9100
