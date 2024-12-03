@@ -1,12 +1,35 @@
 import json
 import logging
-from typing import Dict, List
+from dateutil import parser
+from datetime import datetime
+from typing import Dict, List, Union
 
 
 class ValidationError(Exception):
     """Custom exception for validation errors."""
 
     pass
+
+
+def convert_datetime(value: str) -> Union[datetime, str]:
+    """
+    Attempt to convert a string to a datetime if possible.
+
+    Args:
+        value (str): The date in string to be checked and converted.
+
+    Returns:
+        Union[datetime, str]: The converted datetime object if successful,
+                               otherwise the original string if conversion fails.
+    """
+    if isinstance(value, str):
+        try:
+            converted_date = parser.parse(value)
+            return converted_date
+        except (ValueError, OverflowError):
+            return value
+    else:
+        return value
 
 
 def convert_value(value: str):
@@ -19,32 +42,36 @@ def convert_value(value: str):
     Returns:
         The converted value (int, float, or str if conversion is not possible).
     """
-    try:
-        # Try converting to int
-        return int(value)
-    except ValueError:
+    if isinstance(value, str):
         try:
-            # Try converting to float
-            return float(value)
+            # Try converting to int
+            return int(value)
         except ValueError:
-            # Return the original string if it cannot be converted
-            return value
+            try:
+                # Try converting to float
+                return float(value)
+            except ValueError:
+                # Return the original string if it cannot be converted
+                return value
+    else:
+        return value
 
 
 def convert_dict_values(data: List[Dict]) -> List[Dict]:
     """
-    Convert all string values in a list of dictionaries to numeric values (int or float) where applicable.
+    Convert all string values in a list of dictionaries to datetime or numeric values (int or float) where applicable.
 
     Args:
         data (List[Dict]): List of dictionaries to convert.
 
     Returns:
-        List[Dict]: A list of dictionaries with string values converted to numeric where possible.
+        List[Dict]: A list of dictionaries with string values converted to datetime or numeric where possible.
     """
     for item in data:
         for key, value in item.items():
             # Convert value if it's a string
             if isinstance(value, str):
+                item[key] = convert_datetime(value)
                 item[key] = convert_value(value)
     return data
 
