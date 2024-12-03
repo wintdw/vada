@@ -72,7 +72,7 @@ async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_j
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(KAFKA_TOPIC, json_msg))
                 successful_count += 1
-            except Exception:
+            except Exception as e:
                 error_trace = traceback.format_exc()
                 logging.error(f"Error processing line: {json_msg}\n{error_trace}")
                 failed_lines.append({"line": json_msg, "error": str(e)})
