@@ -45,6 +45,14 @@ def convert_value(value: str) -> Tuple[bool, Union[int, float, str]]:
         If conversion fails, the first element is False and the second element is the original string.
     """
     if isinstance(value, str):
+        # First, try converting to datetime
+        if value.isdigit() and len(value) == 8:
+            try:
+                converted_value = datetime.strptime(value, "%Y%m%d")
+                return True, str(converted_value)
+            except ValueError:
+                pass
+
         try:
             # Try converting to int
             converted_value = int(value)
@@ -75,9 +83,9 @@ def convert_dict_values(data: List[Dict]) -> List[Dict]:
         for key, value in item.items():
             # Convert value if it's a string
             if isinstance(value, str):
-                is_date_converted, item[key] = convert_datetime(value)
-                if not is_date_converted:
-                    _, item[key] = convert_value(value)
+                is_number_converted, item[key] = convert_value(value)
+                if not is_number_converted:
+                    _, item[key] = convert_datetime(value)
     return data
 
 
