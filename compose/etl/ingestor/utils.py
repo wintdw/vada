@@ -137,8 +137,8 @@ def process_msg(msg: str) -> Dict:
     if "IndexName" not in json_msg:
         raise ValidationError("Missing required field: 'IndexName'.")
 
-    # Create or update __meta field
-    json_msg["__meta"] = json_msg.get("__meta", {})
+    # update __meta field
+    json_msg["__meta"] = {}
     json_msg["__meta"]["index_name"] = json_msg["IndexName"]
 
     if "FriendlyName" in json_msg:
