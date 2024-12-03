@@ -74,15 +74,15 @@ async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_j
                 successful_count += 1
             except Exception:
                 error_trace = traceback.format_exc()
-                logging.error(f"Error processing line: {line}\nTraceback:{error_trace}")
-                failed_lines.append({"line": line, "error": str(e)})
+                logging.error(f"Error processing line: {json_msg}\n{error_trace}")
+                failed_lines.append({"line": json_msg, "error": str(e)})
 
         # Await all produce tasks
         await asyncio.gather(*tasks)
 
     except Exception as e:
         error_trace = traceback.format_exc()
-        logging.error(f"Unexpected error: {e}\nTraceback: {error_trace}")
+        logging.error(f"Unexpected error: {e}\n{error_trace}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     finally:
         await kafka_processor.close()
