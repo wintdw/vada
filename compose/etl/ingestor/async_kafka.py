@@ -35,7 +35,7 @@ class AsyncKafkaProcessor:
         """Consume a single message from Kafka."""
         if not self.consumer:
             logging.error("Consumer is not initialized. Call `create_consumer` first.")
-            return None
+            return
 
         try:
             message = await self.consumer.getone()
@@ -43,7 +43,7 @@ class AsyncKafkaProcessor:
             return json.loads(message.value.decode("utf-8"))
         except Exception as e:
             logging.error(f"Error consuming message: {e}")
-            return None
+            raise
 
     async def create_producer(self):
         """Initialize and start a Kafka producer."""
@@ -67,6 +67,7 @@ class AsyncKafkaProcessor:
             logging.info(f"Produced message to topic '{topic}': {message}")
         except Exception as e:
             logging.error(f"Error producing message: {e}")
+            raise
 
     async def close(self):
         """Stop both the consumer and producer."""
