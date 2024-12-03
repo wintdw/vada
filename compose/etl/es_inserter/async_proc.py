@@ -23,6 +23,9 @@ class AsyncProcessor:
         )
         self.mongo = AsyncMongoProcessor(mongo_url)
 
+        # For setting mappings
+        self.lock = asyncio.Lock()
+
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
         # init the consumer explicitly
@@ -59,13 +62,15 @@ class AsyncProcessor:
                     logging.error(f"Failed to send to ES: {doc}: {response.text()}")
 
                 # copy mapping to mongo
-                await self.set_mapping(
-                    user_id,
-                    index_name,
-                    index_friendly_name,
-                    mongo_db="vada",
-                    mongo_coll="master_indices",
-                )
+                # run sequentially
+                async with self.lock:
+                    await self.set_mapping(
+                        user_id,
+                        index_name,
+                        index_friendly_name,
+                        mongo_db="vada",
+                        mongo_coll="master_indices",
+                    )
 
         except Exception as e:
             error_trace = traceback.format_exc()
@@ -86,8 +91,9 @@ class AsyncProcessor:
         mongo_db: str,
         mongo_coll: str,
     ):
+        filter_condition = {"name": index_name}
         mongo_mapping = await self.mongo.find_document(
-            mongo_db, mongo_coll, {"name": index_name}
+            mongo_db, mongo_coll, filter_condition
         )
         if mongo_mapping:
             if "mappings" in mongo_mapping and mongo_mapping["mappings"]:
@@ -100,4 +106,7 @@ class AsyncProcessor:
         mapping_dict["friendly_name"] = index_friendly_name
         mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
         logging.info(f"Set mapping: {mapping_dict}")
-        await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
+
+        await self.mongo.upsert_document(
+            mongo_db, mongo_coll, filter_condition, mapping_dict
+        )
