@@ -23,8 +23,9 @@ def convert_datetime_to_isoformat(dt: datetime) -> str:
         str: The formatted datetime string compatible with Elasticsearch.
     """
     if isinstance(dt, datetime):
-        if dt.microsecond == 0:
-            return dt.date().isoformat()  # e.g. "2024-12-03"
+        # Handle the case when the datetime only has the date (no time part)
+        if dt.hour == 0 and dt.minute == 0 and dt.second == 0 and dt.microsecond == 0:
+            return dt.date().isoformat()  # e.g., "2024-12-03"
 
         nanoseconds = dt.microsecond * 1000
         return dt.strftime(f"%Y-%m-%dT%H:%M:%S.{nanoseconds:09d}Z")
