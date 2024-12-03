@@ -2,7 +2,7 @@ import json
 import logging
 from dateutil import parser
 from datetime import datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 
 
 class ValidationError(Exception):
@@ -11,7 +11,7 @@ class ValidationError(Exception):
     pass
 
 
-def convert_datetime(value: str) -> Union[datetime, str]:
+def convert_datetime(value: str) -> Tuple[bool, Union[datetime, str]]:
     """
     Attempt to convert a string to a datetime if possible.
 
@@ -19,20 +19,21 @@ def convert_datetime(value: str) -> Union[datetime, str]:
         value (str): The date in string to be checked and converted.
 
     Returns:
-        Union[datetime, str]: The converted datetime object if successful,
-                               otherwise the original string if conversion fails.
+        Tuple[bool, Union[datetime, str]]: A tuple where the first element is
+        True if conversion is successful and the second element is the converted datetime.
+        If conversion fails, the first element is False and the second element is the original string.
     """
     if isinstance(value, str):
         try:
             converted_date = parser.parse(value)
-            return converted_date
+            return True, converted_date
         except (ValueError, OverflowError):
-            return value
+            return False, value
     else:
-        return value
+        return False, value
 
 
-def convert_value(value: str):
+def convert_value(value: str) -> Tuple[bool, Union[int, float, str]]:
     """
     Attempt to convert a string to an int or float if possible.
 
@@ -40,21 +41,25 @@ def convert_value(value: str):
         value (str): The string value to convert.
 
     Returns:
-        The converted value (int, float, or str if conversion is not possible).
+        Tuple[bool, Union[int, float, str]]: A tuple where the first element is
+        True if conversion is successful and the second element is the converted value.
+        If conversion fails, the first element is False and the second element is the original string.
     """
     if isinstance(value, str):
         try:
             # Try converting to int
-            return int(value)
+            converted_value = int(value)
+            return True, converted_value
         except ValueError:
             try:
                 # Try converting to float
-                return float(value)
+                converted_value = float(value)
+                return True, converted_value
             except ValueError:
                 # Return the original string if it cannot be converted
-                return value
+                return False, value
     else:
-        return value
+        return False, value
 
 
 def convert_dict_values(data: List[Dict]) -> List[Dict]:
@@ -71,8 +76,9 @@ def convert_dict_values(data: List[Dict]) -> List[Dict]:
         for key, value in item.items():
             # Convert value if it's a string
             if isinstance(value, str):
-                item[key] = convert_datetime(value)
-                item[key] = convert_value(value)
+                is_date_converted, item[key] = convert_datetime(value)
+                if not is_date_converted:
+                    _, item[key] = convert_value(value)
     return data
 
 
