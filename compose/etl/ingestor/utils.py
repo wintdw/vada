@@ -11,6 +11,25 @@ class ValidationError(Exception):
     pass
 
 
+def convert_datetime_to_isoformat(dt: datetime) -> str:
+    """
+    Convert a datetime object to a string in the strict_date_optional_time_nanos format
+    that is compatible with Elasticsearch.
+
+    Args:
+        dt (datetime): The datetime object to be converted.
+
+    Returns:
+        str: The formatted datetime string compatible with Elasticsearch.
+    """
+    if isinstance(dt, datetime):
+        if dt.microsecond == 0:
+            return dt.date().isoformat()  # e.g. "2024-12-03"
+
+        nanoseconds = dt.microsecond * 1000
+        return dt.strftime(f"%Y-%m-%dT%H:%M:%S.{nanoseconds:09d}Z")
+
+
 def convert_datetime(value: str) -> Tuple[bool, Union[str, str]]:
     """
     Attempt to convert a string to a datetime if possible.
@@ -26,14 +45,14 @@ def convert_datetime(value: str) -> Tuple[bool, Union[str, str]]:
     if isinstance(value, str):
         try:
             converted_date = parser.parse(value)
-            return True, str(converted_date)
+            return True, convert_datetime_to_isoformat(converted_date)
         except (ValueError, OverflowError):
             return False, value
     else:
         return False, value
 
 
-def convert_value(value: str) -> Tuple[bool, Union[int, float, str]]:
+def convert_value(value: str) -> Tuple[bool, Union[int, float, str, datetime]]:
     """
     Attempt to convert a string to an int or float if possible.
 
@@ -50,7 +69,7 @@ def convert_value(value: str) -> Tuple[bool, Union[int, float, str]]:
         if value.isdigit() and len(value) == 8:
             try:
                 converted_value = datetime.strptime(value, "%Y%m%d")
-                return True, str(converted_value)
+                return True, convert_datetime_to_isoformat(converted_value)
             except ValueError:
                 pass
 
@@ -83,10 +102,13 @@ def convert_dict_values(data: List[Dict]) -> List[Dict]:
     for item in data:
         for key, value in item.items():
             # Convert value if it's a string
+            # first, convert str -> number
+            # if not converted -> try datetime
             if isinstance(value, str):
-                is_number_converted, item[key] = convert_value(value)
-                if not is_number_converted:
-                    _, item[key] = convert_datetime(value)
+                is_converted, converted_value = convert_value(value)
+                if not is_converted:
+                    _, converted_value = convert_datetime(value)
+            item[key] = converted_value
     return data
 
 

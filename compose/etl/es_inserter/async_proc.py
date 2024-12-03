@@ -70,6 +70,7 @@ class AsyncProcessor:
         except Exception as e:
             error_trace = traceback.format_exc()
             logging.error(f"Exception: {e}\nTraceback: {error_trace}")
+            raise
         finally:
             await self.kafka.close()
             await self.mongo.close()
@@ -89,13 +90,14 @@ class AsyncProcessor:
             mongo_db, mongo_coll, {"name": index_name}
         )
         if mongo_mapping:
-            logging.info(f"Mapping exists, do nothing: {mongo_mapping}")
-            return
-        else:
-            es_mapping = await self.es.get_es_index_mapping(index_name)
-            mapping_dict = {"name": index_name}
-            mapping_dict["userID"] = bson.ObjectId(user_id)
-            mapping_dict["friendly_name"] = index_friendly_name
-            mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
-            logging.info(f"Set mapping: {mapping_dict}")
-            await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
+            if "mappings" in mongo_mapping and mongo_mapping["mappings"]:
+                logging.info(f"Mapping exists, do nothing: {mongo_mapping}")
+                return
+
+        es_mapping = await self.es.get_es_index_mapping(index_name)
+        mapping_dict = {"name": index_name}
+        mapping_dict["userID"] = bson.ObjectId(user_id)
+        mapping_dict["friendly_name"] = index_friendly_name
+        mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
+        logging.info(f"Set mapping: {mapping_dict}")
+        await self.mongo.insert_document(mongo_db, mongo_coll, mapping_dict)
