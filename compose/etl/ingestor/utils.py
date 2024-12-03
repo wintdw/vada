@@ -1,7 +1,6 @@
 import json
 import logging
 from dateutil import parser
-from datetime import datetime
 from typing import Dict, List, Union, Tuple
 
 
@@ -11,7 +10,7 @@ class ValidationError(Exception):
     pass
 
 
-def convert_datetime(value: str) -> Tuple[bool, Union[datetime, str]]:
+def convert_datetime(value: str) -> Tuple[bool, Union[str, str]]:
     """
     Attempt to convert a string to a datetime if possible.
 
@@ -19,14 +18,14 @@ def convert_datetime(value: str) -> Tuple[bool, Union[datetime, str]]:
         value (str): The date in string to be checked and converted.
 
     Returns:
-        Tuple[bool, Union[datetime, str]]: A tuple where the first element is
-        True if conversion is successful and the second element is the converted datetime.
+        Tuple[bool, Union[str, str]]: A tuple where the first element is
+        True if conversion is successful and the second element is the converted datetime in str format.
         If conversion fails, the first element is False and the second element is the original string.
     """
     if isinstance(value, str):
         try:
             converted_date = parser.parse(value)
-            return True, converted_date
+            return True, str(converted_date)
         except (ValueError, OverflowError):
             return False, value
     else:
