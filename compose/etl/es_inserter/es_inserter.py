@@ -85,4 +85,4 @@ async def receive_jsonl(request: Request):
         )
 
     finally:
-        await es_processor.close_session()
+        await es_processor.close()
