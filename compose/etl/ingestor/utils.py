@@ -106,10 +106,9 @@ def convert_dict_values(data: List[Dict]) -> List[Dict]:
             # first, convert str -> number
             # if not converted -> try datetime
             if isinstance(value, str):
-                is_converted, converted_value = convert_value(value)
+                is_converted, item[key] = convert_value(value)
                 if not is_converted:
-                    _, converted_value = convert_datetime(value)
-            item[key] = converted_value
+                    _, item[key] = convert_datetime(value)
     return data
 
 
