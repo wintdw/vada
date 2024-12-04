@@ -4,7 +4,7 @@
 # from-source: https://github.com/mordaha/docker-nginx-vts/blob/master/Dockerfile
 # unpriviledged: https://github.com/nginxinc/docker-nginx-unprivileged/blob/main/stable/alpine-slim/Dockerfile
 
-ARG NGINX_VERSION="1.27"
+ARG NGINX_VERSION="1.26"
 FROM nginx:${NGINX_VERSION}
 
 ENV NGINX_VTS_VERSION "0.2.2"
