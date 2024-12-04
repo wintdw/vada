@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y gnupg2 dpkg-dev --no-install-recommends
 RUN mkdir -p /opt/rebuildnginx && chmod 0777 /opt/rebuildnginx
 WORKDIR /opt/rebuildnginx
 
-RUN echo "deb-src http://nginx.org/packages/debian/ bullseye nginx" >> /etc/apt/sources.list \
+RUN echo "deb-src http://nginx.org/packages/debian/ bookworm nginx" >> /etc/apt/sources.list \
   && apt-get update \
   && su --preserve-environment -s /bin/bash -c "apt-get source nginx=${NGINX_VERSION}" _apt \
   && apt-get build-dep -y nginx="${NGINX_VERSION}" \
@@ -34,7 +34,7 @@ WORKDIR /opt/rebuildnginx/nginx-${NGINX_VERSION}
 RUN dpkg-buildpackage -b 
 
 WORKDIR /opt/rebuildnginx 
-RUN dpkg --install nginx_"${NGINX_VERSION}-1~bullseye_amd64.deb" \
+RUN dpkg --install nginx_"${NGINX_VERSION}-1~bookworm_amd64.deb" \
   && apt-get remove --purge -y dpkg-dev && apt-get -y --purge autoremove && rm -rf /var/lib/apt/lists/*
 
 RUN rm -Rf /opt/rebuildnginx 
