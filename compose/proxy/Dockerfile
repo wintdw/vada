@@ -4,7 +4,7 @@
 # from-source: https://github.com/mordaha/docker-nginx-vts/blob/master/Dockerfile
 # unpriviledged: https://github.com/nginxinc/docker-nginx-unprivileged/blob/main/stable/alpine-slim/Dockerfile
 
-ARG NGINX_VERSION="1.24"
+ARG NGINX_VERSION="1.27"
 FROM nginx:${NGINX_VERSION}
 
 ENV NGINX_VTS_VERSION "0.2.2"
@@ -12,7 +12,7 @@ ENV NGINX_VTS_VERSION "0.2.2"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y gnupg2 dpkg-dev nginx-extras --no-install-recommends \
+RUN apt-get update && apt-get install -y gnupg2 dpkg-dev --no-install-recommends \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives \
   && curl http://nginx.org/packages/keys/nginx_signing.key | apt-key add -
 
