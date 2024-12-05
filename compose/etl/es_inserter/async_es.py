@@ -67,3 +67,4 @@ class AsyncESProcessor:
         """Close the session."""
         if self.session:
             await self.session.close()
+            self.session = None
