@@ -54,7 +54,6 @@ async def receive_jsonl(request: Request):
             event = json.loads(line)
             # Check for required index_name
             if not event["index_name"]:
-                logging.error(event)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index_name"
                 )
@@ -66,7 +65,10 @@ async def receive_jsonl(request: Request):
 
             response = await es_processor.send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
-                raise HTTPException(status_code=response.status, detail=response.text())
+                logging.error(event)
+                raise HTTPException(
+                    status_code=response.status, detail=await response.text()
+                )
 
             count += 1
 
