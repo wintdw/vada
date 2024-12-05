@@ -37,7 +37,7 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
       ELASTIC_URL: http://setup.internal.vadata.vn:9209
-      PORT: "8081"
+      PORT: "8001"
     secrets:
       - es_elastic_vtad
     ports:
@@ -56,7 +56,7 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
-      PORT: "8082"
+      PORT: "8002"
     secrets:
       - es_elastic
     ports:
