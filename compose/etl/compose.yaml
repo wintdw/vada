@@ -56,8 +56,6 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
-      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      KAFKA_TOPIC: dev_input
       PORT: "8082"
     secrets:
       - es_elastic
