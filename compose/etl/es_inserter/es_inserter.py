@@ -39,7 +39,7 @@ async def check_health():
         )
     else:
         logging.error(response.text)
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise HTTPException(status_code=response.status, detail=response.text())
 
 
 # This function can deal with duplicate messages
@@ -54,6 +54,7 @@ async def receive_jsonl(request: Request):
             event = json.loads(line)
             # Check for required index_name
             if not event["index_name"]:
+                logging.error(event)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index_name"
                 )
