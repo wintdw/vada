@@ -31,7 +31,7 @@ services:
       context: ./es_inserter
       dockerfile: Dockerfile.es_inserter
     image: es-inserter:latest
-    container_name: es_inserter
+    container_name: es_inserter_vtad
     restart: always
     environment:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
