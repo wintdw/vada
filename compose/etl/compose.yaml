@@ -36,7 +36,7 @@ services:
     environment:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
-      ELASTIC_URL: http://setup.internal.vadata.vn:9209
+      ELASTIC_URL: http://setup.internal.vadata.vn:9092
       PORT: "8001"
     secrets:
       - es_elastic_vtad

@@ -1,0 +1,9 @@
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.0
+    env_file:
+      - /var/secret/docker/es/vtad.env
+    environment:
+      - ELASTICSEARCH_HOSTS=http://setup.vadata.vn:9092
+    ports:
+      - "5601:5601"
