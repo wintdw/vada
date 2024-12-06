@@ -1,7 +1,7 @@
 services:
   kibana_vtad:
     image: docker.elastic.co/kibana/kibana:7.10.0
-    name: kibana_vtad
+    container_name: kibana_vtad
     env_file:
       - /var/secret/docker/es/vtad.env
     environment:
