@@ -14,7 +14,7 @@ services:
   ingestor:
     build:
       context: ./ingestor
-      dockerfile: Dockerfile
+      dockerfile: ../Dockerfile.ingestor
     image: ingestor:latest
     container_name: ingestor
     restart: always
@@ -30,7 +30,7 @@ services:
   es_inserter_vtad:
     build:
       context: ./es_inserter
-      dockerfile: Dockerfile.es_inserter
+      dockerfile: ../Dockerfile.es_inserter
     image: es-inserter:latest
     container_name: es_inserter_vtad
     restart: always
@@ -49,7 +49,7 @@ services:
   es_inserter:
     build:
       context: ./es_inserter
-      dockerfile: Dockerfile.es_inserter
+      dockerfile: ../Dockerfile.es_inserter
     image: es-inserter:latest
     container_name: es_inserter
     restart: always
@@ -68,7 +68,7 @@ services:
   kafka_to_es:
     build:
       context: ./es_inserter
-      dockerfile: Dockerfile.kafka_to_es
+      dockerfile: ../Dockerfile.kafka_to_es
     image: kafka-to-es:latest
     container_name: kafka_to_es
     restart: always
