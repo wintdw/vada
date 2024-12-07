@@ -1,5 +1,5 @@
 FROM python
 WORKDIR /app
 RUN pip install --no-cache-dir asyncio uvicorn fastapi aiohttp aiokafka motor pymongo
-COPY * .
+COPY . .
 CMD uvicorn es_inserter.es_inserter:app --host 0.0.0.0 --port $PORT --workers 6
