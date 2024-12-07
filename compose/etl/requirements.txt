@@ -1,0 +1,8 @@
+asyncio
+uvicorn
+fastapi
+aiohttp
+aiokafka
+motor 
+pymongo
+python-dateutil

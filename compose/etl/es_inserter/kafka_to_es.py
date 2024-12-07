@@ -6,7 +6,8 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from aiohttp import ClientResponse
 
-from async_proc import AsyncProcessor
+sys.path.append(os.path.join(os.path.dirname(__file__), "."))
+from .async_proc import AsyncProcessor
 
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
