@@ -1,10 +1,9 @@
 import jwt
 import logging
 from typing import Dict
+from pydantic import BaseModel
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-
-from basemodels import JWTPayload
 
 
 TOKEN_SECRET = ""
@@ -15,6 +14,21 @@ logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+
+
+class JWTPayload(BaseModel):
+    name: str
+    id: str
+    exp: int
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "user7500",
+                "id": "65422b6aa2bbacc10b7a22a3",
+                "exp": 1731306868,
+            }
+        }
 
 
 def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
