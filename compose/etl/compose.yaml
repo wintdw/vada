@@ -19,6 +19,7 @@ services:
     container_name: ingestor
     restart: always
     environment:
+      PORT: "8000"
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
     ports:
@@ -34,10 +35,10 @@ services:
     container_name: es_inserter_vtad
     restart: always
     environment:
+      PORT: "8001"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
       ELASTIC_URL: http://setup.internal.vadata.vn:9092
-      PORT: "8001"
     secrets:
       - es_elastic_vtad
     ports:
@@ -53,10 +54,10 @@ services:
     container_name: es_inserter
     restart: always
     environment:
+      PORT: "8002"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
-      PORT: "8002"
     secrets:
       - es_elastic
     ports:
@@ -72,6 +73,7 @@ services:
     container_name: kafka_to_es
     restart: always
     environment:
+      PORT: "8003"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200

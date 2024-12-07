@@ -5,7 +5,7 @@ import logging
 import asyncio
 from typing import Dict
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import libs.utils
 from libs.async_es import AsyncESProcessor
 from libs.async_kafka import AsyncKafkaProcessor
