@@ -27,6 +27,7 @@ class AsyncKafkaProcessor:
                 group_id=group_id,
                 enable_auto_commit=True,
                 auto_offset_reset="earliest",
+                max_poll_records=100,
             )
             await self.consumer.start()
             logging.info(f"Kafka consumer started for topic: {topic}")

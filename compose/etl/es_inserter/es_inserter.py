@@ -5,8 +5,8 @@ import traceback
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 
-import utils
-from async_es import AsyncESProcessor
+import libs.utils
+from libs.async_es import AsyncESProcessor
 
 
 app = FastAPI()
@@ -59,8 +59,8 @@ async def receive_jsonl(request: Request):
                 )
 
             index_name = event["index_name"]
-            doc = utils.remove_fields(event, ["index_name", "__meta"])
-            doc_id = utils.generate_docid(doc)
+            doc = libs.utils.remove_fields(event, ["index_name", "__meta"])
+            doc_id = libs.utils.generate_docid(doc)
             logging.debug(doc)
 
             response = await es_processor.send_to_es(index_name, doc_id, doc)

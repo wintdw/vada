@@ -7,9 +7,9 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.responses import JSONResponse
 from typing import Dict, List
 
-import utils
-import security
-from async_kafka import AsyncKafkaProcessor
+import libs.utils
+import libs.security
+from libs.async_kafka import AsyncKafkaProcessor
 
 app = FastAPI()
 logging.basicConfig(
@@ -30,7 +30,9 @@ async def check_health():
 
 
 @app.post("/v1/jsonl")
-async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_jwt)):
+async def process_jsonl(
+    req: Request, jwt_dict: Dict = Depends(libs.security.verify_jwt)
+):
     """
     Accept JSONL data as a string and send each line to Kafka.
     """
@@ -50,13 +52,13 @@ async def process_jsonl(req: Request, jwt_dict: Dict = Depends(security.verify_j
     json_msgs = []
     for line in lines:
         try:
-            json_msg = utils.process_msg(line)
+            json_msg = libs.utils.process_msg(line)
             json_msgs.append(json_msg)
-        except utils.ValidationError as json_err:
+        except libs.utils.ValidationError as json_err:
             logging.error(f"Invalid JSON format: {line} - {json_err}")
             failed_lines.append({"line": line, "error": str(json_err)})
 
-    json_converted_msgs = utils.convert_dict_values(json_msgs)
+    json_converted_msgs = libs.utils.convert_dict_values(json_msgs)
 
     # Start producing to Kafka topic
     successful_count = 0

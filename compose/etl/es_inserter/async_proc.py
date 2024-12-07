@@ -4,10 +4,10 @@ import logging
 import asyncio
 from typing import Dict
 
-import utils
-from async_es import AsyncESProcessor
-from async_kafka import AsyncKafkaProcessor
-from async_mongo import AsyncMongoProcessor
+import libs.utils
+from libs.async_es import AsyncESProcessor
+from libs.async_kafka import AsyncKafkaProcessor
+from libs.async_mongo import AsyncMongoProcessor
 
 
 class AsyncProcessor:
@@ -52,8 +52,8 @@ class AsyncProcessor:
                     )
                     continue
 
-                doc = utils.remove_fields(input_msg, ["__meta"])
-                doc_id = utils.generate_docid(doc)
+                doc = libs.utils.remove_fields(input_msg, ["__meta"])
+                doc_id = libs.utils.generate_docid(doc)
                 logging.info(doc)
 
                 # send to ES

@@ -2,7 +2,6 @@ import json
 import logging
 import hashlib
 from typing import Dict, List
-from motor.motor_asyncio import AsyncIOMotorClient
 
 
 def generate_docid(msg: Dict) -> str:
