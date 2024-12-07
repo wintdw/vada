@@ -1,10 +1,11 @@
-import os
+import os, sys
 import json
 import logging
 import traceback
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import libs.utils
 from libs.async_es import AsyncESProcessor
 

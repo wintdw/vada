@@ -1,4 +1,4 @@
-import os
+import os, sys
 import json
 import asyncio
 import logging
@@ -7,9 +7,12 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.responses import JSONResponse
 from typing import Dict, List
 
+# custom libs
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import libs.utils
 import libs.security
 from libs.async_kafka import AsyncKafkaProcessor
+
 
 app = FastAPI()
 logging.basicConfig(
