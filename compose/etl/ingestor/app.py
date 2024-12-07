@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from typing import Dict, List
 
 # custom libs
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import libs.utils
 import libs.security
 from libs.async_kafka import AsyncKafkaProcessor

@@ -1,4 +1,4 @@
-import os, sys
+import os
 import logging
 import asyncio
 import fastapi
@@ -6,7 +6,6 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from aiohttp import ClientResponse
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from async_proc import AsyncProcessor
 
 
