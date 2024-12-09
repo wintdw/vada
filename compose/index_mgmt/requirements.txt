@@ -1,0 +1,6 @@
+pyjwt
+asyncio
+uvicorn
+fastapi
+aiohttp
+python-dateutil

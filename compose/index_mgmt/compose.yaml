@@ -1,0 +1,29 @@
+secrets:
+  es_elastic:
+    file: /var/secret/docker/es/elastic
+  es_elastic_vtad:
+    file: /var/secret/docker/es/elastic_vtad
+
+networks:
+  index-network:
+    driver: bridge
+
+services:
+  index_mgmt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: index_mgmt:latest
+    container_name: index_mgmt
+    restart: always
+    environment:
+      PORT: "8000"
+      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_USER: elastic
+      ELASTIC_URL: http://demo.internal.vadata.vn:9200
+    ports:
+      - "8000:8000"
+    secrets:
+      - es_elastic
+    networks:
+      - index-network
