@@ -17,12 +17,12 @@ services:
     container_name: index_mgmt
     restart: always
     environment:
-      PORT: "8000"
+      PORT: "8101"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
     ports:
-      - "8000:8000"
+      - "8101:8101"
     secrets:
       - es_elastic
     networks:
