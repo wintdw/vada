@@ -79,6 +79,9 @@ async def receive_jsonl(request: Request):
             }
         )
 
+    except HTTPException as e:
+        # If it's an HTTPException (like the 404 for not found), just raise it
+        raise e
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error(f"Exception: {e}\nTraceback: {error_trace}")
