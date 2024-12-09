@@ -1,4 +1,5 @@
 import os, sys
+import logging
 from fastapi import FastAPI, HTTPException
 from typing import Dict
 
@@ -22,9 +23,8 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
     with open(elastic_passwd_file, "r") as file:
         ELASTIC_PASSWD = file.read().strip()
 
-es_processor = AsyncESProcessor(
-    es_baseurl=ELASTIC_URL, es_user=ELASTIC_USER, es_pass=ELASTIC_PASSWD
-)
+# Global object
+es_processor: AsyncESProcessor
 
 
 @app.get("/v1/index/{index_name}", response_model=Dict)
@@ -41,6 +41,18 @@ async def get_index_info(index_name: str):
         return index_info
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.on_event("startup")
+async def startup():
+    """
+    Initialize the Elasticsearch processor on startup.
+    """
+    global es_processor
+    es_processor = AsyncESProcessor(
+        es_baseurl=ELASTIC_URL, es_user=ELASTIC_USER, es_pass=ELASTIC_PASSWD
+    )
+    await es_processor.check_health()
 
 
 @app.on_event("shutdown")

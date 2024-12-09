@@ -14,7 +14,7 @@ class AsyncESProcessor:
         if not self.session:
             self.session = ClientSession()
 
-    async def check_es_health(self) -> ClientResponse:
+    async def check_health(self) -> ClientResponse:
         """Check the health of the Elasticsearch cluster."""
         es_url = f"{self.es_baseurl}/_cluster/health"
 

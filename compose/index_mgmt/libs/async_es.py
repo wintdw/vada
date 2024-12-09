@@ -14,7 +14,7 @@ class AsyncESProcessor:
         if not self.session:
             self.session = ClientSession()
 
-    async def check_es_health(self) -> ClientResponse:
+    async def check_health(self) -> ClientResponse:
         """Check the health of the Elasticsearch cluster."""
         es_url = f"{self.es_baseurl}/_cluster/health"
 
@@ -39,7 +39,6 @@ class AsyncESProcessor:
                 async with self.session.get(es_url, auth=self.auth) as response:
                     if response.status == 200:
                         index_info = await response.json()
-                        logging.info(f"Index info for '{index_name}': {index_info}")
                         return index_info
                     else:
                         logging.error(
@@ -49,7 +48,7 @@ class AsyncESProcessor:
                 logging.error(f"Index '{index_name}' does not exist.")
             else:
                 logging.error(
-                    f"Failed to check if index exists. Status: {response.status} - {await response.text()}"
+                    f"Failed to check index info. Status: {response.status} - {await response.text()}"
                 )
 
             return {}

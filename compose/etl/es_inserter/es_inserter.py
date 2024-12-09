@@ -32,7 +32,7 @@ es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
 
 @app.get("/health")
 async def check_health():
-    response = await es_processor.check_es_health()
+    response = await es_processor.check_health()
 
     if response.status < 400:
         return JSONResponse(
