@@ -1,6 +1,8 @@
 import os, sys
 import logging
+import traceback
 from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, status
 from typing import Dict
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -27,6 +29,19 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 es_processor: AsyncESProcessor
 
 
+@app.get("/health")
+async def check_health():
+    response = await es_processor.check_health()
+
+    if response.status < 400:
+        return JSONResponse(
+            content={"status": "success", "detail": "Service Available"}
+        )
+    else:
+        logging.error(await response.text())
+        raise HTTPException(status_code=response.status)
+
+
 @app.get("/v1/index/{index_name}", response_model=Dict)
 async def get_index_info(index_name: str):
     """
@@ -40,7 +55,9 @@ async def get_index_info(index_name: str):
             )
         return index_info
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_trace = traceback.format_exc()
+        logging.error(f"Unexpected error: {e}\n{error_trace}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.on_event("startup")

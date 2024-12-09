@@ -61,7 +61,9 @@ class AsyncProcessor:
                 # send to ES
                 response = await self.es.send_to_es(index_name, doc_id, doc)
                 if response.status not in {200, 201}:
-                    logging.error(f"Failed to send to ES: {doc}: {response.text()}")
+                    logging.error(
+                        f"Failed to send to ES: {doc}: {await response.text()}"
+                    )
 
                 # copy mapping to mongo
                 # run sequentially
