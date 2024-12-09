@@ -53,6 +53,9 @@ async def get_index_info(index_name: str):
                 status_code=404, detail=f"Index '{index_name}' not found."
             )
         return index_info
+    except HTTPException as e:
+        # If it's an HTTPException (like the 404 for not found), just raise it
+        raise e
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error(f"Unexpected error: {e}\n{error_trace}")
