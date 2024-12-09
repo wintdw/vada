@@ -31,15 +31,14 @@ es_processor: AsyncESProcessor
 
 @app.get("/health")
 async def check_health():
+    """Check the health of the Elasticsearch cluster."""
     response = await es_processor.check_health()
-
     if response.status < 400:
         return JSONResponse(
             content={"status": "success", "detail": "Service Available"}
         )
-    else:
-        logging.error(await response.text())
-        raise HTTPException(status_code=response.status)
+    logging.error(await response.text())
+    raise HTTPException(status_code=response.status)
 
 
 @app.get("/v1/index/{index_name}", response_model=Dict)
@@ -69,7 +68,6 @@ async def startup():
     es_processor = AsyncESProcessor(
         es_baseurl=ELASTIC_URL, es_user=ELASTIC_USER, es_pass=ELASTIC_PASSWD
     )
-    await es_processor.check_health()
 
 
 @app.on_event("shutdown")

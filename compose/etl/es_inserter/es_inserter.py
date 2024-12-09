@@ -32,15 +32,14 @@ es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
 
 @app.get("/health")
 async def check_health():
+    """Check the health of the Elasticsearch cluster."""
     response = await es_processor.check_health()
-
     if response.status < 400:
         return JSONResponse(
             content={"status": "success", "detail": "Service Available"}
         )
-    else:
-        logging.error(await response.text())
-        raise HTTPException(status_code=response.status)
+    logging.error(await response.text())
+    raise HTTPException(status_code=response.status)
 
 
 # This function can deal with duplicate messages
