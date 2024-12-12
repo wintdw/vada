@@ -1,15 +1,19 @@
-import os, sys
-import bson
+# pylint: disable=import-error,wrong-import-position
+
+"""
+"""
+
 import traceback
 import logging
 import asyncio
 from typing import Dict
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import libs.utils
-from libs.async_es import AsyncESProcessor
-from libs.async_kafka import AsyncKafkaProcessor
-from libs.async_mongo import AsyncMongoProcessor
+import bson
+
+import etl.libs.utils
+from etl.libs.async_es import AsyncESProcessor
+from etl.libs.async_kafka import AsyncKafkaProcessor
+from etl.libs.async_mongo import AsyncMongoProcessor
 
 
 class AsyncProcessor:
@@ -50,19 +54,19 @@ class AsyncProcessor:
                 # Skip if essential data is missing
                 if not index_name or not user_id:
                     logging.warning(
-                        f"Missing required fields, skipping message: {input_msg}"
+                        "Missing required fields, skipping message: %s", input_msg
                     )
                     continue
 
-                doc = libs.utils.remove_fields(input_msg, ["__meta"])
-                doc_id = libs.utils.generate_docid(doc)
+                doc = etl.libs.utils.remove_fields(input_msg, ["__meta"])
+                doc_id = etl.libs.utils.generate_docid(doc)
                 logging.info(doc)
 
                 # send to ES
                 response = await self.es.send_to_es(index_name, doc_id, doc)
                 if response.status not in {200, 201}:
                     logging.error(
-                        f"Failed to send to ES: {doc}: {await response.text()}"
+                        "Failed to send to ES: %s - %s", doc, await response.text()
                     )
 
                 # copy mapping to mongo
@@ -78,7 +82,7 @@ class AsyncProcessor:
 
         except Exception as e:
             error_trace = traceback.format_exc()
-            logging.error(f"Exception: {e}\nTraceback: {error_trace}")
+            logging.error("Exception: %s\nTraceback: %s", e, error_trace)
             raise
         finally:
             await self.kafka.close()
@@ -101,7 +105,7 @@ class AsyncProcessor:
         )
         if mongo_mapping:
             if "mappings" in mongo_mapping and mongo_mapping["mappings"]:
-                logging.info(f"Mapping exists, do nothing: {mongo_mapping}")
+                logging.info("Mapping exists, do nothing: %s", mongo_mapping)
                 return
 
         es_mapping = await self.es.get_es_index_mapping(index_name)
@@ -109,7 +113,7 @@ class AsyncProcessor:
         mapping_dict["userID"] = bson.ObjectId(user_id)
         mapping_dict["friendly_name"] = index_friendly_name
         mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
-        logging.info(f"Set mapping: {mapping_dict}")
+        logging.info("Set mapping: %s", mapping_dict)
 
         await self.mongo.upsert_document(
             mongo_db, mongo_coll, filter_condition, mapping_dict

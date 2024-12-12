@@ -1,17 +1,20 @@
-import os, sys
-import json
+# pylint: disable=import-error,wrong-import-position
+
+"""
+"""
+
+import os
 import asyncio
 import logging
 import traceback
+from typing import Dict, List
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.responses import JSONResponse
-from typing import Dict, List
 
 # custom libs
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import libs.utils
-import libs.security
-from libs.async_kafka import AsyncKafkaProcessor
+import etl.libs.utils
+import etl.libs.security
+from etl.libs.async_kafka import AsyncKafkaProcessor
 
 
 app = FastAPI()
@@ -34,7 +37,7 @@ async def check_health():
 
 @app.post("/v1/jsonl")
 async def process_jsonl(
-    req: Request, jwt_dict: Dict = Depends(libs.security.verify_jwt)
+    req: Request, jwt_dict: Dict = Depends(etl.libs.security.verify_jwt)
 ):
     """
     Accept JSONL data as a string and send each line to Kafka.
@@ -52,20 +55,19 @@ async def process_jsonl(
         )
 
     # Reconstruct the list of json data
+    successful_count = 0
     json_msgs = []
+    failed_lines = []
+
     for line in lines:
         try:
-            json_msg = libs.utils.process_msg(line)
+            json_msg = etl.libs.utils.process_msg(line)
             json_msgs.append(json_msg)
-        except libs.utils.ValidationError as json_err:
-            logging.error(f"Invalid JSON format: {line} - {json_err}")
+        except etl.libs.utils.ValidationError as json_err:
+            logging.error("Invalid JSON format: %s - %s", line, json_err)
             failed_lines.append({"line": line, "error": str(json_err)})
 
-    json_converted_msgs = libs.utils.convert_dict_values(json_msgs)
-
-    # Start producing to Kafka topic
-    successful_count = 0
-    failed_lines = []
+    json_converted_msgs = etl.libs.utils.convert_dict_values(json_msgs)
     try:
         # Start the producer
         await kafka_processor.create_producer()
@@ -79,7 +81,7 @@ async def process_jsonl(
                 successful_count += 1
             except Exception as e:
                 error_trace = traceback.format_exc()
-                logging.error(f"Error processing line: {json_msg}\n{error_trace}")
+                logging.error("Error processing line: %s\n%s", json_msg, error_trace)
                 failed_lines.append({"line": json_msg, "error": str(e)})
 
         # Await all produce tasks
@@ -87,8 +89,8 @@ async def process_jsonl(
 
     except Exception as e:
         error_trace = traceback.format_exc()
-        logging.error(f"Unexpected error: {e}\n{error_trace}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logging.error("Unexpected error: %s\n%s", e, error_trace)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     finally:
         await kafka_processor.close()
 

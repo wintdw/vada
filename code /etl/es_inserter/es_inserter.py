@@ -1,13 +1,23 @@
-import os, sys
+# pylint: disable=import-error,wrong-import-position
+
+"""
+This module is for processing jsonl and pushing to ES index
+"""
+
+import os
 import json
 import logging
 import traceback
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import (
+    FastAPI,
+    Request,
+    HTTPException,
+    status,
+)
 from fastapi.responses import JSONResponse
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import libs.utils
-from libs.async_es import AsyncESProcessor
+import etl.libs.utils
+from etl.libs.async_es import AsyncESProcessor
 
 
 app = FastAPI()
@@ -24,7 +34,7 @@ ELASTIC_PASSWD = ""
 # Passwd
 elastic_passwd_file = os.getenv("ELASTIC_PASSWD_FILE", "")
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
-    with open(elastic_passwd_file, "r") as file:
+    with open(elastic_passwd_file, "r", encoding="utf-8") as file:
         ELASTIC_PASSWD = file.read().strip()
 
 es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
@@ -44,7 +54,19 @@ async def check_health():
 
 # This function can deal with duplicate messages
 @app.post("/jsonl")
-async def receive_jsonl(request: Request):
+async def receive_jsonl(request: Request) -> JSONResponse:
+    """
+    Main function to process jsonl received from HTTP endpoint
+
+    Args:
+        request (Request): the request
+
+    Raises:
+        HTTPException: when problems arise
+
+    Returns:
+        JSONResponse: number of consumed messages
+    """
     try:
         body = await request.body()
         json_lines = body.decode("utf-8").splitlines()
@@ -52,16 +74,29 @@ async def receive_jsonl(request: Request):
         count = 0
         for line in json_lines:
             event = json.loads(line)
-            # Check for required index_name
-            if not event["index_name"]:
-                logging.error(event)
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index_name"
-                )
 
-            index_name = event["index_name"]
-            doc = libs.utils.remove_fields(event, ["index_name", "__meta"])
-            doc_id = libs.utils.generate_docid(doc)
+            # index_name
+            index_name = (
+                event.get("_vada", {})
+                .get("ingest", {})
+                .get("destination", {})
+                .get("index", "")
+            )
+            if not index_name:
+                if "index_name" not in event:
+                    logging.error(event)
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Missing index_name",
+                    )
+                index_name = event["index_name"]
+
+            # doc_id
+            doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+            if not doc_id:
+                doc_id = etl.libs.utils.generate_docid(doc)
+
+            doc = etl.libs.utils.remove_fields(event, ["index_name", "__meta", "_vada"])
             logging.debug(doc)
 
             response = await es_processor.send_to_es(index_name, doc_id, doc)
@@ -80,12 +115,10 @@ async def receive_jsonl(request: Request):
         )
 
     except HTTPException as e:
-        # If it's an HTTPException (like the 404 for not found), just raise it
         raise e
     except Exception as e:
         error_trace = traceback.format_exc()
-        logging.error(f"Exception: {e}\nTraceback: {error_trace}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        logging.error("Exception: %s\nTraceback: %s", e, error_trace)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     finally:
         await es_processor.close()
