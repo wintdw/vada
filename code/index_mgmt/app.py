@@ -1,11 +1,15 @@
-import os, sys
+# pylint: disable=import-error,wrong-import-position
+
+"""
+"""
+
+import os
 import logging
 import traceback
-from fastapi import FastAPI, HTTPException
-from fastapi import FastAPI, HTTPException, Depends, status
 from typing import Dict
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, status
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from libs.async_es import AsyncESProcessor
 
 
@@ -22,16 +26,15 @@ ELASTIC_PASSWD = ""
 # Passwd
 elastic_passwd_file = os.getenv("ELASTIC_PASSWD_FILE", "")
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
-    with open(elastic_passwd_file, "r") as file:
+    with open(elastic_passwd_file, "r", encoding="utf-8") as file:
         ELASTIC_PASSWD = file.read().strip()
-
-# Global object
-es_processor: AsyncESProcessor
 
 
 @app.get("/health")
 async def check_health():
     """Check the health of the Elasticsearch cluster."""
+    es_processor = app.state.es_processor
+
     response = await es_processor.check_health()
     if response.status < 400:
         return JSONResponse(
@@ -46,6 +49,8 @@ async def get_index_info(index_name: str):
     """
     Get information about a specific Elasticsearch index if it exists.
     """
+    es_processor = app.state.es_processor
+
     try:
         index_info = await es_processor.get_index(index_name)
         if not index_info:
@@ -58,8 +63,8 @@ async def get_index_info(index_name: str):
         raise e
     except Exception as e:
         error_trace = traceback.format_exc()
-        logging.error(f"Unexpected error: {e}\n{error_trace}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logging.error("Unexpected error: %s\n%s", e, error_trace)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 
 @app.on_event("startup")
@@ -67,8 +72,7 @@ async def startup():
     """
     Initialize the Elasticsearch processor on startup.
     """
-    global es_processor
-    es_processor = AsyncESProcessor(
+    app.state.es_processor = AsyncESProcessor(
         es_baseurl=ELASTIC_URL, es_user=ELASTIC_USER, es_pass=ELASTIC_PASSWD
     )
 
@@ -76,4 +80,6 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     """Close the Elasticsearch session when the app shuts down."""
+    es_processor = app.state.es_processor
+
     await es_processor.close()
