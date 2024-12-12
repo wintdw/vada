@@ -12,9 +12,9 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.responses import JSONResponse
 
 # custom libs
-import etl.libs.utils
-import etl.libs.security
-from etl.libs.async_kafka import AsyncKafkaProcessor
+import libs.utils
+import libs.security
+from libs.async_kafka import AsyncKafkaProcessor
 
 
 app = FastAPI()
@@ -37,7 +37,7 @@ async def check_health():
 
 @app.post("/v1/jsonl")
 async def process_jsonl(
-    req: Request, jwt_dict: Dict = Depends(etl.libs.security.verify_jwt)
+    req: Request, jwt_dict: Dict = Depends(libs.security.verify_jwt)
 ):
     """
     Accept JSONL data as a string and send each line to Kafka.
@@ -61,13 +61,13 @@ async def process_jsonl(
 
     for line in lines:
         try:
-            json_msg = etl.libs.utils.process_msg(line)
+            json_msg = libs.utils.process_msg(line)
             json_msgs.append(json_msg)
-        except etl.libs.utils.ValidationError as json_err:
+        except libs.utils.ValidationError as json_err:
             logging.error("Invalid JSON format: %s - %s", line, json_err)
             failed_lines.append({"line": line, "error": str(json_err)})
 
-    json_converted_msgs = etl.libs.utils.convert_dict_values(json_msgs)
+    json_converted_msgs = libs.utils.convert_dict_values(json_msgs)
     try:
         # Start the producer
         await kafka_processor.create_producer()
