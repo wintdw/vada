@@ -9,7 +9,7 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from async_proc import AsyncProcessor
+from es_inserter.async_proc import AsyncProcessor
 
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")

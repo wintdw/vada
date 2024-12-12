@@ -7,7 +7,7 @@ import os
 import asyncio
 import logging
 import traceback
-from typing import Dict, List
+from typing import Dict
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.responses import JSONResponse
 

@@ -10,10 +10,10 @@ from typing import Dict
 
 import bson
 
-import etl.libs.utils
-from etl.libs.async_es import AsyncESProcessor
-from etl.libs.async_kafka import AsyncKafkaProcessor
-from etl.libs.async_mongo import AsyncMongoProcessor
+import libs.utils
+from libs.async_es import AsyncESProcessor
+from libs.async_kafka import AsyncKafkaProcessor
+from libs.async_mongo import AsyncMongoProcessor
 
 
 class AsyncProcessor:
@@ -58,8 +58,8 @@ class AsyncProcessor:
                     )
                     continue
 
-                doc = etl.libs.utils.remove_fields(input_msg, ["__meta"])
-                doc_id = etl.libs.utils.generate_docid(doc)
+                doc = libs.utils.remove_fields(input_msg, ["__meta"])
+                doc_id = libs.utils.generate_docid(doc)
                 logging.info(doc)
 
                 # send to ES

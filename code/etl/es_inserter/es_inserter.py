@@ -16,8 +16,8 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 
-import etl.libs.utils
-from etl.libs.async_es import AsyncESProcessor
+import libs.utils
+from libs.async_es import AsyncESProcessor
 
 
 app = FastAPI()
@@ -94,9 +94,9 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             # doc_id
             doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
             if not doc_id:
-                doc_id = etl.libs.utils.generate_docid(doc)
+                doc_id = libs.utils.generate_docid(doc)
 
-            doc = etl.libs.utils.remove_fields(event, ["index_name", "__meta", "_vada"])
+            doc = libs.utils.remove_fields(event, ["index_name", "__meta", "_vada"])
             logging.debug(doc)
 
             response = await es_processor.send_to_es(index_name, doc_id, doc)
