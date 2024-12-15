@@ -3,6 +3,8 @@ secrets:
     file: /var/secret/docker/es/elastic
   es_elastic_vtad:
     file: /var/secret/docker/es/elastic_vtad
+  mongo_vada:
+    file: /var/secret/docker/mongo/vada
 
 networks:
   index-network:
@@ -21,9 +23,11 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
+      MONGO_URI_FILE: /run/secrets/mongo_vada
     ports:
       - "8101:8101"
     secrets:
       - es_elastic
+      - mongo_vada
     networks:
       - index-network

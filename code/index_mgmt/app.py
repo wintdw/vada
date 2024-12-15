@@ -8,8 +8,9 @@ import logging
 import traceback
 from typing import Dict
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 
+from libs.security import verify_jwt
 from libs.async_es import AsyncESProcessor
 
 
@@ -29,6 +30,14 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
     with open(elastic_passwd_file, "r", encoding="utf-8") as file:
         ELASTIC_PASSWD = file.read().strip()
 
+MONGO_DB = os.getenv("MONGO_DB", "vada")
+MONGO_COLL = os.getenv("MONGO_COLL", "master_indices")
+MONGO_URI = ""
+mongo_uri_file = os.getenv("MONGO_URI_FILE", "")
+if mongo_uri_file and os.path.isfile(mongo_uri_file):
+    with open(mongo_uri_file, "r", encoding="utf-8") as file:
+        MONGO_URI = file.read().strip()
+
 
 @app.get("/health")
 async def check_health():
@@ -45,7 +54,7 @@ async def check_health():
 
 
 @app.get("/v1/index/{index_name}", response_model=Dict)
-async def get_index_info(index_name: str):
+async def get_index_info(index_name: str, jwt_dict: Dict = Depends(verify_jwt)):
     """
     Get information about a specific Elasticsearch index if it exists.
     """
@@ -59,7 +68,6 @@ async def get_index_info(index_name: str):
             )
         return index_info
     except HTTPException as e:
-        # If it's an HTTPException (like the 404 for not found), just raise it
         raise e
     except Exception as e:
         error_trace = traceback.format_exc()

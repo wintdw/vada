@@ -31,7 +31,13 @@ kafka_processor = AsyncKafkaProcessor(KAFKA_BROKER_URL)
 
 
 @app.get("/health")
-async def check_health():
+async def check_health() -> JSONResponse:
+    """
+    Health check url
+
+    Returns:
+        JSONResponse: HTTP 200 if ok
+    """
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 

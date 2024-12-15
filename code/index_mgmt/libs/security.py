@@ -48,18 +48,18 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
         payload = jwt.decode(
             token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
         )
-        logging.debug(f"Authenticated as {payload.get('name')}")
+        logging.debug("Authenticated as %s", payload.get("name"))
 
         # Convert payload to JWTPayload model for validation
         JWTPayload(**payload)
 
         return payload
 
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as exp:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="JWT token has expired"
-        )
-    except jwt.InvalidTokenError:
+        ) from exp
+    except jwt.InvalidTokenError as inv:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid JWT token"
-        )
+        ) from inv
