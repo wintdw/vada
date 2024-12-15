@@ -10,8 +10,11 @@ from typing import Dict
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, HTTPException, status, Depends
 
+import bson
+
 from libs.security import verify_jwt
 from libs.async_es import AsyncESProcessor
+from libs.async_mongo import AsyncMongoProcessor
 
 
 app = FastAPI()
@@ -53,19 +56,25 @@ async def check_health():
     raise HTTPException(status_code=response.status)
 
 
-@app.get("/v1/index/{index_name}", response_model=Dict)
-async def get_index_info(index_name: str, jwt_dict: Dict = Depends(verify_jwt)):
+@app.get("/v1/index", response_model=Dict)
+async def get_index_info(index: str, jwt_dict: Dict = Depends(verify_jwt)):
     """
     Get information about a specific Elasticsearch index if it exists.
     """
     es_processor = app.state.es_processor
+    mongo_processor = app.state.mongo_processor
+    uid = jwt_dict.get("id")
+
+    owned_indices = mongo_processor.find_documents(
+        MONGO_DB, MONGO_COLL, {"userID": bson.ObjectId(uid)}
+    )
+
+    logging.debug(owned_indices)
 
     try:
-        index_info = await es_processor.get_index(index_name)
+        index_info = await es_processor.get_index(index)
         if not index_info:
-            raise HTTPException(
-                status_code=404, detail=f"Index '{index_name}' not found."
-            )
+            raise HTTPException(status_code=404, detail=f"Index '{index}' not found.")
         return index_info
     except HTTPException as e:
         raise e
@@ -83,11 +92,14 @@ async def startup():
     app.state.es_processor = AsyncESProcessor(
         es_baseurl=ELASTIC_URL, es_user=ELASTIC_USER, es_pass=ELASTIC_PASSWD
     )
+    app.state.mongo_processor = AsyncMongoProcessor(MONGO_URI)
 
 
 @app.on_event("shutdown")
 async def shutdown():
     """Close the Elasticsearch session when the app shuts down."""
     es_processor = app.state.es_processor
+    mongo_processor = app.state.mongo_processor
 
     await es_processor.close()
+    await mongo_processor.close()

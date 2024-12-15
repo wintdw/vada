@@ -1,3 +1,6 @@
+# pylint: disable=import-error,wrong-import-position
+
+
 import logging
 from typing import Dict
 from aiohttp import ClientSession, ClientResponse, BasicAuth

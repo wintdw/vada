@@ -1,7 +1,10 @@
+# pylint: disable=import-error,wrong-import-position
+
+
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 
 class AsyncMongoProcessor:
@@ -40,26 +43,30 @@ class AsyncMongoProcessor:
             logging.error("Error inserting document into %s.%s: %s", db, coll, e)
             return None
 
-    async def find_document(self, db: str, coll: str, query: Dict) -> Optional[Dict]:
+    async def find_documents(self, db: str, coll: str, query: Dict) -> List[Dict]:
         """
-        Find a single document based on the query.
+        Find all documents based on the query.
 
-        Returns the document if found, or None.
+        Returns a list of documents if found, or an empty list.
         """
         await self._create_client()
 
         try:
-            document = await self.client[db][coll].find_one(query)
-            if document:
-                logging.debug("Document found: %s", document)
+            documents = []
+            async for document in self.client[db][coll].find(query):
+                documents.append(document)
+
+            if documents:
+                logging.debug("Documents found: %s", documents)
             else:
                 logging.info(
-                    "No document found in %s.%s matching query: %s", db, coll, query
+                    "No documents found in %s.%s matching query: %s", db, coll, query
                 )
-            return document
+
+            return documents
         except PyMongoError as e:
-            logging.error("Error finding document in %s.%s: %s", db, coll, e)
-            return None
+            logging.error("Error finding documents in %s.%s: %s", db, coll, e)
+            return []
 
     async def upsert_document(
         self, db: str, coll: str, query: Dict, document: Dict
