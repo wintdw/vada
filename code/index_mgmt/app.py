@@ -56,7 +56,7 @@ async def check_health():
     raise HTTPException(status_code=response.status)
 
 
-@app.get("/v1/index", response_model=JSONResponse)
+@app.get("/v1/index", response_model=Dict)
 async def get_index_info(index: str = "", jwt_dict: Dict = Depends(verify_jwt)):
     """
     Get information about a specific Elasticsearch index if it exists.
