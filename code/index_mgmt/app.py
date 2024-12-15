@@ -56,7 +56,7 @@ async def check_health():
     raise HTTPException(status_code=response.status)
 
 
-@app.get("/v1/index", response_model=Dict)
+@app.get("/v1/index", response_model=JSONResponse)
 async def get_index_info(index: str = "", jwt_dict: Dict = Depends(verify_jwt)):
     """
     Get information about a specific Elasticsearch index if it exists.
@@ -83,7 +83,9 @@ async def get_index_info(index: str = "", jwt_dict: Dict = Depends(verify_jwt)):
             raise HTTPException(
                 status_code=404, detail="No indices found for this user."
             )
-        return index_names
+        return JSONResponse(
+            content={"status": "success", "userID": uid, "indices": index_names}
+        )
 
     try:
         index_info = await es_processor.get_index(index)
