@@ -3,4 +3,6 @@ asyncio
 uvicorn
 fastapi
 aiohttp
+motor 
+pymongo
 python-dateutil

@@ -2,9 +2,9 @@
 
 
 import logging
+from typing import Dict, List, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
-from typing import Dict, List, Optional
 
 
 class AsyncMongoProcessor:
