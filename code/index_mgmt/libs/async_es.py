@@ -22,10 +22,12 @@ class AsyncESProcessor:
         async with self.session.get(es_url, auth=self.auth) as response:
             if response.status != 200:
                 logging.error(
-                    f"Failed to get health info. Status Code: {response.status} - {await response.text()}"
+                    "Failed to get health info. Status: %s - %s",
+                    response.status,
+                    await response.text(),
                 )
 
-            logging.debug(f"Cluster health: {await response.text()}")
+            logging.debug("Cluster health: %s", await response.text())
             return response
 
     async def get_index(self, index_name: str) -> Dict:
@@ -35,20 +37,23 @@ class AsyncESProcessor:
         await self._create_session()
         async with self.session.head(es_url, auth=self.auth) as response:
             if response.status == 200:
-                logging.info(f"Index '{index_name}' exists.")
                 async with self.session.get(es_url, auth=self.auth) as response:
                     if response.status == 200:
                         index_info = await response.json()
                         return index_info
                     else:
                         logging.error(
-                            f"Failed to retrieve index info. Status: {response.status} - {await response.text()}"
+                            "Failed to retrieve index info. Status: %s - %s",
+                            response.status,
+                            await response.text(),
                         )
             elif response.status == 404:
-                logging.error(f"Index '{index_name}' does not exist.")
+                logging.error("Index %s does not exist.", index_name)
             else:
                 logging.error(
-                    f"Failed to check index info. Status: {response.status} - {await response.text()}"
+                    "Failed to check index info. Status: %s - %s",
+                    response.status,
+                    await response.text(),
                 )
 
             return {}
@@ -61,11 +66,13 @@ class AsyncESProcessor:
         async with self.session.get(es_url, auth=self.auth) as response:
             if response.status != 200:
                 logging.error(
-                    f"Failed to get mappings. Status Code: {response.status} - {await response.text()}"
+                    "Failed to get mappings. Status: %s - %s",
+                    response.status,
+                    await response.text(),
                 )
 
             mappings = await response.json()
-            logging.info(f"Retrieved mappings for index: {index_name}")
+            logging.info("Retrieved mappings for index: %s", index_name)
             return mappings
 
     async def send_to_es(
@@ -76,14 +83,16 @@ class AsyncESProcessor:
 
         await self._create_session()
         async with self.session.put(es_url, json=msg, auth=self.auth) as response:
-            logging.info(f"Index: {index_name} Document ID: {doc_id}")
+            logging.info("Index: %s - Document ID: %s", index_name, doc_id)
             if response.status == 201:
                 logging.info("Document created successfully.")
             elif response.status == 200:
                 logging.info("Document updated successfully.")
             else:
                 logging.error(
-                    f"Failed to send data to Elasticsearch. Status code: {response.status} - {await response.text()}"
+                    "Failed to send data to Elasticsearch. Status %s - %s",
+                    response.status,
+                    await response.text(),
                 )
 
             return response
