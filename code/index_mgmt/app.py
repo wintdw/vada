@@ -66,13 +66,24 @@ async def get_index_info(index: str = "", jwt_dict: Dict = Depends(verify_jwt)):
     uid = jwt_dict.get("id")
 
     owned_indices = await mongo_processor.find_documents(
-        MONGO_DB, MONGO_COLL, {"userID": bson.ObjectId(uid)}
+        MONGO_DB,
+        MONGO_COLL,
+        {
+            "userID": bson.ObjectId(uid),
+        },
     )
 
-    logging.debug(owned_indices)
+    index_names = [owned_index["name"] for owned_index in owned_indices]
+
+    logging.debug(index_names)
 
     if not index:
-        return owned_indices
+        # Return list of index names if no index parameter is provided
+        if not index_names:
+            raise HTTPException(
+                status_code=404, detail="No indices found for this user."
+            )
+        return index_names
 
     try:
         index_info = await es_processor.get_index(index)
