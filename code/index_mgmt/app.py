@@ -57,7 +57,7 @@ async def check_health():
 
 
 @app.get("/v1/index", response_model=Dict)
-async def get_index_info(index: str, jwt_dict: Dict = Depends(verify_jwt)):
+async def get_index_info(index: str = "", jwt_dict: Dict = Depends(verify_jwt)):
     """
     Get information about a specific Elasticsearch index if it exists.
     """
@@ -65,11 +65,14 @@ async def get_index_info(index: str, jwt_dict: Dict = Depends(verify_jwt)):
     mongo_processor = app.state.mongo_processor
     uid = jwt_dict.get("id")
 
-    owned_indices = mongo_processor.find_documents(
+    owned_indices = await mongo_processor.find_documents(
         MONGO_DB, MONGO_COLL, {"userID": bson.ObjectId(uid)}
     )
 
     logging.debug(owned_indices)
+
+    if not index:
+        return owned_indices
 
     try:
         index_info = await es_processor.get_index(index)
