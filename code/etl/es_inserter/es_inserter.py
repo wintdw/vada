@@ -83,7 +83,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                     .get("destination", {})
                     .get("index", "")
                 )
-            except:
+            except Exception:
                 index_name = ""
 
             if not index_name:
@@ -98,7 +98,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             try:
                 # doc_id
                 doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
-            except:
+            except Exception:
                 doc_id = ""
 
             if not doc_id:
