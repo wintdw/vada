@@ -75,13 +75,17 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         for line in json_lines:
             event = json.loads(line)
 
-            # index_name
-            index_name = (
-                event.get("_vada", {})
-                .get("ingest", {})
-                .get("destination", {})
-                .get("index", "")
-            )
+            try:
+                # index_name
+                index_name = (
+                    event.get("_vada", {})
+                    .get("ingest", {})
+                    .get("destination", {})
+                    .get("index", "")
+                )
+            except:
+                index_name = ""
+
             if not index_name:
                 if "index_name" not in event:
                     logging.error(event)
@@ -91,8 +95,12 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                     )
                 index_name = event["index_name"]
 
-            # doc_id
-            doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+            try:
+                # doc_id
+                doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+            except:
+                doc_id = ""
+
             if not doc_id:
                 doc_id = libs.utils.generate_docid(doc)
 
