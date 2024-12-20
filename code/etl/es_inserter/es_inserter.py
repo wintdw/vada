@@ -8,13 +8,13 @@ import os
 import json
 import logging
 import traceback
-from fastapi import (
+from fastapi import (  # type: ignore
     FastAPI,
     Request,
     HTTPException,
     status,
 )
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse  # type: ignore
 
 import libs.utils
 from libs.async_es import AsyncESProcessor
@@ -76,7 +76,6 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             event = json.loads(line)
 
             try:
-                # index_name
                 index_name = (
                     event.get("_vada", {})
                     .get("ingest", {})
@@ -96,7 +95,6 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                 index_name = event["index_name"]
 
             try:
-                # doc_id
                 doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
             except Exception:
                 doc_id = ""
@@ -105,13 +103,14 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                 doc_id = libs.utils.generate_docid(doc)
 
             doc = libs.utils.remove_fields(event, ["index_name", "__meta", "_vada"])
-            logging.debug(doc)
+            # logging.debug(doc)
 
             response = await es_processor.send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
+                err_msg = await response.text()
                 logging.error(event)
-                logging.error(await response.text())
-                raise HTTPException(status_code=response.status)
+                logging.error(err_msg)
+                raise HTTPException(status_code=response.status, detail=err_msg)
 
             count += 1
 
