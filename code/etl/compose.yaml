@@ -1,9 +1,7 @@
 secrets:
   es_elastic:
     file: /var/secret/docker/es/elastic
-  es_elastic_vtad:
-    file: /var/secret/docker/es/elastic_vtad
-  mongo_vada:
+  mongo:
     file: /var/secret/docker/mongo/vada
 
 networks:
@@ -11,41 +9,6 @@ networks:
     driver: bridge
 
 services:
-  ingestor:
-    build:
-      context: .
-      dockerfile: Dockerfile.ingestor
-    image: ingestor:latest
-    container_name: ingestor
-    restart: always
-    environment:
-      PORT: "8000"
-      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      KAFKA_TOPIC: dev_input
-    ports:
-      - "8000:8000"
-    networks:
-      - etl-network
-
-  es_inserter_vtad:
-    build:
-      context: .
-      dockerfile: Dockerfile.es_inserter
-    image: es-inserter:latest
-    container_name: es_inserter_vtad
-    restart: always
-    environment:
-      PORT: "8001"
-      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
-      ELASTIC_USER: elastic
-      ELASTIC_URL: http://setup.internal.vadata.vn:9092
-    secrets:
-      - es_elastic_vtad
-    ports:
-      - "8001:8001"
-    networks:
-      - etl-network
-
   es_inserter:
     build:
       context: .
@@ -54,14 +17,30 @@ services:
     container_name: es_inserter
     restart: always
     environment:
-      PORT: "8002"
+      PORT: "8000"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
     secrets:
       - es_elastic
     ports:
-      - "8002:8002"
+      - "8000:8000"
+    networks:
+      - etl-network
+
+  ingestor:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingestor
+    image: ingestor:latest
+    container_name: ingestor
+    restart: always
+    environment:
+      PORT: "8001"
+      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
+      KAFKA_TOPIC: dev_input
+    ports:
+      - "8001:8001"
     networks:
       - etl-network
   
@@ -73,18 +52,18 @@ services:
     container_name: kafka_to_es
     restart: always
     environment:
-      PORT: "8003"
+      PORT: "8002"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
-      MONGO_URI_FILE: /run/secrets/mongo_vada
+      MONGO_URI_FILE: /run/secrets/mongo
     secrets:
       - es_elastic
-      - mongo_vada
+      - mongo
     ports:
-      - "8003:8003"
+      - "8002:8002"
     networks:
       - etl-network
 
