@@ -8,7 +8,7 @@ import logging
 import asyncio
 from typing import Dict
 
-import bson
+import bson # type: ignore
 
 import libs.utils
 from libs.async_es import AsyncESProcessor

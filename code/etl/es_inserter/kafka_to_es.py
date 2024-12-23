@@ -6,8 +6,8 @@
 import os
 import logging
 import asyncio
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI # type: ignore
+from fastapi.responses import JSONResponse # type: ignore
 
 from es_inserter.async_proc import AsyncProcessor
 
