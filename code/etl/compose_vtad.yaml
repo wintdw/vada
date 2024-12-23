@@ -38,7 +38,7 @@ services:
     environment:
       PORT: "7001"
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      KAFKA_TOPIC: vtad_input
+      KAFKA_TOPIC: vtad_ingest
     ports:
       - "7001:7001"
     networks:
@@ -57,7 +57,7 @@ services:
       ELASTIC_USER: elastic
       ELASTIC_URL: http://jump-vtad.internal.vadata.vn:9092
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      KAFKA_TOPIC: vtad_input
+      KAFKA_TOPIC: vtad_ingest
       MONGO_URI_FILE: /run/secrets/mongo_vtad
     secrets:
       - es_elastic_vtad
