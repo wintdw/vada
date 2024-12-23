@@ -2,7 +2,7 @@ secrets:
   es_elastic_vtad:
     file: /var/secret/docker/es/elastic_vtad
   mongo_vtad:
-    file: /var/secret/docker/mongo/vada
+    file: /var/secret/docker/mongo/vtad
 
 networks:
   etl-vtad-network:
