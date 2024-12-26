@@ -7,7 +7,7 @@ from models import Payload
 
 router = APIRouter()
 
-@router.get("/v1/query", response_model=JSONResponse, tags=["Query"])
+@router.get("/v1/query", tags=["Query"])
 async def get_query(payload: Payload, jwt_dict: Dict = Depends(verify_jwt)):
     headers = {
         "Content-Type": "application/json"
