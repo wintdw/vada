@@ -2,7 +2,7 @@ import json
 import os
 import logging
 from datetime import datetime
-from fastapi import FastAPI, Request, HTTPException  # type: ignore
+from fastapi import FastAPI, Request, HTTPException, status  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 
@@ -39,14 +39,17 @@ async def capture_json(request: Request):
         json_data = await request.json()
     except json.JSONDecodeError:
         logging.error(request.body())
-        raise HTTPException(status_code=400, detail="Invalid JSON data")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON data"
+        )
 
     os.makedirs(DIR_PATH, exist_ok=True)
 
     table_fullname = json_data.get("table_fullname")
     if not table_fullname:
         raise HTTPException(
-            status_code=400, detail="Missing 'table_fullname' in the request data"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing 'table_fullname' in the request data",
         )
 
     date_str = datetime.now().strftime("%Y%m%d")
@@ -59,4 +62,4 @@ async def capture_json(request: Request):
         return JSONResponse(content={"detail": "Data captured successfully!"})
     except Exception as e:
         logging.error("Failed to write data to %s, %s", file_path, e)
-        raise HTTPException(status_code=500)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
