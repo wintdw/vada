@@ -10,6 +10,8 @@ services:
     image: ihn_change_receiver:latest
     container_name: ihn_change_receiver
     restart: always
+    volumes:
+      - /var/lib/ihn/changes:/app/data
     environment:
       PORT: "9243"
     ports:
