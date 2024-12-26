@@ -1,0 +1,16 @@
+networks:
+  query-network:
+    driver: bridge
+
+services:
+  query-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: query-api:latest
+    container_name: query_api
+    restart: always
+    ports:
+      - "8003:8003"
+    networks:
+      - query-network
