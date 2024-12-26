@@ -1,0 +1,18 @@
+networks:
+  ihn-network:
+    driver: bridge
+
+services:
+  ihn_change_receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ihn_change_receiver:latest
+    container_name: ihn_change_receiver
+    restart: always
+    environment:
+      PORT: "9243"
+    ports:
+      - "9243:9243"
+    networks:
+      - ihn-network
