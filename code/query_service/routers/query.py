@@ -14,5 +14,5 @@ async def get_query(payload: Payload, jwt_dict: Dict = Depends(verify_jwt)):
     headers = {
         "Content-Type": "application/json"
     }
-    post_response = requests.post("https://dev-qe.vadata.vn/query", data=json.dumps(payload), headers=headers)
+    post_response = requests.post("https://dev-qe.vadata.vn/query", data=json.dumps(payload.dict()), headers=headers)
     return JSONResponse(content=post_response.json())
