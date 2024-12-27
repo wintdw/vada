@@ -13,8 +13,8 @@ services:
     volumes:
       - /var/lib/ihn/changes:/app/data
     environment:
-      PORT: "9243"
+      PORT: "8050"
     ports:
-      - "9243:9243"
+      - "8050:8050"
     networks:
       - ihn-network
