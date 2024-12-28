@@ -8,7 +8,7 @@ import logging
 import asyncio
 from typing import Dict
 
-import bson # type: ignore
+import bson  # type: ignore
 
 import libs.utils
 from libs.async_es import AsyncESProcessor
@@ -110,6 +110,7 @@ class AsyncProcessor:
 
         es_mapping = await self.es.get_es_index_mapping(index_name)
         mapping_dict = {"name": index_name}
+        mapping_dict["deleted"] = True
         mapping_dict["userID"] = bson.ObjectId(user_id)
         mapping_dict["friendly_name"] = index_friendly_name
         mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
