@@ -1,6 +1,6 @@
 from fastapi import FastAPI  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
-from routers import query
+from routers import filter
 
 app = FastAPI()
 
@@ -9,4 +9,4 @@ app = FastAPI()
 async def check_health():
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
-app.include_router(query.router)
+app.include_router(filter.router)

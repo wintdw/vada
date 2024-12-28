@@ -1,20 +1,15 @@
 import jwt
-import logging
 from typing import Dict
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from models import JWTPayload
+from tools import setup_logger
 
 
 TOKEN_SECRET = ""
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
+logger = setup_logger("security")
 
 def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
     """

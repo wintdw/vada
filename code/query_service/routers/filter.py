@@ -4,14 +4,16 @@ from fastapi.responses import JSONResponse  # type: ignore
 import requests
 import json
 
-from tools import verify_jwt, logger
+from tools import verify_jwt, setup_logger
 
 router = APIRouter()
+logger = setup_logger("filter")
+
 PERMISSION_ENDPOINT = ""
 QUERY_ENGINE_ENDPOINT = "https://dev-qe.vadata.vn/query"
 
 @router.get("/v1/filter", tags=["Filter"])
-async def get_query(request: Request, jwt_dict: Dict = Depends(verify_jwt)):
+async def get_filter(request: Request, jwt_dict: Dict = Depends(verify_jwt)):
     headers = {"Content-Type": "application/json"}
     try:
         json = await request.json()
