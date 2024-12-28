@@ -30,8 +30,8 @@ async def get_filter(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
         logger.debug(f"Received permission response: {permission_json}")
 
         json["filter"] = {
-            condition = "AND",
-            rules = permission_json["data"][0]["filters"]
+            "condition": "AND",
+            "rules": permission_json["data"][0]["filters"]
         }
         logger.debug(f"Sending object to QE: {json}")
 
