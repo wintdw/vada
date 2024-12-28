@@ -100,6 +100,7 @@ async def process_jsonl(
     finally:
         await kafka_processor.close()
 
+    logging.debug(f"{successful_count} messages received")
     # Response
     response = {
         "status": "success",
