@@ -26,8 +26,9 @@ async def get_filter(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
         permission_get_response = requests.get(
             f"{PERMISSION_ENDPOINT}/v1/{user_id}/{index_name}",
         )
-        json["filter"] = permission_get_response["data"]
+        logger.info(f"Received permission response: {json}")
 
+        json["filter"] = permission_get_response["data"]
         qe_post_response = requests.post(
             QUERY_ENGINE_ENDPOINT,
             headers=headers,
