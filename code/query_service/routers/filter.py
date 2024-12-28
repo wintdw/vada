@@ -29,14 +29,18 @@ async def get_filter(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
         permission_json = permission_get_response.json()
         logger.debug(f"Received permission response: {permission_json}")
 
-        json["filter"] = permission_json["data"]
-        logger.debug(f"Sending object: {json}")
+        json["filter"] = {
+            condition = "AND",
+            rules = permission_json["data"][0]["filters"]
+        }
+        logger.debug(f"Sending object to QE: {json}")
 
         qe_post_response = requests.post(
             QUERY_ENGINE_ENDPOINT,
             headers=headers,
             json=json
         )
+        logger.debug(f"Received from EQ: {qe_post_response}")
         return JSONResponse(content=qe_post_response.json())
 
     except Exception as err:
