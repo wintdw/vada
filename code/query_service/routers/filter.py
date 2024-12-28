@@ -15,7 +15,7 @@ QUERY_ENGINE_ENDPOINT = "https://dev-qe.vadata.vn/query"
 @router.get("/v1/filter", tags=["Filter"])
 async def get_filter(request: Request, jwt_dict: Dict = Depends(verify_jwt)):
     headers = {"Content-Type": "application/json"}
-    logging.debug(f"Authenticated as {jwt['name']}")
+    logger.debug(f"Authenticated as {jwt['name']}")
     try:
         json = await request.json()
         logger.info(f"Received object: {json}")
