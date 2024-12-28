@@ -3,13 +3,10 @@ from typing import Dict
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from models import JWTPayload
-from tools import setup_logger
-
 
 TOKEN_SECRET = ""
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-logger = setup_logger("security")
 
 def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
     """
@@ -28,7 +25,6 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
         payload = jwt.decode(
             token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
         )
-        logging.debug(f"Authenticated as {payload.get('name')}")
 
         # Convert payload to JWTPayload model for validation
         JWTPayload(**payload)
