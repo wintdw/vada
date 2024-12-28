@@ -8,7 +8,7 @@ TOKEN_SECRET = ""
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
+def verify_jwt(token: str = Depends(oauth2_scheme)) -> JWTPayload:
     """
     Function to verify the JWT Token header from client
 

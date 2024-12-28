@@ -5,25 +5,35 @@ import requests
 import json
 
 from tools import verify_jwt, setup_logger
+from models import JWTPayload
 
 router = APIRouter()
 logger = setup_logger("filter")
 
-PERMISSION_ENDPOINT = ""
+PERMISSION_ENDPOINT = "https://acl.vadata.vn"
 QUERY_ENGINE_ENDPOINT = "https://dev-qe.vadata.vn/query"
 
 @router.get("/v1/filter", tags=["Filter"])
-async def get_filter(request: Request, jwt_dict: Dict = Depends(verify_jwt)):
+async def get_filter(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
+    logger.debug(f"Authenticated as {jwt.name}")
+    user_id = jwt.id
     headers = {"Content-Type": "application/json"}
-    logger.debug(f"Authenticated as {jwt_dict['name']}")
     try:
         json = await request.json()
         logger.info(f"Received object: {json}")
-        post_response = requests.post(
+        index_name = json["index"]
+
+        permission_get_response = requests.get(
+            f"{PERMISSION_ENDPOINT}/v1/{user_id}/{index_name}",
+        )
+        json["filter"] = permission_get_response["data"]
+
+        qe_post_response = requests.post(
             QUERY_ENGINE_ENDPOINT,
             headers=headers,
             json=json
         )
-        return JSONResponse(content=post_response.json())
+        return JSONResponse(content=qe_post_response.json())
+
     except Exception as err:
         logger.error(f"{err}")
