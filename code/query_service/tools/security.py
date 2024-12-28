@@ -26,10 +26,7 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> JWTPayload:
             token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
         )
 
-        # Convert payload to JWTPayload model for validation
-        JWTPayload(**payload)
-
-        return payload
+        return JWTPayload(**payload)
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(
