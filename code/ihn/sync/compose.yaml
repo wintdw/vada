@@ -1,0 +1,11 @@
+services:
+  ihn_data_sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ihn_data_sync:latest
+    container_name: ihn_data_sync
+    environment:
+      MYSQL_URI: "mysql://test:test@mysql00.internal.vadata.vn:3306"
+      TARGET_ENDPOINT: "https://services.vadata.vn/ihn/capture"
+      SCAN_INTERVAL: 1

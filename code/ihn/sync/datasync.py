@@ -1,23 +1,33 @@
 import mysql.connector
 from urllib.parse import urlparse
 import time
-import argparse
 import hashlib
 import json
 import datetime
 import requests
+import os
 
-def convert_datetime_to_timestamp(data):
+mysql_uri = os.getenv("MYSQL_URI")
+target = os.getenv("TARGET_ENDPOINT")
+interval = os.getenv("SCAN_INTERVAL", 10)
+
+def transform_data(data):
     for record in data:
         for key, value in record.items():
             if isinstance(value, datetime.datetime):
                 record[key] = int(value.timestamp() * 1000)
+            elif key in ("address", "permanent_adress", "phone", "identity_number"):
+                record[key] = hashlib.sha256(value.encode('utf-8')).hexdigest()
+            elif key in ("email"):
+                local_part, domain_part = value.split('@')
+                hashed_local_part = hashlib.sha256(local_part.encode('utf-8')).hexdigest()
+                record[key] = f"{hashed_local_part}@{domain_part}"
     return data
 
 def query_updated_tables_and_rows(mysql_uri, target, interval):
 
     query_time = int(time.time() * 1000)
-    time_value = query_time - (interval * 60 * 1000)
+    time_value = query_time - (int(interval) * 60 * 1000)
     chunk_size = 100
 
     query_time_str = str(query_time).encode('utf-8')
@@ -78,7 +88,7 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
                 if not results:
                     break
 
-                results = convert_datetime_to_timestamp(results)
+                results = transform_data(results)
                 json_string = json.dumps(results)
                 data_hash = hashlib.sha256(json_string.encode('utf-8')).hexdigest()
 
@@ -94,6 +104,7 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
                     "data": results
                 }
                 headers = {'Content-Type': 'application/json'}
+                print(f"Sending {data}")
                 response = requests.post(target, json=data, headers=headers)
 
         for item in modified_at_items:
@@ -112,7 +123,7 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
                 if not results:
                     break
 
-                results = convert_datetime_to_timestamp(results)
+                results = transform_data(results)
                 json_string = json.dumps(results)
                 data_hash = hashlib.sha256(json_string.encode('utf-8')).hexdigest()
 
@@ -128,6 +139,7 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
                     "data": results
                 }
                 headers = {'Content-Type': 'application/json'}
+                print(f"Sending {data}")
                 response = requests.post(target, json=data, headers=headers)
 
         for item in updated_at_items:
@@ -145,7 +157,7 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
                 if not results:
                     break
                 
-                results = convert_datetime_to_timestamp(results)
+                results = transform_data(results)
                 json_string = json.dumps(results)
                 data_hash = hashlib.sha256(json_string.encode('utf-8')).hexdigest()
 
@@ -161,6 +173,7 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
                     "data": results
                 }
                 headers = {'Content-Type': 'application/json'}
+                print(f"Sending {data}")
                 response = requests.post(target, json=data, headers=headers)
 
     except Exception as err:
@@ -182,16 +195,4 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
             connection.close()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Query MySQL database for recently updated tables and rows.")
-    parser.add_argument("--mysql", default="mysql://root:root@127.0.0.1:3306", help="MySQL URI (default: mysql://root:root@127.0.0.1:3306)")
-    parser.add_argument("--target", help="Target API")
-    parser.add_argument("--interval", default=10, type=int, help="Interval in minutes (default: 10)")
-
-    args = parser.parse_args()
-
-    query_updated_tables_and_rows(
-        mysql_uri=args.mysql,
-        target=args.target,
-        interval=args.interval
-    )
-
+    query_updated_tables_and_rows(mysql_uri, target, interval)
