@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ihn-data-sync-cronjob
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: ihn-data-sync
+            image: vada898989.azurecr.io/ihn_data_sync:latest
+            env:
+            - name: MYSQL_URI
+              value: "mysql://test:test@mysql00.internal.vadata.vn:3306"
+            - name: TARGET_ENDPOINT
+              value: "https://services.vadata.vn/ihn/capture"
+            - name: SCAN_INTERVAL
+              value: "10"
+          restartPolicy: OnFailure
+
