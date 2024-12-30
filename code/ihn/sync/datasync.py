@@ -16,7 +16,7 @@ def transform_data(data):
         for key, value in record.items():
             if isinstance(value, datetime.datetime):
                 record[key] = int(value.timestamp() * 1000)
-            elif key in ("email, address", "permanent_adress", "phone", "identity_number") and value is not None:
+            elif key in ("email", "address", "permanent_adress", "phone", "identity_number") and value is not None:
                 record[key] = hashlib.sha256(value.encode('utf-8')).hexdigest()
     return data
 
