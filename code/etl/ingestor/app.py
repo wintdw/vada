@@ -8,8 +8,8 @@ import asyncio
 import logging
 import traceback
 from typing import Dict
-from fastapi import FastAPI, HTTPException, Request, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request, Depends, status  # type: ignore
+from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
 import libs.utils

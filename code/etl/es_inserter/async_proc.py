@@ -13,7 +13,6 @@ import bson  # type: ignore
 import libs.utils
 from libs.async_es import AsyncESProcessor
 from libs.async_kafka import AsyncKafkaProcessor
-from libs.async_mongo import AsyncMongoProcessor
 
 
 class AsyncProcessor:
@@ -21,16 +20,11 @@ class AsyncProcessor:
         self,
         kafka_broker: str,
         es_conf_dict: Dict,
-        mongo_url: str,
     ):
         self.kafka = AsyncKafkaProcessor(kafka_broker)
         self.es = AsyncESProcessor(
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
         )
-        self.mongo = AsyncMongoProcessor(mongo_url)
-
-        # For setting mappings
-        self.lock = asyncio.Lock()
 
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
@@ -69,16 +63,8 @@ class AsyncProcessor:
                         "Failed to send to ES: %s - %s", doc, await response.text()
                     )
 
-                # copy mapping to mongo
-                # run sequentially
-                async with self.lock:
-                    await self.set_mapping(
-                        user_id,
-                        index_name,
-                        index_friendly_name,
-                        mongo_db="vada",
-                        mongo_coll="master_indices",
-                    )
+                # copy mapping using CRMAPI
+                await self.set_mapping(user_id, index_name, index_friendly_name)
 
         except Exception as e:
             error_trace = traceback.format_exc()
@@ -86,23 +72,17 @@ class AsyncProcessor:
             raise
         finally:
             await self.kafka.close()
-            await self.mongo.close()
             await self.es.close()
 
     # Set mapping if only mongo doesnt have mapping for the index
     # TODO: Use crm-api set mapping?
     async def set_mapping(
-        self,
-        user_id: str,
-        index_name: str,
-        index_friendly_name: str,
-        mongo_db: str,
-        mongo_coll: str,
+        self, user_id: str, index_name: str, index_friendly_name: str
     ):
         filter_condition = {"name": index_name}
-        mongo_mapping = await self.mongo.find_document(
-            mongo_db, mongo_coll, filter_condition
-        )
+
+        https://dev-crm-api.vadata.vn/v1/querybuilder/master_file/treebeard/
+
         if mongo_mapping:
             if "mappings" in mongo_mapping and mongo_mapping["mappings"]:
                 logging.info("Mapping exists, do nothing: %s", mongo_mapping)
