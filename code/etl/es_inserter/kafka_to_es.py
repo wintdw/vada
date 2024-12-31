@@ -6,8 +6,8 @@
 import os
 import logging
 import asyncio
-from fastapi import FastAPI # type: ignore
-from fastapi.responses import JSONResponse # type: ignore
+from fastapi import FastAPI  # type: ignore
+from fastapi.responses import JSONResponse  # type: ignore
 
 from es_inserter.async_proc import AsyncProcessor
 
@@ -24,13 +24,14 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
 
-MONGO_DB = os.getenv("MONGO_DB", "vada")
-MONGO_COLL = os.getenv("MONGO_COLL", "master_indices")
-MONGO_URI = ""
-mongo_uri_file = os.getenv("MONGO_URI_FILE", "")
-if mongo_uri_file and os.path.isfile(mongo_uri_file):
-    with open(mongo_uri_file, "r", encoding="utf-8") as file:
-        MONGO_URI = file.read().strip()
+CRM_BASEURL = os.getenv("CRM_BASEURL", "https://dev-crm-api.vadata.vn")
+CRM_USER = ""
+CRM_PASS = ""
+passwd_file = os.getenv("CRM_PASSWD_FILE", "")
+if passwd_file and os.path.isfile(passwd_file):
+    with open(passwd_file, "r", encoding="utf-8") as file:
+        content = file.read().strip()
+        CRM_USER, CRM_PASS = content.split(maxsplit=1)
 
 
 app = FastAPI()
@@ -59,7 +60,11 @@ async def background():
     then produce to ES topic
     """
     es_conf_dict = {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
-    processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, MONGO_URI)
+    crm_conf_dict = {
+        "auth": {"username": CRM_USER, "password": CRM_PASS},
+        "baseurl": CRM_BASEURL,
+    }
+    processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, crm_conf_dict)
 
     asyncio.create_task(
         processor.consume_then_produce(KAFKA_TOPIC, "es_inserter_group")

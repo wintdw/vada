@@ -6,11 +6,10 @@
 import traceback
 import logging
 import asyncio
-from typing import Dict
-
-import bson  # type: ignore
+from typing import Dict, Optional, Tuple
 
 import libs.utils
+from libs.crm import CRMAPI
 from libs.async_es import AsyncESProcessor
 from libs.async_kafka import AsyncKafkaProcessor
 
@@ -20,11 +19,43 @@ class AsyncProcessor:
         self,
         kafka_broker: str,
         es_conf_dict: Dict,
+        crm_conf_dict: Dict,
     ):
         self.kafka = AsyncKafkaProcessor(kafka_broker)
         self.es = AsyncESProcessor(
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
         )
+        # crm_conf_dict = {"auth": {}, "baseurl": ""}
+        self.crm = CRMAPI(crm_conf_dict["baseurl"])
+        self.crm.auth(crm_conf_dict["auth"])
+
+    async def process_msg(self, msg: Dict) -> Optional[Tuple[str, str, str]]:
+        """
+        Function to process single message from Kafka and send to ES.
+
+        Returns
+        (user_id, index_name, index_friendly_name) on success, None otherwise.
+        """
+        meta = msg.get("__vada", {})
+        index_name = meta.get("index_name")
+        index_friendly_name = meta.get("index_friendly_name", index_name)
+        user_id = meta.get("user_id")
+
+        # Skip if essential data is missing
+        if not index_name or not user_id:
+            logging.warning("Missing required fields, skipping message: %s", msg)
+            return None
+
+        doc = libs.utils.remove_fields(msg, ["__vada"])
+        doc_id = libs.utils.generate_docid(doc)
+        logging.info(doc)
+
+        # send to ES
+        response = await self.es.send_to_es(index_name, doc_id, doc)
+        if response.status not in {200, 201}:
+            logging.error("Failed to send to ES: %s - %s", doc, await response.text())
+
+        return (user_id, index_name, index_friendly_name)
 
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
@@ -33,38 +64,30 @@ class AsyncProcessor:
 
         try:
             while True:
-                input_msg = await self.kafka.consume_message()
+                input_msgs = await self.kafka.consume_messages()
                 # If no message retrieved
-                if not input_msg:
+                if not input_msgs:
                     await asyncio.sleep(3.0)
                     continue
 
-                # Extract __meta once to avoid redundant lookups
-                meta = input_msg.get("__meta", {})
-                index_name = meta.get("index_name")
-                index_friendly_name = meta.get("index_friendly_name", index_name)
-                user_id = meta.get("user_id")
-
-                # Skip if essential data is missing
-                if not index_name or not user_id:
-                    logging.warning(
-                        "Missing required fields, skipping message: %s", input_msg
+                # Use set to avoid duplicate mappings
+                unique_tuples = set()
+                for input_msg in input_msgs:
+                    user_id, index_name, index_friendly_name = await self.process_msg(
+                        input_msg
                     )
-                    continue
+                    unique_tuples.add((user_id, index_name, index_friendly_name))
 
-                doc = libs.utils.remove_fields(input_msg, ["__meta"])
-                doc_id = libs.utils.generate_docid(doc)
-                logging.info(doc)
-
-                # send to ES
-                response = await self.es.send_to_es(index_name, doc_id, doc)
-                if response.status not in {200, 201}:
-                    logging.error(
-                        "Failed to send to ES: %s - %s", doc, await response.text()
-                    )
-
-                # copy mapping using CRMAPI
-                await self.set_mapping(user_id, index_name, index_friendly_name)
+                for user_id, index_name, index_friendly_name in unique_tuples:
+                    try:
+                        await self.set_mapping(user_id, index_name, index_friendly_name)
+                    except Exception as e:
+                        error_trace = traceback.format_exc()
+                        logging.error(
+                            "Exception on setting Mappings for index_name: %s\nTraceback: %s",
+                            e,
+                            error_trace,
+                        )
 
         except Exception as e:
             error_trace = traceback.format_exc()
@@ -74,28 +97,12 @@ class AsyncProcessor:
             await self.kafka.close()
             await self.es.close()
 
-    # Set mapping if only mongo doesnt have mapping for the index
-    # TODO: Use crm-api set mapping?
     async def set_mapping(
         self, user_id: str, index_name: str, index_friendly_name: str
     ):
-        filter_condition = {"name": index_name}
-
-        https://dev-crm-api.vadata.vn/v1/querybuilder/master_file/treebeard/
-
-        if mongo_mapping:
-            if "mappings" in mongo_mapping and mongo_mapping["mappings"]:
-                logging.info("Mapping exists, do nothing: %s", mongo_mapping)
-                return
-
         es_mapping = await self.es.get_es_index_mapping(index_name)
-        mapping_dict = {"name": index_name}
-        mapping_dict["deleted"] = True
-        mapping_dict["userID"] = bson.ObjectId(user_id)
-        mapping_dict["friendly_name"] = index_friendly_name
-        mapping_dict["mappings"] = es_mapping[index_name]["mappings"]
-        logging.info("Set mapping: %s", mapping_dict)
+        mappings = es_mapping[index_name]["mappings"]
+        logging.debug("Setting mappings: %s", mappings)
 
-        await self.mongo.upsert_document(
-            mongo_db, mongo_coll, filter_condition, mapping_dict
-        )
+        # Set the mapping in CRM
+        await self.crm.set_mappings(user_id, index_name, index_friendly_name, mappings)

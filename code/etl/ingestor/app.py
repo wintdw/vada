@@ -81,7 +81,7 @@ async def process_jsonl(
         tasks = []
         for json_msg in json_converted_msgs:
             try:
-                json_msg["__meta"]["user_id"] = user_id
+                json_msg["__vada"]["user_id"] = user_id
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(KAFKA_TOPIC, json_msg))
                 successful_count += 1

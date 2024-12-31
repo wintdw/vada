@@ -1,8 +1,8 @@
 import asyncio
 import json
 import logging
-from typing import Dict, Any, Optional
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+from typing import List, Dict, Any, Optional
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer  # type: ignore
 
 
 class AsyncKafkaProcessor:
@@ -31,19 +31,32 @@ class AsyncKafkaProcessor:
             await self.consumer.start()
             logging.info(f"Kafka consumer started for topic: {topic}")
 
-    async def consume_message(self) -> Optional[Dict[str, Any]]:
+    async def consume_message(self) -> Dict[str, Any]:
         """Consume a single message from Kafka."""
         if not self.consumer:
             logging.error("Consumer is not initialized. Call `create_consumer` first.")
             return
 
-        try:
-            message = await self.consumer.getone()
-            logging.info(f"Consumed message: {message.value.decode('utf-8')}")
-            return json.loads(message.value.decode("utf-8"))
-        except Exception as e:
-            logging.error(f"Error consuming message: {e}")
-            raise
+        message = await self.consumer.getone()
+        logging.info(f"Consumed message: {message.value.decode('utf-8')}")
+        return json.loads(message.value.decode("utf-8"))
+
+    async def consume_messages(self, batch_size: int = 10) -> List[Dict[str, Any]]:
+        """Consume a batch of messages from Kafka."""
+        if not self.consumer:
+            logging.error("Consumer is not initialized. Call `create_consumer` first.")
+            return []
+
+        messages = []
+        async for msg_batch in self.consumer.getmany(max_records=batch_size):
+            logging.info("Consumed %s messages", batch_size)
+            for msgs in msg_batch.values():
+                for message in msgs:
+                    messages.append(json.loads(message.value.decode("utf-8")))
+                    if len(messages) >= batch_size:
+                        return messages
+
+        return messages
 
     async def create_producer(self):
         """Initialize and start a Kafka producer."""
@@ -61,13 +74,9 @@ class AsyncKafkaProcessor:
             logging.error("Producer is not initialized. Call `create_producer` first.")
             return
 
-        try:
-            payload = json.dumps(message).encode("utf-8")
-            await self.producer.send_and_wait(topic, payload)
-            logging.info(f"Produced message to topic '{topic}': {message}")
-        except Exception as e:
-            logging.error(f"Error producing message: {e}")
-            raise
+        payload = json.dumps(message).encode("utf-8")
+        await self.producer.send_and_wait(topic, payload)
+        logging.info(f"Produced message to topic '{topic}': {message}")
 
     async def close(self):
         """Stop both the consumer and producer."""

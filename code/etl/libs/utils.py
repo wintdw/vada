@@ -133,7 +133,7 @@ def process_msg(msg: str) -> Dict:
         ValidationError: If JSON is invalid or required fields are missing.
 
     Returns:
-        Dict: A processed JSON object with a `__meta` field.
+        Dict: A processed JSON object with a `__vada` field.
     """
     try:
         json_msg = json.loads(msg)
@@ -146,12 +146,12 @@ def process_msg(msg: str) -> Dict:
     if "IndexName" not in json_msg:
         raise ValidationError("Missing required field: 'IndexName'.")
 
-    # update __meta field
-    json_msg["__meta"] = {}
-    json_msg["__meta"]["index_name"] = json_msg["IndexName"]
+    # update __vada field
+    json_msg["__vada"] = {}
+    json_msg["__vada"]["index_name"] = json_msg["IndexName"]
 
     if "FriendlyName" in json_msg:
-        json_msg["__meta"]["index_friendly_name"] = json_msg["FriendlyName"]
+        json_msg["__vada"]["index_friendly_name"] = json_msg["FriendlyName"]
 
     # Remove specified fields
     fields_to_remove = ["IndexName", "FriendlyName"]

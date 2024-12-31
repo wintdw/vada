@@ -1,8 +1,8 @@
 secrets:
   es_elastic:
     file: /var/secret/docker/es/elastic
-  mongo:
-    file: /var/secret/docker/mongo/vada
+  crm_user7500:
+    file: /var/secret/docker/crm/user7500
 
 networks:
   etl-network:
@@ -58,10 +58,11 @@ services:
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
-      MONGO_URI_FILE: /run/secrets/mongo
+      CRM_BASEURL: "https://dev-crm-api.vadata.vn"
+      CRM_PASSWD_FILE: /run/secrets/crm_user7500
     secrets:
       - es_elastic
-      - mongo
+      - crm
     ports:
       - "8002:8002"
     networks:

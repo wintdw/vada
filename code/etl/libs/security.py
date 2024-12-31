@@ -40,7 +40,7 @@ class JWTPayload(BaseModel):
         }
 
 
-async def get_access_token():
+async def get_access_token(username: str, password: str) -> str:
     """
     Function to call the login API and extract the access token.
 
@@ -48,7 +48,7 @@ async def get_access_token():
         str: The access token from the response.
     """
     url = "https://dev-crm-api.vadata.vn/auth/login"
-    payload = {"username": "user7500", "password": "smRmUd9fhhsSH8nT"}
+    payload = {"username": username, "password": password}
     headers = {"Content-Type": "application/json"}
 
     async with aiohttp.ClientSession() as session:
@@ -60,7 +60,9 @@ async def get_access_token():
                 return access_token
             else:
                 logging.error(
-                    "Failed to retrieve access token, status code: %d", response.status
+                    "Failed to retrieve access token, status code: %d, detail: %s",
+                    response.status,
+                    await response.text(),
                 )
                 return None
 
