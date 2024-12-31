@@ -41,22 +41,32 @@ class AsyncKafkaProcessor:
         logging.info(f"Consumed message: {message.value.decode('utf-8')}")
         return json.loads(message.value.decode("utf-8"))
 
-    async def consume_messages(self, batch_size: int = 10) -> List[Dict[str, Any]]:
+    async def consume_messages(
+        self, batch_size: int = 10, timeout_ms: int = 1000
+    ) -> List[Dict[str, Any]]:
         """Consume a batch of messages from Kafka."""
         if not self.consumer:
             logging.error("Consumer is not initialized. Call `create_consumer` first.")
-            return []
+            return None
 
-        messages = []
-        async for msg_batch in self.consumer.getmany(max_records=batch_size):
-            logging.info("Consumed %s messages", batch_size)
-            for msgs in msg_batch.values():
-                for message in msgs:
-                    messages.append(json.loads(message.value.decode("utf-8")))
-                    if len(messages) >= batch_size:
-                        return messages
+        consumed_messages = []
+        data = await self.consumer.getmany(
+            max_records=batch_size, timeout_ms=timeout_ms
+        )
+        for _, msgs in data.items():
+            logging.info("Consumed %s messages", len(msgs))
+            consumed_messages.extend(
+                [
+                    json.loads(decoded_message)
+                    for decoded_message in (
+                        message.value.decode("utf-8") for message in msgs
+                    )
+                ]
+            )
+            if len(consumed_messages) >= batch_size:
+                return consumed_messages
 
-        return messages
+        return consumed_messages
 
     async def create_producer(self):
         """Initialize and start a Kafka producer."""
