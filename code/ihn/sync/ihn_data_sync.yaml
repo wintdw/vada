@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: ihn-data-sync-cronjob
 spec:
-  schedule: "* * * * *"
+  schedule: "*/10 * * * *"
   jobTemplate:
     spec:
       template:
@@ -12,11 +12,17 @@ spec:
           - name: ihn-data-sync
             image: vada898989.azurecr.io/ihn_data_sync:latest
             env:
-            - name: MYSQL_URI
-              value: "mysql://test:test@mysql00.internal.vadata.vn:3306"
+            - name: MYSQL_USERNAME
+              value: "test"
+            - name: MYSQL_PASSWORD
+              value: "test#2024"
+            - name: MYSQL_HOSTNAME
+              value: "mysql00.internal.vadata.vn"
+            - name: MYSQL_PORT
+              value: "3306"
             - name: TARGET_ENDPOINT
               value: "https://services.vadata.vn/ihn/capture"
             - name: SCAN_INTERVAL
-              value: "10"
+              value: "15"
           restartPolicy: OnFailure
 

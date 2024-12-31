@@ -1,5 +1,4 @@
 import mysql.connector
-from urllib.parse import urlparse
 import time
 import hashlib
 import json
@@ -7,7 +6,10 @@ import datetime
 import requests
 import os
 
-mysql_uri = os.getenv("MYSQL_URI")
+username = os.getenv("MYSQL_USERNAME")
+password = os.getenv("MYSQL_PASSWORD")
+hostname = os.getenv("MYSQL_HOSTNAME")
+port = os.getenv("MYSQL_PORT")
 target = os.getenv("TARGET_ENDPOINT")
 interval = os.getenv("SCAN_INTERVAL", 10)
 
@@ -20,7 +22,7 @@ def transform_data(data):
                 record[key] = hashlib.sha256(value.encode('utf-8')).hexdigest()
     return data
 
-def query_updated_tables_and_rows(mysql_uri, target, interval):
+def query_updated_tables_and_rows(username, password, hostname, port, target, interval):
 
     query_time = int(time.time() * 1000)
     time_value = query_time - (int(interval) * 60 * 1000)
@@ -30,13 +32,11 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
     query_id = hashlib.sha256(query_time_str).hexdigest()
 
     try:
-        url = urlparse(mysql_uri)
-
         connection = mysql.connector.connect(
-            host=url.hostname,
-            user=url.username,
-            password=url.password,
-            port=url.port,
+            host=hostname,
+            user=username,
+            password=password,
+            port=port,
             database="mysql"
         )
         cursor = connection.cursor(dictionary=True)
@@ -191,4 +191,4 @@ def query_updated_tables_and_rows(mysql_uri, target, interval):
             connection.close()
 
 if __name__ == "__main__":
-    query_updated_tables_and_rows(mysql_uri, target, interval)
+    query_updated_tables_and_rows(username, password, hostname, port, target, interval)
