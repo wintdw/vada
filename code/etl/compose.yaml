@@ -62,7 +62,7 @@ services:
       CRM_PASSWD_FILE: /run/secrets/crm_user7500
     secrets:
       - es_elastic
-      - crm
+      - crm_user7500
     ports:
       - "8002:8002"
     networks:
