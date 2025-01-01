@@ -26,6 +26,13 @@ async def test_login():
     assert "Authorization" in api.headers
     assert api.headers["Authorization"].startswith("Bearer ")
 
+    # Test failed login
+    invalid_user = "invalid_user"
+    invalid_pass = "invalid_pass"
+    with pytest.raises(Exception) as excinfo:
+        await api.auth(invalid_user, invalid_pass)
+    assert "Failed to authenticate user" in str(excinfo.value)
+
 
 @pytest.mark.asyncio
 async def test_check_index_created():

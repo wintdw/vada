@@ -42,7 +42,7 @@ class CRMAPI:
         if jwt_token:
             self.headers["Authorization"] = f"Bearer {jwt_token}"
         else:
-            raise Exception("Failed to authenticate user")
+            raise Exception(f"Failed to authenticate user: {user}")
 
     async def is_auth(self) -> bool:
         """
@@ -74,6 +74,7 @@ class CRMAPI:
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: dict
     ) -> dict:
         url = f"{self.baseurl}/v1/adm/indices"
+
         post_data = {"user_id": user_id}
         post_data["master_index"] = {
             "name": index_name,

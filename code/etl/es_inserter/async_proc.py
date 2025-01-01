@@ -27,9 +27,8 @@ class AsyncProcessor:
         )
         # crm_conf_dict = {"auth": {"username": "", "password": ""}, "baseurl": ""}
         self.crm = CRMAPI(crm_conf_dict["baseurl"])
-        self.crm.auth(
-            crm_conf_dict["auth"]["username"], crm_conf_dict["auth"]["password"]
-        )
+        self.crm_user = crm_conf_dict["auth"]["username"]
+        self.crm_passwd = crm_conf_dict["auth"]["password"]
 
     async def process_msg(self, msg: Dict) -> Optional[Tuple[str, str, str]]:
         """
@@ -105,6 +104,10 @@ class AsyncProcessor:
         es_mapping = await self.es.get_es_index_mapping(index_name)
         mappings = es_mapping[index_name]["mappings"]
         logging.debug("Setting mappings: %s", mappings)
+
+        # Auth & reauth
+        if not await self.crm.is_auth():
+            await self.crm.auth(self.crm_user, self.crm_passwd)
 
         # Set the mapping in CRM
         await self.crm.set_mappings(user_id, index_name, index_friendly_name, mappings)
