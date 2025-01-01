@@ -1,5 +1,6 @@
 import logging
 import aiohttp  # type: ignore
+from libs.security import verify_jwt, HTTPException
 
 
 class CRMAPI:
@@ -38,7 +39,25 @@ class CRMAPI:
         Function to authenticate the user and set the JWT token in headers.
         """
         jwt_token = await self._get_access_token(user, passwd)
-        self.headers["Authorization"] = f"Bearer {jwt_token}"
+        if jwt_token:
+            self.headers["Authorization"] = f"Bearer {jwt_token}"
+        else:
+            raise Exception("Failed to authenticate user")
+
+    async def is_auth(self) -> bool:
+        """
+        Function to check if the user is authenticated and if the JWT is still valid.
+        """
+        if "Authorization" not in self.headers:
+            return False
+
+        token = self.headers["Authorization"].split(" ")[1]
+        try:
+            verify_jwt(token)
+            return True
+        except HTTPException as e:
+            logging.debug("JWT verification failed: %s", e.detail)
+            return False
 
     async def check_index_created(self, index: str) -> dict:
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"

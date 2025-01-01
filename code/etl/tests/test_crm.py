@@ -1,7 +1,7 @@
 import os
+import pytest  # type: ignore
 import logging
 from libs.crm import CRMAPI
-import pytest  # type: ignore
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -12,7 +12,7 @@ logging.basicConfig(
 CRM_BASEURL = os.getenv("CRM_BASEURL", "https://dev-crm-api.vadata.vn")
 CRM_USER = ""
 CRM_PASS = ""
-passwd_file = os.getenv("CRM_PASSWD_FILE", "")
+passwd_file = os.getenv("CRM_PASSWD_FILE", "/var/secret/docker/crm/user7500")
 if passwd_file and os.path.isfile(passwd_file):
     with open(passwd_file, "r", encoding="utf-8") as file:
         content = file.read().strip()
@@ -33,5 +33,15 @@ async def test_check_index_created():
     await api.auth(CRM_USER, CRM_PASS)
     index = "demo_sale_data"
     response = await api.check_index_created(index)
-    assert response is not None
     assert isinstance(response, dict)
+
+
+@pytest.mark.asyncio
+async def test_is_auth():
+    api = CRMAPI(CRM_BASEURL)
+    await api.auth(CRM_USER, CRM_PASS)
+    assert await api.is_auth() is True
+
+    # Invalidate the token by modifying the headers
+    api.headers["Authorization"] = "Bearer invalid_token"
+    assert await api.is_auth() is False
