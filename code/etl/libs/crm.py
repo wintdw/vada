@@ -1,15 +1,44 @@
+import logging
 import aiohttp  # type: ignore
-
-from libs.security import get_access_token
 
 
 class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
+        self.headers = {}
 
-    def auth(self, auth_dict: dict) -> str:
-        jwt_token = get_access_token(auth_dict["username"], auth_dict["password"])
-        self.headers = {"Authorization": f"Bearer {jwt_token}"}
+    async def _get_access_token(self, username: str, password: str) -> str:
+        """
+        Function to call the login API and extract the access token.
+
+        Returns:
+            str: The access token from the response.
+        """
+        url = f"{self.baseurl}/auth/login"
+        payload = {"username": username, "password": password}
+        headers = {"Content-Type": "application/json"}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    access_token = data.get("access_token")
+                    logging.debug("Access token retrieved: %s", access_token)
+                    return access_token
+                else:
+                    logging.error(
+                        "Failed to retrieve access token, status code: %d, detail: %s",
+                        response.status,
+                        await response.text(),
+                    )
+                    return None
+
+    async def auth(self, user: str, passwd: str) -> str:
+        """
+        Function to authenticate the user and set the JWT token in headers.
+        """
+        jwt_token = await self._get_access_token(user, passwd)
+        self.headers["Authorization"] = f"Bearer {jwt_token}"
 
     async def check_index_created(self, index: str) -> dict:
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"

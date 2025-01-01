@@ -1,8 +1,6 @@
 import os
 import jwt
 import logging
-import asyncio
-import aiohttp
 from typing import Dict
 from pydantic import BaseModel
 from fastapi import Depends, HTTPException, status
@@ -38,33 +36,6 @@ class JWTPayload(BaseModel):
                 "exp": 1731306868,
             }
         }
-
-
-async def get_access_token(username: str, password: str) -> str:
-    """
-    Function to call the login API and extract the access token.
-
-    Returns:
-        str: The access token from the response.
-    """
-    url = "https://dev-crm-api.vadata.vn/auth/login"
-    payload = {"username": username, "password": password}
-    headers = {"Content-Type": "application/json"}
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as response:
-            if response.status == 200:
-                data = await response.json()
-                access_token = data.get("access_token")
-                logging.debug("Access token retrieved: %s", access_token)
-                return access_token
-            else:
-                logging.error(
-                    "Failed to retrieve access token, status code: %d, detail: %s",
-                    response.status,
-                    await response.text(),
-                )
-                return None
 
 
 def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:

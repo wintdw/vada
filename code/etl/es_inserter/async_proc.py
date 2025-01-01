@@ -25,9 +25,11 @@ class AsyncProcessor:
         self.es = AsyncESProcessor(
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
         )
-        # crm_conf_dict = {"auth": {}, "baseurl": ""}
+        # crm_conf_dict = {"auth": {"username": "", "password": ""}, "baseurl": ""}
         self.crm = CRMAPI(crm_conf_dict["baseurl"])
-        self.crm.auth(crm_conf_dict["auth"])
+        self.crm.auth(
+            crm_conf_dict["auth"]["username"], crm_conf_dict["auth"]["password"]
+        )
 
     async def process_msg(self, msg: Dict) -> Optional[Tuple[str, str, str]]:
         """
