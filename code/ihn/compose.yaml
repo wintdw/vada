@@ -6,7 +6,7 @@ services:
   ihn_change_receiver:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.receiver
     image: ihn_change_receiver:latest
     container_name: ihn_change_receiver
     restart: always
