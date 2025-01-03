@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI, Request, HTTPException, status  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from libs.async_es import AsyncESProcessor
+from receiver.processor import AsyncProcessor
 
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
@@ -20,7 +20,7 @@ DIR_PATH = "/app/data"
 
 app = FastAPI()
 logging.basicConfig(level=logging.DEBUG)
-processor = AsyncESProcessor(
+processor = AsyncProcessor(
     {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
 )
 
