@@ -10,7 +10,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /mnt/mysql/data:/var/lib/mysql
+      - /data/mysql/data:/var/lib/mysql
     secrets:
       - mysql_root_password
     networks:
