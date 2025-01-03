@@ -8,13 +8,13 @@ from tools import verify_jwt, setup_logger
 from models import JWTPayload
 
 router = APIRouter()
-logger = setup_logger("filter")
+logger = setup_logger("proxy")
 
 PERMISSION_ENDPOINT = "https://acl.vadata.vn"
 QUERY_ENGINE_ENDPOINT = "https://dev-qe.vadata.vn/query"
 
-@router.get("/v1/filter", tags=["Filter"])
-async def get_filter(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
+@router.post("/v1/proxy", tags=["Proxy"])
+async def proxy(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
     logger.debug(f"Authenticated as {jwt.name}")
     user_id = jwt.id
     headers = {"Content-Type": "application/json"}
