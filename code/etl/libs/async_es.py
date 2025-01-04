@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from typing import Dict
 from aiohttp import ClientSession, ClientResponse, BasicAuth  # type: ignore
 
@@ -81,7 +82,16 @@ class AsyncESProcessor:
         """Send data to a specific Elasticsearch index."""
         es_url = f"{self.es_baseurl}/{index_name}/_doc/{doc_id}"
 
-        await self._create_session()
+        max_retries = 3
+        for attempt in range(max_retries):
+            await self._create_session()
+            if self.session is not None:
+                break
+            logging.warning("Session creation failed, retrying...")
+            await asyncio.sleep(1)
+        else:
+            raise RuntimeError("Failed to create session after retries")
+
         async with self.session.put(es_url, json=msg, auth=self.auth) as response:
             logging.info("Index: %s - Document ID: %s", index_name, doc_id)
             if response.status == 201:
