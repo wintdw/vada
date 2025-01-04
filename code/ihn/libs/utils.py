@@ -1,6 +1,6 @@
 import json
 import hashlib
-from dateutil import parser
+from dateutil import parser  # type: ignore
 from datetime import datetime
 from typing import Dict, List, Union, Tuple
 
