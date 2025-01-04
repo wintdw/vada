@@ -5,7 +5,6 @@ import aiofiles  # type: ignore
 from datetime import datetime
 from typing import Dict
 from fastapi import HTTPException, status  # type: ignore
-from fastapi.responses import JSONResponse  # type: ignore
 
 import libs.utils
 from libs.async_es import AsyncESProcessor
@@ -18,6 +17,9 @@ class AsyncProcessor:
         )
 
     async def persist_to_file(self, output_dir: str, json_data: Dict):
+        """
+        Persist the whole message to file, including metadata
+        """
         os.makedirs(output_dir, exist_ok=True)
 
         table_fullname = json_data.get("table_fullname")
@@ -33,10 +35,8 @@ class AsyncProcessor:
         try:
             async with aiofiles.open(file_path, "a", encoding="utf-8") as file:
                 await file.write(json.dumps(json_data) + "\n")
-            return JSONResponse(content={"detail": "Data captured successfully!"})
         except Exception as e:
             logging.error("Failed to write data to %s, %s", file_path, e)
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def persist_to_es(self, index: str, json_data: Dict):
         """
@@ -50,11 +50,17 @@ class AsyncProcessor:
                 detail="Missing 'data' in the request data",
             )
 
+        success_count = 0
+        failure_count = 0
+
         for row in data_list:
             doc_id = libs.utils.generate_docid(row)
             try:
                 await self.es.send_to_es(index, doc_id, row)
+                success_count += 1
             except Exception as e:
                 logging.error("Failed to index data to ES, %s", e)
-                # Continue even some failures occur
+                failure_count += 1
                 continue
+
+        logging.info("Success: %d docs, Failure: %d docs", success_count, failure_count)
