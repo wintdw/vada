@@ -126,5 +126,5 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
-    finally:
-        await es_processor.close()
+    # finally:
+    #     await es_processor.close()
