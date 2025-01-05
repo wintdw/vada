@@ -71,7 +71,11 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         body = await request.body()
         json_lines = body.decode("utf-8").splitlines()
 
-        count = 0
+        status_msg = "success"
+        success = 0
+        failure = 0
+        err_msgs = []
+
         for line in json_lines:
             event = json.loads(line)
 
@@ -88,10 +92,9 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             if not index_name:
                 if "index_name" not in event:
                     logging.error(event)
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Missing index_name",
-                    )
+                    failure += 1
+                    err_msgs.append("Missing index_name")
+                    continue
                 index_name = event["index_name"]
 
             doc = libs.utils.remove_fields(event, ["index_name", "__meta", "_vada"])
@@ -109,19 +112,24 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                 err_msg = await response.text()
                 logging.error(event)
                 logging.error(err_msg)
-                raise HTTPException(status_code=response.status, detail=err_msg)
+                err_msgs.append(err_msg)
+                failure += 1
 
-            count += 1
+            success += 1
+
+        if failure > 0:
+            status_msg = "partial success"
+        if success == 0:
+            status_msg = "failure"
 
         return JSONResponse(
             content={
-                "status": "success",
-                "detail": f"{count} messages successfully written",
+                "status": status_msg,
+                "detail": f"{success} success, {failure} failure",
+                "errors": err_msgs,
             }
         )
 
-    except HTTPException as e:
-        raise e
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
