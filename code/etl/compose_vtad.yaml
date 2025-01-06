@@ -1,8 +1,8 @@
 secrets:
   es_elastic_vtad:
     file: /var/secret/docker/es/elastic_vtad
-  mongo_vtad:
-    file: /var/secret/docker/mongo/vtad
+  crm_vtad:
+    file: /var/secret/docker/crm/vtad_demo
 
 networks:
   etl-vtad-network:
@@ -21,10 +21,12 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
       ELASTIC_URL: http://setup.internal.vadata.vn:9092
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/health"]
     secrets:
       - es_elastic_vtad
     ports:
-      - "7000:7000"
+      - "${PORT}:${PORT}"
     networks:
       - etl-vtad-network
   
@@ -39,8 +41,10 @@ services:
       PORT: "7001"
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: vtad_ingest
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/health"]
     ports:
-      - "7001:7001"
+      - "${PORT}:${PORT}"
     networks:
       - etl-vtad-network
   
@@ -55,15 +59,18 @@ services:
       PORT: "7002"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
-      ELASTIC_URL: http://jump-vtad.internal.vadata.vn:9092
+      ELASTIC_URL: http://setup.internal.vadata.vn:9092
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: vtad_ingest
-      MONGO_URI_FILE: /run/secrets/mongo_vtad
+      CRM_BASEURL: "https://api.vtad.vn"
+      CRM_PASSWD_FILE: /run/secrets/crm_vtad
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/health"]
     secrets:
       - es_elastic_vtad
-      - mongo_vtad
+      - crm_vtad
     ports:
-      - "7002:7002"
+      - "${PORT}:${PORT}"
     networks:
       - etl-vtad-network
 

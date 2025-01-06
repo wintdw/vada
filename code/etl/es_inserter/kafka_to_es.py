@@ -6,7 +6,7 @@
 import os
 import logging
 import asyncio
-from fastapi import FastAPI  # type: ignore
+from fastapi import FastAPI, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 from es_inserter.async_proc import AsyncProcessor
@@ -43,6 +43,14 @@ logging.basicConfig(
 logging.getLogger().setLevel(logging.INFO)
 
 
+es_conf_dict = {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
+crm_conf_dict = {
+    "auth": {"username": CRM_USER, "password": CRM_PASS},
+    "baseurl": CRM_BASEURL,
+}
+processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, crm_conf_dict)
+
+
 @app.get("/health")
 async def check_health() -> JSONResponse:
     """
@@ -51,7 +59,14 @@ async def check_health() -> JSONResponse:
     Returns:
         JSONResponse: Return 200 when service is available
     """
-    return JSONResponse(content={"status": "success", "detail": "Service Available"})
+
+    response = await processor.es.check_health()
+    if response.status < 400:
+        return JSONResponse(
+            content={"status": "success", "detail": "Service Available"}
+        )
+    logging.error(await response.text())
+    raise HTTPException(status_code=response.status)
 
 
 @app.on_event("startup")
@@ -60,12 +75,6 @@ async def background():
     This function runs in the background, constantly monitors Kafka topics to consume, process,
     then produce to ES topic
     """
-    es_conf_dict = {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
-    crm_conf_dict = {
-        "auth": {"username": CRM_USER, "password": CRM_PASS},
-        "baseurl": CRM_BASEURL,
-    }
-    processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, crm_conf_dict)
 
     asyncio.create_task(
         processor.consume_then_produce(KAFKA_TOPIC, "es_inserter_group")

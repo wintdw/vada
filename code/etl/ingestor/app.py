@@ -62,6 +62,7 @@ async def process_jsonl(
 
     # Reconstruct the list of json data
     successful_count = 0
+    failed_count = 0
     json_msgs = []
     failed_lines = []
 
@@ -89,6 +90,7 @@ async def process_jsonl(
                 error_trace = traceback.format_exc()
                 logging.error("Error processing line: %s\n%s", json_msg, error_trace)
                 failed_lines.append({"line": json_msg, "error": str(e)})
+                failed_count += 1
 
         # Await all produce tasks
         await asyncio.gather(*tasks)
@@ -104,7 +106,7 @@ async def process_jsonl(
     # Response
     response = {
         "status": "success",
-        "detail": f"{successful_count} messages received",
+        "detail": f"{successful_count} messages received, {failed_count} failed",
         "failed": failed_lines,
     }
     return JSONResponse(content=response)
