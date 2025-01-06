@@ -61,16 +61,14 @@ class CRMAPI:
 
     async def check_index_created(self, index: str) -> dict:
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"
+
         async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(url, headers=self.headers) as response:
-                    if response.status == 404:
-                        return {}
-                    return await response.json()
-            except Exception as e:
-                logging.error("Request failed: %s", e)
-                # we want to distinguish between an empty response and a failed request
-                return {"detail": str(e)}
+            async with session.get(url, headers=self.headers) as response:
+                res = await response.json()
+                # Not found
+                if "index" not in res:
+                    return {}
+                return res
 
     async def set_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: dict

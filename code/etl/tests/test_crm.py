@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import pytest  # type: ignore
+from unittest.mock import patch, AsyncMock
 
 from libs.crm import CRMAPI
 
@@ -47,7 +48,18 @@ async def test_check_index_created():
     end_time = time.time()
 
     assert isinstance(response, dict)
+    print(response)
     print(f"Time taken for API call: {end_time - start_time} seconds")
+
+
+@pytest.mark.asyncio
+async def test_check_index_notfound():
+    api = CRMAPI(CRM_BASEURL)
+    await api.auth(CRM_USER, CRM_PASS)
+    index = "non_existent_index"
+
+    response = await api.check_index_created(index)
+    assert response == {}
 
 
 @pytest.mark.asyncio
