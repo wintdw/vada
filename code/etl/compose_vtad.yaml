@@ -26,7 +26,7 @@ services:
     secrets:
       - es_elastic_vtad
     ports:
-      - "${PORT}:${PORT}"
+      - "7000:7000"
     networks:
       - etl-vtad-network
   
@@ -44,7 +44,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${PORT}/health"]
     ports:
-      - "${PORT}:${PORT}"
+      - "7001:7001"
     networks:
       - etl-vtad-network
   
@@ -70,7 +70,7 @@ services:
       - es_elastic_vtad
       - crm_vtad
     ports:
-      - "${PORT}:${PORT}"
+      - "7002:7002"
     networks:
       - etl-vtad-network
 
