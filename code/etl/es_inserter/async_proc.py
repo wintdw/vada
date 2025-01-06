@@ -84,7 +84,9 @@ class AsyncProcessor:
                     # Do not run concurrently
                     async with self.lock:
                         try:
-                            index_exists = await self.check_index_created(index_name)
+                            index_exists = await self.crm.check_index_created(
+                                index_name
+                            )
                             if not index_exists:
                                 await self.set_mapping(
                                     user_id, index_name, index_friendly_name
