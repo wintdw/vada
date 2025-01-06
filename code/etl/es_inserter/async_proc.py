@@ -31,6 +31,11 @@ class AsyncProcessor:
         self.crm_user = crm_conf_dict["auth"]["username"]
         self.crm_passwd = crm_conf_dict["auth"]["password"]
 
+    async def auth_crm(self):
+        # Auth & reauth
+        if not await self.crm.is_auth():
+            await self.crm.auth(self.crm_user, self.crm_passwd)
+
     async def process_msg(self, msg: Dict) -> Optional[Tuple[str, str, str]]:
         """
         Function to process single message from Kafka and send to ES.
@@ -63,6 +68,7 @@ class AsyncProcessor:
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
         # init the consumer explicitly
         await self.kafka.create_consumer(topic, group_id)
+        await self.auth_crm()
 
         try:
             while True:
@@ -84,6 +90,7 @@ class AsyncProcessor:
                     # Do not run concurrently
                     async with self.lock:
                         try:
+                            # check if index created on CRM
                             index_exists = await self.crm.check_index_created(
                                 index_name
                             )
@@ -107,13 +114,11 @@ class AsyncProcessor:
     async def set_mapping(
         self, user_id: str, index_name: str, index_friendly_name: str
     ):
+        await self.auth_crm()
+
         es_mapping = await self.es.get_es_index_mapping(index_name)
         mappings = es_mapping[index_name]["mappings"]
         logging.info("Setting mappings: %s", mappings)
-
-        # Auth & reauth
-        if not await self.crm.is_auth():
-            await self.crm.auth(self.crm_user, self.crm_passwd)
 
         # Set the mapping in CRM
         await self.crm.set_mappings(user_id, index_name, index_friendly_name, mappings)
