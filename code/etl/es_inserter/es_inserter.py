@@ -97,9 +97,15 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                     continue
                 index_name = event["index_name"]
 
-            doc = libs.utils.remove_fields(event, ["index_name", "__meta", "_vada"])
+            # convert datetime, numeric
+            converted_event = libs.utils.convert_dict_values(event)
+            doc = libs.utils.remove_fields(
+                converted_event, ["index_name", "__meta", "_vada"]
+            )
             try:
-                doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+                doc_id = (
+                    converted_event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+                )
             except Exception:
                 doc_id = ""
 
@@ -110,7 +116,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             response = await es_processor.send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
                 err_msg = await response.text()
-                logging.error(event)
+                logging.error(converted_event)
                 logging.error(err_msg)
                 err_msgs.append(err_msg)
                 failure += 1
