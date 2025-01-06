@@ -27,6 +27,10 @@ class AsyncKafkaProcessor:
                 group_id=group_id,
                 enable_auto_commit=True,
                 auto_offset_reset="earliest",
+                fetch_max_bytes=52428800,  # 50 MB
+                fetch_min_bytes=1,  # Minimum bytes to fetch
+                fetch_max_wait_ms=3000,  # Maximum wait time in milliseconds
+                max_poll_records=1000,  # Maximum number of records returned in a single poll
             )
             await self.consumer.start()
             logging.info(f"Kafka consumer started for topic: {topic}")
