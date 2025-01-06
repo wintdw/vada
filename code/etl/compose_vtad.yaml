@@ -2,7 +2,7 @@ secrets:
   es_elastic_vtad:
     file: /var/secret/docker/es/elastic_vtad
   crm_vtad:
-    file: /var/secret/docker/crm/vtad_demo
+    file: /var/secret/docker/crm/vtad
 
 networks:
   etl-vtad-network:
