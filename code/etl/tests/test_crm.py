@@ -1,6 +1,8 @@
 import os
-import pytest  # type: ignore
+import time
 import logging
+import pytest  # type: ignore
+
 from libs.crm import CRMAPI
 
 logging.basicConfig(
@@ -39,8 +41,13 @@ async def test_check_index_created():
     api = CRMAPI(CRM_BASEURL)
     await api.auth(CRM_USER, CRM_PASS)
     index = "demo_sale_data"
+
+    start_time = time.time()
     response = await api.check_index_created(index)
+    end_time = time.time()
+
     assert isinstance(response, dict)
+    print(f"Time taken for API call: {end_time - start_time} seconds")
 
 
 @pytest.mark.asyncio
