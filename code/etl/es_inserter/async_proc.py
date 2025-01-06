@@ -103,7 +103,7 @@ class AsyncProcessor:
     ):
         es_mapping = await self.es.get_es_index_mapping(index_name)
         mappings = es_mapping[index_name]["mappings"]
-        logging.debug("Setting mappings: %s", mappings)
+        logging.info("Setting mappings: %s", mappings)
 
         # Auth & reauth
         if not await self.crm.is_auth():
