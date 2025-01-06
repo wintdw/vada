@@ -42,7 +42,7 @@ class AsyncKafkaProcessor:
         return json.loads(message.value.decode("utf-8"))
 
     async def consume_messages(
-        self, batch_size: int = 10, timeout_ms: int = 1000
+        self, batch_size: int = 1000, timeout_ms: int = 10000
     ) -> List[Dict[str, Any]]:
         """Consume a batch of messages from Kafka."""
         if not self.consumer:
