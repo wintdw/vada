@@ -64,11 +64,13 @@ class CRMAPI:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url, headers=self.headers) as response:
-                    response.raise_for_status()
+                    if response.status == 404:
+                        return {}
                     return await response.json()
-            except aiohttp.ClientResponseError as e:
-                print(f"Request failed: {e}")
-                return None
+            except Exception as e:
+                logging.error("Request failed: %s", e)
+                # we want to distinguish between an empty response and a failed request
+                return {"detail": str(e)}
 
     async def set_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: dict
