@@ -2,9 +2,9 @@ import os
 import jwt
 import logging
 from typing import Dict
-from pydantic import BaseModel
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel  # type: ignore
+from fastapi import Depends, HTTPException, status  # type: ignore
+from fastapi.security import OAuth2PasswordBearer  # type: ignore
 
 
 # Support TOKEN_SECRET_FILE to read secret from environment variable
