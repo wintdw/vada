@@ -21,6 +21,7 @@ class AsyncProcessor:
         es_conf_dict: Dict,
         crm_conf_dict: Dict,
     ):
+        self.lock = asyncio.Lock()
         self.kafka = AsyncKafkaProcessor(kafka_broker)
         self.es = AsyncESProcessor(
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
@@ -49,7 +50,7 @@ class AsyncProcessor:
 
         doc = libs.utils.remove_fields(msg, ["__vada"])
         doc_id = libs.utils.generate_docid(doc)
-        logging.info(doc)
+        # logging.info(doc)
 
         # send to ES
         response = await self.es.send_to_es(index_name, doc_id, doc)
@@ -80,23 +81,26 @@ class AsyncProcessor:
                     unique_tuples.add((user_id, index_name, index_friendly_name))
 
                 for user_id, index_name, index_friendly_name in unique_tuples:
-                    try:
-                        await self.set_mapping(user_id, index_name, index_friendly_name)
-                    except Exception as e:
-                        error_trace = traceback.format_exc()
-                        logging.error(
-                            "Exception on setting Mappings for index_name: %s\nTraceback: %s",
-                            e,
-                            error_trace,
-                        )
+                    # Do not run concurrently
+                    async with self.lock:
+                        try:
+                            index_exists = await self.check_index_created(index_name)
+                            if not index_exists:
+                                await self.set_mapping(
+                                    user_id, index_name, index_friendly_name
+                                )
+                        except Exception as e:
+                            error_trace = traceback.format_exc()
+                            logging.error(
+                                "Exception on setting Mappings for index_name: %s\nTraceback: %s",
+                                e,
+                                error_trace,
+                            )
 
         except Exception as e:
             error_trace = traceback.format_exc()
             logging.error("Exception: %s\nTraceback: %s", e, error_trace)
             raise
-        finally:
-            await self.kafka.close()
-            await self.es.close()
 
     async def set_mapping(
         self, user_id: str, index_name: str, index_friendly_name: str
