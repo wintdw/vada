@@ -40,8 +40,12 @@ async def proxy(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
             headers=headers,
             json=json
         )
-        logger.debug(f"Received from EQ: {qe_post_response}")
+        logger.debug(f"Received from QE: {qe_post_response.json()}")
         return JSONResponse(content=qe_post_response.json())
+
+    except ValueError:
+        logger.debug(f"Received from QE: {qe_post_response.text}")
+        return qe_post_response.text
 
     except Exception as err:
         logger.error(f"{err}")
