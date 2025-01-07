@@ -45,7 +45,19 @@ async def proxy(request: Request, jwt: JWTPayload = Depends(verify_jwt)):
 
     except ValueError:
         logger.debug(f"Received from QE: {qe_post_response.text}")
-        return qe_post_response.text
+        data = qe_post_response.text
+        lines = data.strip().split("\n")
+        headers = lines[0].split(",")
+        rows = lines[1:]
+
+        result = []
+        for row in rows:
+            values = row.split(",")
+            entry = {headers[i]: values[i] for i in range(len(headers))}
+            result.append(entry)
+
+        logger.debug(f"Convert response to correct format: {result}")
+        return result
 
     except Exception as err:
         logger.error(f"{err}")
