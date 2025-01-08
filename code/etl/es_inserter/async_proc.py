@@ -90,14 +90,9 @@ class AsyncProcessor:
                     # Do not run concurrently
                     async with self.lock:
                         try:
-                            # check if index created on CRM
-                            index_exists = await self.crm.check_index_created(
-                                index_name
+                            mapping_response = await self.set_mapping(
+                                user_id, index_name, index_friendly_name
                             )
-                            if not index_exists:
-                                await self.set_mapping(
-                                    user_id, index_name, index_friendly_name
-                                )
                         except Exception as e:
                             # Do not raise excpetion, log and continue
                             error_trace = traceback.format_exc()
