@@ -1,3 +1,0 @@
-from .jwt import (
-    JWTPayload
-)

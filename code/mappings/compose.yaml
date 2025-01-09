@@ -1,0 +1,34 @@
+secrets:
+  es_elastic:
+    file: /var/secret/docker/es/elastic
+  crm:
+    file: /var/secret/docker/crm/vada
+
+networks:
+  mappings-network:
+    driver: bridge
+
+services:  
+  kafka_to_es:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mappings:latest
+    container_name: mappings
+    environment:
+      PORT: "8070"
+      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_USER: elastic
+      ELASTIC_URL: http://demo.internal.vadata.vn:9200
+      CRM_BASEURL: "https://dev-crm-api.vadata.vn"
+      CRM_PASSWD_FILE: /run/secrets/crm
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8070/health"]
+    secrets:
+      - es_elastic
+      - crm
+    ports:
+      - "8070:8070"
+    networks:
+      - mappings-network
+

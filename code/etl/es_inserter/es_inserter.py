@@ -76,9 +76,17 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         failure = 0
         err_msgs = []
 
+        json_msgs = []
         for line in json_lines:
-            event = json.loads(line)
+            try:
+                json_msg = json.loads(line)
+            except json.JSONDecodeError as e:
+                raise libs.utils.ValidationError(f"Invalid JSON format: {e}")
+            json_msgs.append(json_msg)
 
+        # convert
+        json_converted_msgs = libs.utils.convert_dict_values(json_msgs)
+        for event in json_converted_msgs:
             try:
                 index_name = (
                     event.get("_vada", {})
@@ -97,15 +105,9 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                     continue
                 index_name = event["index_name"]
 
-            # convert datetime, numeric
-            converted_event = libs.utils.convert_dict_values(event)
-            doc = libs.utils.remove_fields(
-                converted_event, ["index_name", "__meta", "_vada"]
-            )
+            doc = libs.utils.remove_fields(event, ["index_name", "_vada"])
             try:
-                doc_id = (
-                    converted_event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
-                )
+                doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
             except Exception:
                 doc_id = ""
 
@@ -116,7 +118,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             response = await es_processor.send_to_es(index_name, doc_id, doc)
             if response.status not in {200, 201}:
                 err_msg = await response.text()
-                logging.error(converted_event)
+                logging.error(event)
                 logging.error(err_msg)
                 err_msgs.append(err_msg)
                 failure += 1

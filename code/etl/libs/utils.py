@@ -152,10 +152,6 @@ def process_msg(msg: str) -> Dict:
     if "FriendlyName" in json_msg:
         json_msg["__vada"]["index_friendly_name"] = json_msg["FriendlyName"]
 
-    # Remove specified fields
-    fields_to_remove = ["IndexName", "FriendlyName"]
-    ret_msg = {
-        key: value for key, value in json_msg.items() if key not in fields_to_remove
-    }
+    ret_msg = remove_fields(json_msg, ["IndexName", "FriendlyName"])
 
     return ret_msg
