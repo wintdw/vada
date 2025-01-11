@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse  # type: ignore
 
 from api.models.mappings import MappingsRequest
 from api.internals.mappings import MappingsProcessor
-from dependencies import get_mappings_processor
+from dependencies import MappingsProcessor, get_mappings_processor
 
 router = APIRouter()
 

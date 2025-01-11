@@ -1,13 +1,60 @@
+import jwt
 import logging
 import aiohttp  # type: ignore
+from typing import Dict
 
-from dependencies import verify_jwt, HTTPException
+from fastapi import Depends, HTTPException, status  # type: ignore
+from fastapi.security import OAuth2PasswordBearer  # type: ignore
+
+from api.models.jwt import JWTPayload
+
+
+# Support TOKEN_SECRET_FILE to read secret from environment variable
+TOKEN_SECRET = ""
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
         self.headers = {}
+
+    def _verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
+        """
+        Function to verify the JWT Token header from client
+
+        Args:
+            token (str, optional): the JWT token provided. Defaults to Depends(oauth2_scheme).
+
+        Raises:
+            HTTPException: 401 upon Expired or Invalid tokens
+
+        Returns:
+            Dict: The decoded JWT info, and the original token
+        """
+        try:
+            payload = jwt.decode(
+                token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
+            )
+            # Add original token to payload further processing
+            payload["jwt"] = token
+            logging.debug("Authenticated as %s", payload.get("name"))
+
+            # Convert payload to JWTPayload model for validation
+            JWTPayload(**payload)
+
+            return payload
+
+        except jwt.ExpiredSignatureError as exp:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="JWT token has expired"
+            ) from exp
+        except jwt.InvalidTokenError as inv:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid JWT token"
+            ) from inv
 
     async def _get_access_token(self, username: str, password: str) -> str:
         """
@@ -54,7 +101,7 @@ class CRMAPI:
 
         token = self.headers["Authorization"].split(" ")[1]
         try:
-            verify_jwt(token)
+            self._verify_jwt(token)
             return True
         except HTTPException as e:
             logging.debug("JWT verification failed: %s", e.detail)
