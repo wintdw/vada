@@ -23,10 +23,10 @@ class MappingsProcessor:
         if not await self.crm.is_auth():
             await self.crm.auth(self.crm_user, self.crm_passwd)
 
-    async def get_mapping(self, index_name: str) -> Dict:
+    async def get_mappings(self, index_name: str) -> Dict:
         return await self.es.get_es_index_mapping(index_name)
 
-    async def set_mapping(
+    async def set_mappings(
         self,
         user_id: str,
         index_name: str,
@@ -35,21 +35,24 @@ class MappingsProcessor:
     ):
         await self.crm.set_mappings(user_id, index_name, index_friendly_name, mappings)
 
-    async def copy_mapping(
+    async def copy_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
-    ):
+    ) -> Dict:
         if not index_friendly_name:
             index_friendly_name = index_name
 
         await self.auth_crm()
 
-        es_mapping = await self.get_mapping(index_name)
+        es_mapping = await self.get_mappings(index_name)
         mappings = es_mapping[index_name]["mappings"]
 
-        await self.set_mapping(user_id, index_name, index_friendly_name, mappings)
+        response = await self.set_mappings(
+            user_id, index_name, index_friendly_name, mappings
+        )
         logging.info(
             "Mappings set for user: %s, index: %s, mappings: %s",
             user_id,
             index_name,
             mappings,
         )
+        return response.json()

@@ -107,7 +107,7 @@ class CRMAPI:
             logging.debug("JWT verification failed: %s", e.detail)
             return False
 
-    async def check_index_created(self, index: str) -> dict:
+    async def check_index_created(self, index: str) -> Dict:
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"
 
         async with aiohttp.ClientSession() as session:
@@ -119,8 +119,8 @@ class CRMAPI:
                 return res
 
     async def set_mappings(
-        self, user_id: str, index_name: str, index_friendly_name: str, mappings: dict
-    ) -> dict:
+        self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
+    ) -> Dict:
         url = f"{self.baseurl}/v1/adm/indices"
 
         post_data = {"user_id": user_id}
@@ -133,12 +133,7 @@ class CRMAPI:
             "mappings": mappings,
         }
         async with aiohttp.ClientSession() as session:
-            try:
-                async with session.put(
-                    url, headers=self.headers, json=post_data
-                ) as response:
-                    response.raise_for_status()
-                    return await response.json()
-            except aiohttp.ClientResponseError as e:
-                print(f"Request failed: {e}")
-                return None
+            async with session.put(
+                url, headers=self.headers, json=post_data
+            ) as response:
+                return await response.json()

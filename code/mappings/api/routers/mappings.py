@@ -15,15 +15,15 @@ async def create_mapping(
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
-        await mappings_processor.copy_mapping(
+        response = await mappings_processor.copy_mappings(
             data.user_id, data.index_name, data.index_friendly_name
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"message": "Mapping created successfully"},
+            content={"message": await response.json()},
         )
     except Exception as e:
-        logging.error(f"Error creating mapping: {e}")
+        logging.error(f"Error creating mappings: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error",
