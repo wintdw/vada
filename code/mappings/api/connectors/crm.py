@@ -19,6 +19,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
+        self.session = aiohttp.ClientSession()
         self.headers = {}
 
     def _verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
@@ -67,20 +68,23 @@ class CRMAPI:
         payload = {"username": username, "password": password}
         headers = {"Content-Type": "application/json"}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    access_token = data.get("access_token")
-                    logging.debug("Access token retrieved: %s", access_token)
-                    return access_token
-                else:
-                    logging.error(
-                        "Failed to retrieve access token, status code: %d, detail: %s",
-                        response.status,
-                        await response.text(),
-                    )
-                    return None
+        async with self.session.post(url, json=payload, headers=headers) as response:
+            if response.status == 200:
+                data = await response.json()
+                access_token = data.get("access_token")
+                logging.debug("Access token retrieved: %s", access_token)
+                return access_token
+            else:
+                logging.error(
+                    "Failed to retrieve access token, status code: %d, detail: %s",
+                    response.status,
+                    await response.text(),
+                )
+                return None
+
+    async def close(self):
+        await self.session.close()
+        self.headers.pop("Authorization", None)
 
     async def auth(self, user: str, passwd: str) -> str:
         """
@@ -110,13 +114,12 @@ class CRMAPI:
     async def check_index_created(self, index: str) -> Dict:
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=self.headers) as response:
-                res = await response.json()
-                # Not found
-                if "index" not in res:
-                    return {}
-                return res
+        async with self.session.get(url, headers=self.headers) as response:
+            res = await response.json()
+            # Not found
+            if "index" not in res:
+                return {}
+            return res
 
     async def set_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
@@ -132,11 +135,10 @@ class CRMAPI:
             "deleted": False,
             "mappings": mappings,
         }
-        async with aiohttp.ClientSession() as session:
-            async with session.put(
-                url, headers=self.headers, json=post_data
-            ) as response:
-                return await response.json()
+        async with self.session.put(
+            url, headers=self.headers, json=post_data
+        ) as response:
+            return await response.json()
 
     async def add_user(
         self,
@@ -166,8 +168,7 @@ class CRMAPI:
             },
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.put(
-                url, headers=self.headers, json=post_data
-            ) as response:
-                return await response.json()
+        async with self.session.put(
+            url, headers=self.headers, json=post_data
+        ) as response:
+            return await response.json()

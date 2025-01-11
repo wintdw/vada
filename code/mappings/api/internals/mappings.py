@@ -18,6 +18,10 @@ class MappingsProcessor:
         self.crm_user = crm_conf_dict["auth"]["username"]
         self.crm_passwd = crm_conf_dict["auth"]["password"]
 
+    async def close(self):
+        await self.es.close()
+        await self.crm.close()
+
     async def auth_crm(self):
         # Auth & reauth
         if not await self.crm.is_auth():
@@ -36,6 +40,7 @@ class MappingsProcessor:
         index_friendly_name: str,
         mappings: Dict,
     ):
+        await self.auth_crm()
         response_json = await self.crm.set_mappings(
             user_id, index_name, index_friendly_name, mappings
         )
@@ -44,8 +49,6 @@ class MappingsProcessor:
     async def copy_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
     ) -> Dict:
-        await self.auth_crm()
-
         if not index_friendly_name:
             index_friendly_name = index_name
 
@@ -70,8 +73,6 @@ class MappingsProcessor:
         index_name: str,
         index_friendly_name: str = None,
     ) -> Dict:
-        await self.auth_crm()
-
         if not index_friendly_name:
             index_friendly_name = index_name
 

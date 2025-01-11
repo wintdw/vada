@@ -28,3 +28,5 @@ async def create_mappings(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error",
         )
+    finally:
+        await mappings_processor.close()
