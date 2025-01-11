@@ -18,7 +18,13 @@ async def create_mappings(
         response_status, response_json = await mappings_processor.copy_mappings(
             data.user_id, data.index_name, data.index_friendly_name
         )
-        return JSONResponse(status_code=response_status, content=response_json)
+        if response_status < 400:
+            return JSONResponse(status_code=response_status, content=response_json)
+        else:
+            return HTTPException(status_code=response_status, detail=response_json)
+    except HTTPException:
+        logging.warning("Upstream error %s", response_json)
+        raise
     except Exception as e:
         logging.error(f"Error creating Mappings: {e}", exc_info=True)
         raise HTTPException(

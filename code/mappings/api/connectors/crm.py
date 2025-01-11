@@ -143,7 +143,6 @@ class CRMAPI:
         async with self.session.put(
             url, headers=self.headers, json=post_data
         ) as response:
-            response.raise_for_status()
             return response.status, await response.json()
 
     async def add_user(
@@ -164,5 +163,4 @@ class CRMAPI:
         async with self.session.post(
             url, headers=self.headers, json=post_data
         ) as response:
-            response.raise_for_status()
             return response.status, await response.json()
