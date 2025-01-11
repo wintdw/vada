@@ -15,8 +15,8 @@ async def create_users_with_mappings(
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
-        response_status, response_json = await mappings_processor.copy_mappings(
-            data.user_id, data.index_name, data.index_friendly_name
+        response_status, response_json = await mappings_processor.add_user(
+            data.user_name, data.user_email, data.user_passwd
         )
         return JSONResponse(status_code=response_status, content=response_json)
     except Exception as e:
