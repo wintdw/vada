@@ -26,4 +26,4 @@ async def shutdown():
 
 app.include_router(health.router)
 app.include_router(mappings.router, dependencies=[Depends(get_mappings_processor)])
-# app.include_router(users.router)
+app.include_router(users.router)

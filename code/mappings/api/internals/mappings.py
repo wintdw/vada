@@ -70,18 +70,9 @@ class MappingsProcessor:
         user_name: str,
         user_email: str,
         user_passwd: str,
-        index_name: str,
-        index_friendly_name: str = None,
     ) -> Dict:
-        if not index_friendly_name:
-            index_friendly_name = index_name
 
-        index_mappings = await self.get_mappings(index_name)
-        await self.crm.add_user(
-            user_name,
-            user_email,
-            user_passwd,
-            index_name,
-            index_friendly_name,
-            index_mappings,
-        )
+        await self.auth_crm()
+        response_json = await self.crm.add_user(user_name, user_email, user_passwd)
+
+        return response_json

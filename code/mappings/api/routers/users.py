@@ -16,11 +16,7 @@ async def create_users_with_mappings(
 ):
     try:
         response_json = await mappings_processor.add_user(
-            data.user_name,
-            data.user_email,
-            data.user_passwd,
-            data.index_name,
-            data.index_friendly_name,
+            data.user_name, data.user_email, data.user_passwd
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
