@@ -1,7 +1,7 @@
 import logging
 import aiohttp  # type: ignore
 
-from api.internals.jwt import verify_jwt, HTTPException
+from dependencies import verify_jwt, HTTPException
 
 
 class CRMAPI:
