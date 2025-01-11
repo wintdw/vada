@@ -35,5 +35,4 @@ def get_mappings_processor():
         "auth": {"username": CRM_USER, "password": CRM_PASS},
         "baseurl": CRM_BASEURL,
     }
-    mappings_processor = MappingsProcessor(es_conf_dict, crm_conf_dict)
-    return mappings_processor
+    return MappingsProcessor(es_conf_dict, crm_conf_dict)
