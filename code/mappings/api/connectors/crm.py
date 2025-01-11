@@ -157,9 +157,10 @@ class CRMAPI:
             "email": user_email,
             "username": user_name,
             "password": user_passwd,
+            "permission": "admin",
         }
 
-        async with self.session.put(
+        async with self.session.post(
             url, headers=self.headers, json=post_data
         ) as response:
             return await response.json()
