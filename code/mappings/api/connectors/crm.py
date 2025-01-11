@@ -19,8 +19,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
-        self.session = aiohttp.ClientSession()
         self.headers = {}
+        self.session = None
 
     def _verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
         """
@@ -83,13 +83,18 @@ class CRMAPI:
                 return None
 
     async def close(self):
-        await self.session.close()
-        self.headers.pop("Authorization", None)
+        if self.session:
+            await self.session.close()
+        if "Authorization" in self.headers:
+            self.headers.pop("Authorization", None)
 
     async def auth(self, user: str, passwd: str) -> str:
         """
-        Function to authenticate the user and set the JWT token in headers.
+        Function to init session and authenticate the user
+        and set the JWT token in headers.
         """
+        if not self.session:
+            self.session = aiohttp.ClientSession()
         jwt_token = await self._get_access_token(user, passwd)
         if jwt_token:
             self.headers["Authorization"] = f"Bearer {jwt_token}"
