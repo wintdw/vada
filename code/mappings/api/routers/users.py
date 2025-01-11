@@ -21,7 +21,7 @@ async def create_users_with_mappings(
         if response_status < 400:
             return JSONResponse(status_code=response_status, content=response_json)
         else:
-            return HTTPException(status_code=response_status, detail=response_json)
+            raise HTTPException(status_code=response_status, detail=response_json)
     except HTTPException:
         logging.warning("Upstream error %s", response_json)
         raise
