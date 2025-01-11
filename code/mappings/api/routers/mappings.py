@@ -23,7 +23,7 @@ async def create_mapping(
             content={"message": await response.json()},
         )
     except Exception as e:
-        logging.error(f"Error creating mappings: {e}")
+        logging.error(f"Error creating mappings: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error",

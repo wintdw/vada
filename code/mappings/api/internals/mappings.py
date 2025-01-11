@@ -33,7 +33,10 @@ class MappingsProcessor:
         index_friendly_name: str,
         mappings: Dict,
     ):
-        await self.crm.set_mappings(user_id, index_name, index_friendly_name, mappings)
+        response = await self.crm.set_mappings(
+            user_id, index_name, index_friendly_name, mappings
+        )
+        return await response.json()
 
     async def copy_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
