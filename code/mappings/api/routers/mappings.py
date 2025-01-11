@@ -18,10 +18,7 @@ async def create_mappings(
         response_json = await mappings_processor.copy_mappings(
             data.user_id, data.index_name, data.index_friendly_name
         )
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={"message": response_json},
-        )
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response_json)
     except Exception as e:
         logging.error(f"Error creating Mappings: {e}", exc_info=True)
         raise HTTPException(
