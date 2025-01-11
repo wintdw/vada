@@ -1,8 +1,10 @@
+from typing import Optional
 from pydantic import BaseModel  # type: ignore
 
 
 class UsersRequest(BaseModel):
-    email: str
-    user: str
-    passwd: str
-    index: str
+    user_email: str
+    user_name: str
+    user_passwd: str
+    index_name: str
+    index_friendly_name: Optional[str] = None

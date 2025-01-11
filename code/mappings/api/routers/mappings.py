@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/mappings")
-async def create_mapping(
+async def create_mappings(
     data: MappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
@@ -23,7 +23,7 @@ async def create_mapping(
             content={"message": response_json},
         )
     except Exception as e:
-        logging.error(f"Error creating mappings: {e}", exc_info=True)
+        logging.error(f"Error creating Mappings: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error",

@@ -137,3 +137,37 @@ class CRMAPI:
                 url, headers=self.headers, json=post_data
             ) as response:
                 return await response.json()
+
+    async def add_user(
+        self,
+        user_name: str,
+        user_email: str,
+        user_passwd: str,
+        index_name: str,
+        index_friendly_name: str,
+        mappings: Dict,
+    ) -> Dict:
+        url = f"{self.baseurl}/v1/adm/users"
+
+        if not index_friendly_name:
+            index_friendly_name = index_name
+
+        post_data = {
+            "email": user_email,
+            "username": user_name,
+            "password": user_passwd,
+            "master_index": {
+                "name": index_name,
+                "friendly_name": index_friendly_name,
+                "agg_field": "",
+                "id_field": "",
+                "time_field": "",
+                "mappings": mappings,
+            },
+        }
+
+        async with aiohttp.ClientSession() as session:
+            async with session.put(
+                url, headers=self.headers, json=post_data
+            ) as response:
+                return await response.json()
