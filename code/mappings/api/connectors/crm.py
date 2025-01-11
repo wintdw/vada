@@ -128,7 +128,7 @@ class CRMAPI:
 
     async def set_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
-    ) -> Dict:
+    ) -> Tuple[int, Dict]:
         url = f"{self.baseurl}/v1/adm/indices"
 
         post_data = {"user_id": user_id}
@@ -143,7 +143,8 @@ class CRMAPI:
         async with self.session.put(
             url, headers=self.headers, json=post_data
         ) as response:
-            return await response.json()
+            response.raise_for_status()
+            return response.status, await response.json()
 
     async def add_user(
         self,
@@ -163,4 +164,5 @@ class CRMAPI:
         async with self.session.post(
             url, headers=self.headers, json=post_data
         ) as response:
+            response.raise_for_status()
             return response.status, await response.json()

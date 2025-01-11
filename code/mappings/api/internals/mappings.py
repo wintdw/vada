@@ -29,9 +29,10 @@ class MappingsProcessor:
 
     async def get_mappings(self, index_name: str) -> Dict:
         es_mapping = await self.es.get_es_index_mapping(index_name)
-        mappings = es_mapping[index_name]["mappings"]
+        if index_name not in es_mapping:
+            index_name = next(iter(es_mapping))  # Get the first key
 
-        return mappings
+        return es_mapping[index_name]["mappings"]
 
     async def set_mappings(
         self,
@@ -41,21 +42,17 @@ class MappingsProcessor:
         mappings: Dict,
     ):
         await self.auth_crm()
-        response_json = await self.crm.set_mappings(
+        return await self.crm.set_mappings(
             user_id, index_name, index_friendly_name, mappings
         )
-        return response_json
 
     async def copy_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
-    ) -> Dict:
+    ) -> Tuple[int, Dict]:
         if not index_friendly_name:
             index_friendly_name = index_name
 
         index_mappings = await self.get_mappings(index_name)
-        response_json = await self.set_mappings(
-            user_id, index_name, index_friendly_name, index_mappings
-        )
         logging.info(
             "Mappings set for user: %s, index: %s, mappings: %s",
             user_id,
@@ -63,7 +60,9 @@ class MappingsProcessor:
             index_mappings,
         )
 
-        return response_json
+        return await self.set_mappings(
+            user_id, index_name, index_friendly_name, index_mappings
+        )
 
     async def add_user(
         self,
@@ -73,8 +72,4 @@ class MappingsProcessor:
     ) -> Tuple[int, Dict]:
 
         await self.auth_crm()
-        response_status, response_json = await self.crm.add_user(
-            user_name, user_email, user_passwd
-        )
-
-        return response_status, response_json
+        return await self.crm.add_user(user_name, user_email, user_passwd)
