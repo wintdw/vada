@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse  # type: ignore
 
 from api.models.mappings import MappingsRequest
 from api.internals.mappings import MappingsProcessor
-from dependencies import MappingsProcessor, get_mappings_processor
+from dependencies import get_mappings_processor
 
 router = APIRouter()
 
@@ -15,7 +15,9 @@ async def create_mapping(
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
-        await mappings_processor.copy_mapping(data.user_id, data.index_name)
+        await mappings_processor.copy_mapping(
+            data.user_id, data.index_name, data.index_friendly_name
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={"message": "Mapping created successfully"},
@@ -24,5 +26,5 @@ async def create_mapping(
         logging.error(f"Error creating mapping: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
+            detail="Internal Server Error",
         )

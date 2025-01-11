@@ -1,5 +1,5 @@
-from typing import Dict
-from pydantic import BaseModel
+from typing import Dict, Optional
+from pydantic import BaseModel  # type: ignore
 
 
 class MasterIndex(BaseModel):
@@ -14,3 +14,4 @@ class MasterIndex(BaseModel):
 class MappingsRequest(BaseModel):
     user_id: str
     index_name: str
+    index_friendly_name: Optional[str] = None
