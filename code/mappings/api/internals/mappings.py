@@ -1,5 +1,5 @@
 import logging
-from typing import Dict
+from typing import Dict, Tuple
 from api.connectors.async_es import AsyncESProcessor
 from api.connectors.crm import CRMAPI
 
@@ -70,9 +70,11 @@ class MappingsProcessor:
         user_name: str,
         user_email: str,
         user_passwd: str,
-    ) -> Dict:
+    ) -> Tuple[int, Dict]:
 
         await self.auth_crm()
-        response_json = await self.crm.add_user(user_name, user_email, user_passwd)
+        response_status, response_json = await self.crm.add_user(
+            user_name, user_email, user_passwd
+        )
 
-        return response_json
+        return response_status, response_json

@@ -1,7 +1,7 @@
 import jwt
 import logging
 import aiohttp  # type: ignore
-from typing import Dict
+from typing import Dict, Tuple
 
 from fastapi import Depends, HTTPException, status  # type: ignore
 from fastapi.security import OAuth2PasswordBearer  # type: ignore
@@ -150,7 +150,7 @@ class CRMAPI:
         user_name: str,
         user_email: str,
         user_passwd: str,
-    ) -> Dict:
+    ) -> Tuple[int, Dict]:
         url = f"{self.baseurl}/v1/adm/users"
 
         post_data = {
@@ -163,4 +163,4 @@ class CRMAPI:
         async with self.session.post(
             url, headers=self.headers, json=post_data
         ) as response:
-            return await response.json()
+            return response.status, await response.json()
