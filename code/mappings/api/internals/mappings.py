@@ -33,10 +33,10 @@ class MappingsProcessor:
         index_friendly_name: str,
         mappings: Dict,
     ):
-        response = await self.crm.set_mappings(
+        response_json = await self.crm.set_mappings(
             user_id, index_name, index_friendly_name, mappings
         )
-        return await response.json()
+        return response_json
 
     async def copy_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
@@ -49,7 +49,7 @@ class MappingsProcessor:
         es_mapping = await self.get_mappings(index_name)
         mappings = es_mapping[index_name]["mappings"]
 
-        response = await self.set_mappings(
+        response_json = await self.set_mappings(
             user_id, index_name, index_friendly_name, mappings
         )
         logging.info(
@@ -58,4 +58,4 @@ class MappingsProcessor:
             index_name,
             mappings,
         )
-        return response.json()
+        return response_json
