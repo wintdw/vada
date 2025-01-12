@@ -3,8 +3,7 @@ import logging
 import aiohttp  # type: ignore
 from typing import Dict, Tuple
 
-from fastapi import Depends, HTTPException, status  # type: ignore
-from fastapi.security import OAuth2PasswordBearer  # type: ignore
+from fastapi import HTTPException, status  # type: ignore
 
 from api.models.jwt import JWTPayload
 
@@ -13,21 +12,18 @@ from api.models.jwt import JWTPayload
 TOKEN_SECRET = ""
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
 class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
         self.headers = {}
         self.session = None
 
-    def _verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
+    def _verify_jwt(self, token: str) -> Dict:
         """
         Function to verify the JWT Token header from client
 
         Args:
-            token (str, optional): the JWT token provided. Defaults to Depends(oauth2_scheme).
+            token (str): the JWT token provided.
 
         Raises:
             HTTPException: 401 upon Expired or Invalid tokens
