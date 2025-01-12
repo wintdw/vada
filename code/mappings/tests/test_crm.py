@@ -2,9 +2,8 @@ import os
 import time
 import logging
 import pytest  # type: ignore
-from unittest.mock import patch, AsyncMock
 
-from libs.crm import CRMAPI
+from api.connectors.crm import CRMAPI
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -15,7 +14,7 @@ logging.basicConfig(
 CRM_BASEURL = os.getenv("CRM_BASEURL", "https://dev-crm-api.vadata.vn")
 CRM_USER = ""
 CRM_PASS = ""
-passwd_file = os.getenv("CRM_PASSWD_FILE", "/var/secret/docker/crm/user7500")
+passwd_file = os.getenv("CRM_PASSWD_FILE", "/var/secret/docker/crm/vada")
 if passwd_file and os.path.isfile(passwd_file):
     with open(passwd_file, "r", encoding="utf-8") as file:
         content = file.read().strip()

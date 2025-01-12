@@ -3,38 +3,25 @@
 """
 """
 
-import traceback
 import logging
 import asyncio
 from typing import Dict, Optional, Tuple
+from aiohttp import ClientResponseError  # type: ignore
 
 import libs.utils
-from libs.crm import CRMAPI
+from libs.mappings import MappingsClient
 from libs.async_es import AsyncESProcessor
 from libs.async_kafka import AsyncKafkaProcessor
 
 
 class AsyncProcessor:
-    def __init__(
-        self,
-        kafka_broker: str,
-        es_conf_dict: Dict,
-        crm_conf_dict: Dict,
-    ):
+    def __init__(self, kafka_broker: str, es_conf_dict: Dict, mappings_url: str):
         self.lock = asyncio.Lock()
+        self.mappings = MappingsClient(mappings_url)
         self.kafka = AsyncKafkaProcessor(kafka_broker)
         self.es = AsyncESProcessor(
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
         )
-        # crm_conf_dict = {"auth": {"username": "", "password": ""}, "baseurl": ""}
-        self.crm = CRMAPI(crm_conf_dict["baseurl"])
-        self.crm_user = crm_conf_dict["auth"]["username"]
-        self.crm_passwd = crm_conf_dict["auth"]["password"]
-
-    async def auth_crm(self):
-        # Auth & reauth
-        if not await self.crm.is_auth():
-            await self.crm.auth(self.crm_user, self.crm_passwd)
 
     async def process_msg(self, msg: Dict) -> Optional[Tuple[str, str, str]]:
         """
@@ -90,31 +77,13 @@ class AsyncProcessor:
                     # Do not run concurrently
                     async with self.lock:
                         try:
-                            mapping_response = await self.set_mapping(
+                            self.mappings.create_mappings(
                                 user_id, index_name, index_friendly_name
                             )
-                        except Exception as e:
-                            # Do not raise excpetion, log and continue
-                            error_trace = traceback.format_exc()
-                            logging.error(
-                                "Exception on setting Mappings for index_name: %s\nTraceback: %s",
-                                e,
-                                error_trace,
-                            )
+                        # it will raise httpexpetion on failure, but we do not stop the process
+                        except ClientResponseError as e:
+                            logging.warning(f"Error creating Mappings: {e}")
 
         except Exception as e:
-            error_trace = traceback.format_exc()
-            logging.error("Exception: %s\nTraceback: %s", e, error_trace)
+            logging.error(f"Error creating Mappings: {e}", exc_info=True)
             raise
-
-    async def set_mapping(
-        self, user_id: str, index_name: str, index_friendly_name: str
-    ):
-        await self.auth_crm()
-
-        es_mapping = await self.es.get_es_index_mapping(index_name)
-        mappings = es_mapping[index_name]["mappings"]
-        logging.info("Setting mappings: %s", mappings)
-
-        # Set the mapping in CRM
-        await self.crm.set_mappings(user_id, index_name, index_friendly_name, mappings)
