@@ -62,8 +62,7 @@ services:
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
-      CRM_BASEURL: "https://dev-crm-api.vadata.vn"
-      CRM_PASSWD_FILE: /run/secrets/crm
+      MAPPING_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
     secrets:

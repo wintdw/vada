@@ -24,14 +24,7 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
 
-CRM_BASEURL = os.getenv("CRM_BASEURL", "https://dev-crm-api.vadata.vn")
-CRM_USER = ""
-CRM_PASS = ""
-passwd_file = os.getenv("CRM_PASSWD_FILE", "")
-if passwd_file and os.path.isfile(passwd_file):
-    with open(passwd_file, "r", encoding="utf-8") as file:
-        content = file.read().strip()
-        CRM_USER, CRM_PASS = content.split(maxsplit=1)
+MAPPINGS_BASEURL = os.getenv("MAPPINGS_BASEURL", "http://mappings.internal.vadata.vn")
 
 
 app = FastAPI()
@@ -44,11 +37,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 es_conf_dict = {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
-crm_conf_dict = {
-    "auth": {"username": CRM_USER, "password": CRM_PASS},
-    "baseurl": CRM_BASEURL,
-}
-processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, crm_conf_dict)
+processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, MAPPINGS_BASEURL)
 
 
 @app.get("/health")
