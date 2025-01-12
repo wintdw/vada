@@ -5,7 +5,7 @@ secrets:
     file: /var/secret/docker/crm/vada
 
 networks:
-  etl-network:
+  etl_network:
     driver: bridge
 
 services:
@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.es_inserter
-    image: es-inserter:latest
+    image: es_inserter:latest
     container_name: es_inserter
     restart: always
     environment:
@@ -28,7 +28,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - etl-network
+      - etl_network
 
   ingestor:
     build:
@@ -46,13 +46,13 @@ services:
     ports:
       - "8001:8001"
     networks:
-      - etl-network
+      - etl_network
   
   kafka_to_es:
     build:
       context: .
       dockerfile: Dockerfile.kafka_to_es
-    image: kafka-to-es:latest
+    image: kafka_to_es:latest
     container_name: kafka_to_es
     restart: always
     environment:
@@ -71,5 +71,5 @@ services:
     ports:
       - "8002:8002"
     networks:
-      - etl-network
+      - etl_network
 

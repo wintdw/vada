@@ -5,7 +5,7 @@ secrets:
     file: /var/secret/docker/crm/vada
 
 networks:
-  mappings-network:
+  mappings_network:
     driver: bridge
 
 services:  
@@ -30,5 +30,5 @@ services:
     ports:
       - "8070:8070"
     networks:
-      - mappings-network
+      - mappings_network
 
