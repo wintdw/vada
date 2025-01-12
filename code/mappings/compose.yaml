@@ -9,7 +9,7 @@ networks:
     driver: bridge
 
 services:  
-  kafka_to_es:
+  mappings:
     build:
       context: .
       dockerfile: Dockerfile
