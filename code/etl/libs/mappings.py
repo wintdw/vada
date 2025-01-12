@@ -8,7 +8,7 @@ class MappingsClient:
 
     async def create_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
-    ) -> Dict[str, Any]:
+    ) -> Dict:
         url = f"{self.base_url}/mappings"
 
         if not index_friendly_name:

@@ -55,7 +55,6 @@ class AsyncProcessor:
     async def consume_then_produce(self, topic: str, group_id: str = "default"):
         # init the consumer explicitly
         await self.kafka.create_consumer(topic, group_id)
-        await self.auth_crm()
 
         try:
             while True:
@@ -77,8 +76,14 @@ class AsyncProcessor:
                     # Do not run concurrently
                     async with self.lock:
                         try:
-                            self.mappings.create_mappings(
+                            response_json = await self.mappings.create_mappings(
                                 user_id, index_name, index_friendly_name
+                            )
+                            logging.info(
+                                "Mappings created for user: %s, index: %s, response: %s",
+                                user_id,
+                                index_name,
+                                response_json,
                             )
                         # it will raise httpexpetion on failure, but we do not stop the process
                         except ClientResponseError as e:
