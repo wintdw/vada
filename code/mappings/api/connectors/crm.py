@@ -2,7 +2,8 @@ import jwt
 import logging
 import aiohttp  # type: ignore
 from typing import Dict, Tuple
-
+from datetime import datetime
+from dateutil.relativedelta import relativedelta  # type: ignore
 from fastapi import HTTPException, status  # type: ignore
 
 from api.models.jwt import JWTPayload
@@ -149,11 +150,18 @@ class CRMAPI:
     ) -> Tuple[int, Dict]:
         url = f"{self.baseurl}/v1/adm/users"
 
+        now = datetime.now()
+        months_ago = now - relativedelta(months=6)
+
         post_data = {
             "email": user_email,
             "username": user_name,
             "password": user_passwd,
             "permission": "admin",
+            "config": {
+                "default_time_left": now.strftime("%Y-%m-%d"),
+                "default_time_right": months_ago.strftime("%Y-%m-%d"),
+            },
         }
 
         async with self.session.post(
