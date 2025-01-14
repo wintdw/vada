@@ -33,6 +33,7 @@ class AsyncESProcessor:
                     response.status,
                     await response.text(),
                 )
+                raise ESException(response.status, await response.text())
 
             logging.debug("Cluster health: %s", await response.text())
             return response
