@@ -2,7 +2,6 @@ import logging
 from fastapi import FastAPI, Depends  # type: ignore
 
 from api.routers import health, mappings, users
-from dependencies import get_mappings_processor
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,5 +24,5 @@ async def shutdown():
 
 
 app.include_router(health.router)
-app.include_router(mappings.router, dependencies=[Depends(get_mappings_processor)])
+app.include_router(mappings.router)
 app.include_router(users.router)

@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, HTTPException, Depends, status  # type: ignore
+from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 from api.models.users import UsersRequest
@@ -22,14 +22,5 @@ async def create_user(
             return JSONResponse(status_code=response_status, content=response_json)
         else:
             raise HTTPException(status_code=response_status, detail=response_json)
-    except HTTPException:
-        logging.warning("Upstream error %s", response_json)
-        raise
-    except Exception as e:
-        logging.error(f"Error creating User: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Server Error",
-        )
     finally:
         await mappings_processor.close()
