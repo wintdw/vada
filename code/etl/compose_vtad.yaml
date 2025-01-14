@@ -62,7 +62,7 @@ services:
       ELASTIC_URL: http://setup.internal.vadata.vn:9092
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: vtad_ingest
-      MAPPING_BASEURL: http://mappings-vtad.internal.vadata.vn
+      MAPPINGS_BASEURL: http://mappings-vtad.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7002/health"]
     secrets:

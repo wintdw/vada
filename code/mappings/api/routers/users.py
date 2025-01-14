@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/users")
-async def create_users_with_mappings(
+async def create_user(
     data: UsersRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):

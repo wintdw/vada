@@ -62,7 +62,7 @@ services:
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
-      MAPPING_BASEURL: http://mappings.internal.vadata.vn
+      MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
     secrets:
