@@ -17,7 +17,7 @@ services:
     container_name: mappings_vtad
     environment:
       PORT: "7070"
-      ELASTIC_PASSWD_FILE: /run/secrets/elastic_vtad
+      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
       ELASTIC_URL: http://setup.internal.vadata.vn:9092
       CRM_BASEURL: "https://api.vtad.vn"
