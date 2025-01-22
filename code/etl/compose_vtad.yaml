@@ -20,7 +20,7 @@ services:
       PORT: "7000"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
-      ELASTIC_URL: http://setup.internal.vadata.vn:9092
+      ELASTIC_URL: http://es-vtad.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
     secrets:
@@ -59,7 +59,7 @@ services:
       PORT: "7002"
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
-      ELASTIC_URL: http://setup.internal.vadata.vn:9092
+      ELASTIC_URL: http://es-vtad.internal.vadata.vn
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: vtad_ingest
       MAPPINGS_BASEURL: http://mappings-vtad.internal.vadata.vn
