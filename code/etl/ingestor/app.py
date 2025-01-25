@@ -52,14 +52,6 @@ async def process_jsonl(
     data_str = data.decode("utf-8")
     lines = data_str.strip().splitlines()
 
-    # Validate JWT
-    user_id = jwt_dict.get("id")
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User ID not found in JWT",
-        )
-
     # Reconstruct the list of json data
     successful_count = 0
     failed_count = 0
@@ -82,7 +74,7 @@ async def process_jsonl(
         tasks = []
         for json_msg in json_converted_msgs:
             try:
-                json_msg["__vada"]["user_id"] = user_id
+                json_msg["__vada"]["user_id"] = jwt_dict.get("id")
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(KAFKA_TOPIC, json_msg))
                 successful_count += 1

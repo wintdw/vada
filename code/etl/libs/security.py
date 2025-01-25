@@ -55,6 +55,15 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
         payload = jwt.decode(
             token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
         )
+
+        # Validate JWT
+        user_id = payload.get("id")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User ID not found in JWT",
+            )
+
         # Add original token to payload further processing
         payload["jwt"] = token
         logging.debug("Authenticated as %s", payload.get("name"))
