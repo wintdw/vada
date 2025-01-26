@@ -68,5 +68,5 @@ async def background():
     """
 
     asyncio.create_task(
-        processor.consume_then_produce(f"{APP_ENV}\..*", "es_inserter_group")
+        processor.consume_then_produce(rf"{APP_ENV}\..*", "es_inserter_group")
     )
