@@ -12,6 +12,8 @@ from fastapi.responses import JSONResponse  # type: ignore
 from es_inserter.async_proc import AsyncProcessor
 
 
+APP_ENV = os.getenv("APP_ENV", "dev")
+
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
 ELASTIC_USER = os.getenv("ELASTIC_USER", "")
 ELASTIC_PASSWD = ""
@@ -66,5 +68,5 @@ async def background():
     """
 
     asyncio.create_task(
-        processor.consume_then_produce(KAFKA_TOPIC, "es_inserter_group")
+        processor.consume_then_produce(f"{APP_ENV}\..*", "es_inserter_group")
     )

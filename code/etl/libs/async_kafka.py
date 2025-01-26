@@ -3,6 +3,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer  # type: ignore
+from kafka.admin import KafkaAdminClient  # type: ignore
 
 
 class AsyncKafkaProcessor:
@@ -14,14 +15,24 @@ class AsyncKafkaProcessor:
             kafka_broker (str): Kafka broker address (e.g., 'localhost:9092').
         """
         self.kafka_broker = kafka_broker
+        self.admin = KafkaAdminClient(bootstrap_servers=kafka_broker)
         self.consumer: Optional[AIOKafkaConsumer] = None
         self.producer: Optional[AIOKafkaProducer] = None
 
-    async def create_consumer(self, topic: str, group_id: str = "default"):
+    def list_topics(self) -> List[str]:
+        """
+        List all Kafka topics.
+
+        :param bootstrap_servers: A comma-separated list of Kafka bootstrap servers.
+        :return: A list of topic names.
+        """
+        topics = self.admin.list_topics()
+        return topics
+
+    async def create_consumer(self, topic_pattern: str, group_id: str = "default"):
         """Initialize and start a Kafka consumer."""
         if not self.consumer:
             self.consumer = AIOKafkaConsumer(
-                topic,
                 loop=asyncio.get_event_loop(),
                 bootstrap_servers=self.kafka_broker,
                 group_id=group_id,
@@ -33,7 +44,8 @@ class AsyncKafkaProcessor:
                 max_poll_records=1000,  # Maximum number of records returned in a single poll
             )
             await self.consumer.start()
-            logging.info(f"Kafka consumer started for topic: {topic}")
+            self.consumer.subscribe(pattern=topic_pattern)
+            logging.info("Kafka consumer started")
 
     async def consume_message(self) -> Dict[str, Any]:
         """Consume a single message from Kafka."""
@@ -94,6 +106,10 @@ class AsyncKafkaProcessor:
 
     async def close(self):
         """Stop both the consumer and producer."""
+        if self.admin:
+            self.admin.close()
+            logging.info("Kafka admin client closed.")
+            self.admin = None
         if self.consumer:
             await self.consumer.stop()
             logging.info("Kafka consumer stopped.")

@@ -24,9 +24,10 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+APP_ENV = os.getenv("APP_ENV", "dev")
+
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
-APPENV = os.getenv("APPENV", "dev")
 
 kafka_processor = AsyncKafkaProcessor(KAFKA_BROKER_URL)
 
@@ -76,7 +77,7 @@ async def process_jsonl(
         for json_msg in json_converted_msgs:
             try:
                 json_msg["__vada"]["user_id"] = jwt_dict.get("id")
-                kafka_topic = f"{APPENV}.{json_msg["__vada"]["index_name"]}"
+                kafka_topic = f"{APP_ENV}.{json_msg["__vada"]["index_name"]}"
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(kafka_topic, json_msg))
                 successful_count += 1

@@ -1,9 +1,10 @@
+python-dateutil
 pyjwt
 asyncio
 uvicorn
 fastapi
 aiohttp
 aiokafka
+kafka-python
 motor 
 pymongo
-python-dateutil
