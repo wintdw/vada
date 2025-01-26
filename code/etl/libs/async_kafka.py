@@ -3,7 +3,6 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer  # type: ignore
-from kafka.admin import KafkaAdminClient  # type: ignore
 
 
 class AsyncKafkaProcessor:
@@ -15,19 +14,8 @@ class AsyncKafkaProcessor:
             kafka_broker (str): Kafka broker address (e.g., 'localhost:9092').
         """
         self.kafka_broker = kafka_broker
-        self.admin = KafkaAdminClient(bootstrap_servers=kafka_broker)
         self.consumer: Optional[AIOKafkaConsumer] = None
         self.producer: Optional[AIOKafkaProducer] = None
-
-    def list_topics(self) -> List[str]:
-        """
-        List all Kafka topics.
-
-        :param bootstrap_servers: A comma-separated list of Kafka bootstrap servers.
-        :return: A list of topic names.
-        """
-        topics = self.admin.list_topics()
-        return topics
 
     async def create_consumer(self, topic_pattern: str, group_id: str = "default"):
         """Initialize and start a Kafka consumer."""
@@ -106,10 +94,6 @@ class AsyncKafkaProcessor:
 
     async def close(self):
         """Stop both the consumer and producer."""
-        if self.admin:
-            self.admin.close()
-            logging.info("Kafka admin client closed.")
-            self.admin = None
         if self.consumer:
             await self.consumer.stop()
             logging.info("Kafka consumer stopped.")

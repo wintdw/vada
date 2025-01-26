@@ -5,6 +5,5 @@ uvicorn
 fastapi
 aiohttp
 aiokafka
-kafka-python
 motor 
 pymongo
