@@ -68,5 +68,6 @@ async def background():
     """
 
     asyncio.create_task(
-        processor.consume_then_produce(rf"{APP_ENV}\..*", "es_inserter_group")
+        # example pattern "dev.csv_dw_csv"
+        processor.consume_then_produce(rf"{APP_ENV}\..*csv_", "es_inserter_group")
     )
