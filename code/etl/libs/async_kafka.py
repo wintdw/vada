@@ -30,6 +30,7 @@ class AsyncKafkaProcessor:
                 fetch_min_bytes=1,  # Minimum bytes to fetch
                 fetch_max_wait_ms=3000,  # Maximum wait time in milliseconds
                 max_poll_records=1000,  # Maximum number of records returned in a single poll
+                metadata_max_age_ms=20000,  # This controls the polling interval when using pattern subscriptions
             )
             await self.consumer.start()
             self.consumer.subscribe(pattern=topic_pattern)
