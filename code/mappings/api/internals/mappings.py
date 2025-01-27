@@ -35,7 +35,8 @@ class MappingsProcessor:
         return es_mapping[index_name]["mappings"]
 
     async def set_mappings(self, index_name: str, mappings: Dict):
-        await self.es.set_mappings(index_name, mappings)
+        if not await self.es.check_index_exists(index_name):
+            await self.es.set_mappings(index_name, mappings)
 
     async def set_crm_mappings(
         self,
