@@ -28,13 +28,16 @@ class MappingsProcessor:
             await self.crm.auth(self.crm_user, self.crm_passwd)
 
     async def get_mappings(self, index_name: str) -> Dict:
-        es_mapping = await self.es.get_es_index_mapping(index_name)
+        es_mapping = await self.es.get_mappings(index_name)
         if index_name not in es_mapping:
             index_name = next(iter(es_mapping))  # Get the first key
 
         return es_mapping[index_name]["mappings"]
 
-    async def set_mappings(
+    async def set_mappings(self, index_name: str, mappings: Dict):
+        await self.es.set_mappings(index_name, mappings)
+
+    async def set_crm_mappings(
         self,
         user_id: str,
         index_name: str,
@@ -60,7 +63,7 @@ class MappingsProcessor:
             index_mappings,
         )
 
-        return await self.set_mappings(
+        return await self.set_crm_mappings(
             user_id, index_name, index_friendly_name, index_mappings
         )
 

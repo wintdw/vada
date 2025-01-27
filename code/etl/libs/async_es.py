@@ -58,7 +58,7 @@ class AsyncESProcessor:
 
             return {}
 
-    async def get_es_index_mapping(self, index_name: str) -> Dict:
+    async def get_mappings(self, index_name: str) -> Dict:
         """Get the mapping of a specific Elasticsearch index."""
         es_url = f"{self.es_baseurl}/{index_name}/_mapping"
 

@@ -11,7 +11,12 @@ class MasterIndex(BaseModel):
     mappings: Dict
 
 
-class MappingsRequest(BaseModel):
+class CopyMappingsRequest(BaseModel):
     user_id: str
     index_name: str
     index_friendly_name: Optional[str] = None
+
+
+class SetMappingsRequest(BaseModel):
+    index_name: str
+    mappings: Dict
