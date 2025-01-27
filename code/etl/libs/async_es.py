@@ -3,6 +3,13 @@ from typing import Dict
 from aiohttp import ClientSession, ClientResponse, BasicAuth  # type: ignore
 
 
+class ESException(Exception):
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(f"Status: {status_code} - Detail: {detail}")
+
+
 class AsyncESProcessor:
     def __init__(self, es_baseurl: str, es_user: str, es_pass: str):
         self.es_baseurl = es_baseurl
@@ -30,33 +37,25 @@ class AsyncESProcessor:
             logging.debug("Cluster health: %s", await response.text())
             return response
 
-    async def get_index(self, index_name: str) -> Dict:
-        """Check if an index exists and get its information if it does."""
+    async def check_index_exists(self, index_name: str) -> bool:
+        """Check if an Elasticsearch index exists."""
         es_url = f"{self.es_baseurl}/{index_name}"
 
         await self._create_session()
         async with self.session.head(es_url, auth=self.auth) as response:
             if response.status == 200:
-                async with self.session.get(es_url, auth=self.auth) as response:
-                    if response.status == 200:
-                        index_info = await response.json()
-                        return index_info
-                    else:
-                        logging.error(
-                            "Failed to retrieve index info. Status: %s - %s",
-                            response.status,
-                            await response.text(),
-                        )
+                logging.info("Index exists: %s", index_name)
+                return True
             elif response.status == 404:
-                logging.error("Index %s does not exist.", index_name)
+                logging.info("Index does not exist: %s", index_name)
+                return False
             else:
                 logging.error(
-                    "Failed to check index info. Status: %s - %s",
+                    "Failed to check index existence. Status: %s - %s",
                     response.status,
                     await response.text(),
                 )
-
-            return {}
+                raise ESException(response.status, await response.text())
 
     async def get_mappings(self, index_name: str) -> Dict:
         """Get the mapping of a specific Elasticsearch index."""
@@ -70,10 +69,30 @@ class AsyncESProcessor:
                     response.status,
                     await response.text(),
                 )
+                raise ESException(response.status, await response.text())
 
             mappings = await response.json()
             logging.info("Retrieved mappings for index: %s", index_name)
             return mappings
+
+    async def set_mappings(self, index_name: str, mappings: Dict) -> Dict:
+        """Set the mappings for a specific Elasticsearch index."""
+        es_url = f"{self.es_baseurl}/{index_name}"
+
+        await self._create_session()
+
+        async with self.session.put(es_url, json=mappings, auth=self.auth) as response:
+            if response.status == 200:
+                logging.info("Mappings set successfully: %s", mappings)
+            else:
+                logging.error(
+                    "Failed to set mappings. Status: %s - %s",
+                    response.status,
+                    await response.text(),
+                )
+                raise ESException(response.status, await response.text())
+
+            return response.json()
 
     async def send_to_es(
         self, index_name: str, doc_id: str, msg: Dict
@@ -95,6 +114,7 @@ class AsyncESProcessor:
                     response.status,
                     await response.text(),
                 )
+                raise ESException(response.status, await response.text())
 
             return response
 

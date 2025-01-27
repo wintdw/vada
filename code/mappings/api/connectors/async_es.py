@@ -37,6 +37,26 @@ class AsyncESProcessor:
             logging.debug("Cluster health: %s", await response.text())
             return response
 
+    async def check_index_exists(self, index_name: str) -> bool:
+        """Check if an Elasticsearch index exists."""
+        es_url = f"{self.es_baseurl}/{index_name}"
+
+        await self._create_session()
+        async with self.session.head(es_url, auth=self.auth) as response:
+            if response.status == 200:
+                logging.info("Index exists: %s", index_name)
+                return True
+            elif response.status == 404:
+                logging.info("Index does not exist: %s", index_name)
+                return False
+            else:
+                logging.error(
+                    "Failed to check index existence. Status: %s - %s",
+                    response.status,
+                    await response.text(),
+                )
+                raise ESException(response.status, await response.text())
+
     async def get_mappings(self, index_name: str) -> Dict:
         """Get the mapping of a specific Elasticsearch index."""
         es_url = f"{self.es_baseurl}/{index_name}/_mapping"
