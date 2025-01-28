@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse  # type: ignore
 import libs.utils
 import libs.security
 from libs.async_kafka import AsyncKafkaProcessor
+from .dependencies import get_kafka_processor
 
 
 app = FastAPI()
@@ -25,11 +26,6 @@ logging.basicConfig(
 )
 
 APP_ENV = os.getenv("APP_ENV", "dev")
-
-KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
-KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
-
-kafka_processor = AsyncKafkaProcessor(KAFKA_BROKER_URL)
 
 
 @app.get("/health")
@@ -45,7 +41,9 @@ async def check_health() -> JSONResponse:
 
 @app.post("/v1/jsonl")
 async def process_jsonl(
-    req: Request, jwt_dict: Dict = Depends(libs.security.verify_jwt)
+    req: Request,
+    jwt_dict: Dict = Depends(libs.security.verify_jwt),
+    kafka_processor: AsyncKafkaProcessor = Depends(get_kafka_processor),
 ):
     """
     Accept JSONL data as a string and send each line to Kafka.
