@@ -17,8 +17,8 @@ import libs.security
 from libs.async_kafka import AsyncKafkaProcessor
 from .dependencies import get_kafka_processor
 
-
 app = FastAPI()
+asyncio.get_event_loop().set_debug(True)
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",

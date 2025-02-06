@@ -30,6 +30,7 @@ MAPPINGS_BASEURL = os.getenv("MAPPINGS_BASEURL", "http://mappings.internal.vadat
 
 
 app = FastAPI()
+asyncio.get_event_loop().set_debug(True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
