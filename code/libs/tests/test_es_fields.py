@@ -37,4 +37,58 @@ def test_determine_es_field_types():
 def test_convert_es_field_types():
     field_types = determine_es_field_types(json_lines)
     converted_json_lines = convert_es_field_types(json_lines, field_types)
-    print(json.dumps(converted_json_lines, indent=2))
+
+    expected_converted_json_lines = [
+        {
+            "name": "Alice",
+            "age": 30.0,
+            "is_student": False,
+            "scores": [95, 85],
+            "binary_data": "aGVsbG8=",
+            "address": {"city": "New York", "zip": "10001"},
+            "created_at": "2023-10-01T12:34:56+00:00",
+        },
+        {
+            "name": "Bob",
+            "age": 25.0,
+            "is_student": True,
+            "scores": [88, 92],
+            "binary_data": "d29ybGQ=",
+            "address": {"city": "San Francisco", "zip": "94105"},
+            "created_at": "2023-09-15T08:00:00+00:00",
+        },
+        {
+            "name": "Charlie",
+            "age": 35.0,
+            "is_student": False,
+            "scores": [90, 80],
+            "binary_data": "Zm9v",
+            "address": {"city": "Chicago", "zip": "60601"},
+            "created_at": "2023-08-20T15:30:00+00:00",
+        },
+        {
+            "name": "Dave",
+            "age": 40.5,
+            "is_student": True,
+            "scores": [85, 95],
+            "tags": ["engineer", "developer"],
+            "address": {"city": "Seattle", "zip": "98101"},
+            "created_at": "2023-07-01T00:00:00+00:00",
+        },
+        {
+            "name": "Eve",
+            "age": 28.0,
+            "is_student": False,
+            "scores": [95, 90],
+            "contacts": [
+                {"type": "email", "value": "eve@example.com"},
+                {"type": "phone", "value": "123-456-7890"},
+            ],
+            "created_at": "2023-06-01T12:00:00+00:00",
+        },
+        {"timestamp": "1609459200"},
+        {"price": 123.45, "discount": 10},
+        {"price": 0},
+        {"price": 0},
+    ]
+    assert converted_json_lines == expected_converted_json_lines
