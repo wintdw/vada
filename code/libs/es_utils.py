@@ -2,7 +2,7 @@ import json
 import base64
 from collections import defaultdict
 from dateutil import parser  # type: ignore
-from typing import Dict, List
+from typing import Dict, List, Any
 
 
 def determine_es_field_types(json_lines: List[str]) -> Dict[str, str]:
@@ -70,14 +70,93 @@ def determine_es_field_types(json_lines: List[str]) -> Dict[str, str]:
                 elif isinstance(value, dict):
                     # Classify dictionaries as nested
                     field_type_counts[field]["nested"] += 1
-                # Add more types if needed
+
         except json.JSONDecodeError:
             continue  # Skip invalid JSON lines
 
-    # Determine the most probable type for each field
+    # Determine the most probable type for each field, applying the logic for 'double' when needed
     field_types = {}
     for field, type_counts in field_type_counts.items():
-        most_probable_type = max(type_counts, key=type_counts.get)
-        field_types[field] = most_probable_type
+        # If any 'double' values were detected, classify the field as 'double'
+        if "double" in type_counts and type_counts["double"] > 0:
+            field_types[field] = "double"
+        else:
+            # Otherwise, take the most probable type
+            most_probable_type = max(type_counts, key=type_counts.get)
+            field_types[field] = most_probable_type
 
     return field_types
+
+
+def convert_es_field_types(
+    json_lines: List[str], field_types: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    converted_json_lines = []
+
+    for line in json_lines:
+        try:
+            data = json.loads(line)
+            for field, value in data.items():
+                field_type = field_types.get(field)
+
+                if field_type == "boolean" and isinstance(value, str):
+                    # Convert "true"/"false" strings to boolean
+                    data[field] = (
+                        value.lower() == "true" if isinstance(value, str) else value
+                    )
+
+                elif field_type == "long":
+                    # Convert string or float to int
+                    if isinstance(value, str):
+                        try:
+                            data[field] = int(value)
+                        except ValueError:
+                            continue  # If the string can't be converted, leave it unchanged
+                    elif isinstance(value, float):
+                        data[field] = int(value)
+
+                elif field_type == "double":
+                    # Convert string or int to float
+                    if isinstance(value, str):
+                        try:
+                            data[field] = float(value)
+                        except ValueError:
+                            continue  # If the string can't be converted, leave it unchanged
+                    elif isinstance(value, int):
+                        data[field] = float(value)
+
+                elif field_type == "date":
+                    # Convert string to ISO format date if it's not already
+                    if isinstance(value, str):
+                        try:
+                            # Attempt to parse string as date and convert to ISO format
+                            data[field] = parser.isoparse(value).isoformat()
+                        except (ValueError, TypeError):
+                            continue  # If parsing fails, leave it unchanged
+
+                elif field_type == "binary":
+                    # If base64-encoded string, leave it as it is
+                    if isinstance(value, str):
+                        try:
+                            base64.b64decode(value, validate=True)
+                        except (base64.binascii.Error, ValueError):
+                            continue  # If not valid base64, leave it unchanged
+
+                elif field_type == "nested" and isinstance(value, dict):
+                    # If it's a nested dictionary, no need to modify
+                    pass
+
+                elif field_type == "keyword" and isinstance(value, str):
+                    # Keywords are typically strings and don't require conversion
+                    pass
+
+                else:
+                    # For other types (or unclassified types), no conversion needed
+                    pass
+
+            converted_json_lines.append(data)
+
+        except json.JSONDecodeError:
+            continue  # Skip invalid JSON lines
+
+    return converted_json_lines
