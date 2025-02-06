@@ -30,6 +30,6 @@ def profile_time(msg: str):
     elapsed_cpu_time = end_time_cpu - start_time_cpu
 
     # Log the function name, CPU time, and wall time
-    logging.info(
+    logging.debug(
         f"'{msg}' - Wall time: {elapsed_wall_time:.4f}s, CPU time: {elapsed_cpu_time:.4f}s"
     )
