@@ -6,6 +6,28 @@ from typing import Dict, List, Any
 
 
 def determine_es_field_types(json_lines: List[str]) -> Dict[str, str]:
+    """
+    Determines the Elasticsearch field types for a list of JSON lines.
+
+    Args:
+        json_lines (List[str]): A list of JSON strings, each representing a line of data.
+
+    Returns:
+        Dict[str, str]: A dictionary where keys are field names and values are the determined Elasticsearch field types.
+
+    The function analyzes each field in the JSON lines and classifies it into one of the following Elasticsearch types:
+        - "boolean": For boolean values.
+        - "long": For integer values that are not likely timestamps.
+        - "double": For floating-point numbers or strings that can be converted to floats.
+        - "date": For integer values that are likely timestamps or strings that can be parsed as dates.
+        - "keyword": For strings that are not dates, numbers, or binary data.
+        - "binary": For strings that are valid Base64 encoded binary data.
+        - "nested": For lists of dictionaries or dictionaries.
+        - "unknown": For lists that do not fit the above criteria.
+
+    The function uses heuristics to determine the most probable type for each field, prioritizing "double" if any double values are detected.
+    """
+
     def is_valid_timestamp(value: int) -> bool:
         # Unix timestamps for the years 2000 to 2100
         # Start of 2000: 946684800
@@ -91,6 +113,29 @@ def determine_es_field_types(json_lines: List[str]) -> Dict[str, str]:
 def convert_es_field_types(
     json_lines: List[str], field_types: Dict[str, str]
 ) -> List[Dict[str, Any]]:
+    """
+    Convert field types in a list of JSON lines based on specified field types.
+
+    Args:
+        json_lines (List[str]): A list of JSON strings, each representing a line of data.
+        field_types (Dict[str, str]): A dictionary mapping field names to their desired types.
+            Supported types include "boolean", "long", "double", "date", "binary", "nested", and "keyword".
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries with fields converted to the specified types.
+
+    Conversion Rules:
+        - "boolean": Converts "true"/"false" strings to boolean values.
+        - "long": Converts strings or floats to integers.
+        - "double": Converts strings or integers to floats.
+        - "date": Converts strings to ISO format dates if they are not already.
+        - "binary": Validates base64-encoded strings.
+        - "nested": Leaves nested dictionaries unchanged.
+        - "keyword": Leaves strings unchanged.
+        - For numeric fields ("long", "double"), sets None or empty string values to 0.
+        - Skips invalid JSON lines and fields that cannot be converted.
+    """
+
     converted_json_lines = []
 
     for line in json_lines:
