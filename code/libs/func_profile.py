@@ -1,5 +1,5 @@
 import time
-import psutil
+import psutil  # type: ignore
 import logging
 from contextlib import contextmanager
 
