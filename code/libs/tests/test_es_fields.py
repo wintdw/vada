@@ -1,4 +1,4 @@
-from libs.es_utils import determine_es_field_types
+from es_utils import determine_es_field_types
 
 
 def test_determine_es_field_types():
