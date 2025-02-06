@@ -99,6 +99,12 @@ def convert_es_field_types(
             for field, value in data.items():
                 field_type = field_types.get(field)
 
+                # If value is None or an empty string, set to 0 for numeric fields
+                if value is None or value == "":
+                    if field_type in ["long", "double"]:
+                        data[field] = 0
+                    continue  # No need for further conversion checks, as it's now 0
+
                 if field_type == "boolean" and isinstance(value, str):
                     # Convert "true"/"false" strings to boolean
                     data[field] = (
