@@ -1,3 +1,5 @@
+import json
+
 from libs.utils.es_field_types import (
     determine_es_field_types,
     determine_and_convert_es_field_types,
@@ -82,6 +84,8 @@ def test_determine_es_field_types():
         "discount": "long",
         "another_date": "date",
     }
+
+    print(json.dumps(field_types, indent=4))
     assert field_types == expected_field_types
 
 
@@ -143,4 +147,6 @@ def test_determine_and_convert_es_field_types():
         {"price": 0},
         {"another_date": "2025-01-15T15:46:56"},
     ]
+
+    print(json.dumps(converted_json_lines, indent=4))
     assert converted_json_lines == expected_converted_json_lines
