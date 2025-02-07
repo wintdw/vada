@@ -41,7 +41,7 @@ class AsyncESProcessor:
                 )
 
             logging.debug("Cluster health: %s", await response.text())
-            return response
+            return {"status": response.status, "json": response.json()}
 
     async def check_index_exists(self, index_name: str) -> bool:
         """Check if an Elasticsearch index exists."""
@@ -98,9 +98,9 @@ class AsyncESProcessor:
                 )
                 raise ESException(response.status, await response.text())
 
-            return response.json()
+            return {"status": response.status, "json": response.json()}
 
-    async def index_doc(self, index_name: str, doc: Dict) -> ClientResponse:
+    async def index_doc(self, index_name: str, doc: Dict) -> Dict:
         """Send data to a specific Elasticsearch index."""
         await self._create_session()
         doc_id = self._generate_docid(doc)
@@ -120,11 +120,9 @@ class AsyncESProcessor:
                     await response.text(),
                 )
 
-            return response
+            return {"status": response.status, "json": response.json()}
 
-    async def bulk_index_docs(
-        self, index_name: str, docs: List[Dict]
-    ) -> ClientResponse:
+    async def bulk_index_docs(self, index_name: str, docs: List[Dict]) -> Dict:
         """Send multiple documents to a specific Elasticsearch index using the bulk API."""
         await self._create_session()
         es_url = f"{self.es_baseurl}/{index_name}/_bulk"
@@ -152,7 +150,7 @@ class AsyncESProcessor:
                     await response.text(),
                 )
 
-            return response
+            return {"status": response.status, "json": response.json()}
 
     async def close(self):
         """Close the session."""
