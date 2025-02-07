@@ -41,15 +41,15 @@ class AsyncProcessor:
             return None
 
         doc = remove_fields(msg, ["__vada"])
-        doc_id = generate_docid(doc)
+        # doc_id = generate_docid(doc)
         # logging.info(doc)
 
         # send to ES
-        response = await self.es.index_doc(index_name, doc_id, doc)
-        if response.status not in {200, 201}:
-            logging.error("Failed to send to ES: %s - %s", doc, await response.text())
+        # response = await self.es.index_doc(index_name, doc_id, doc)
+        # if response.status not in {200, 201}:
+        #     logging.error("Failed to send to ES: %s - %s", doc, await response.text())
 
-        return (user_id, index_name, index_friendly_name)
+        return (user_id, index_name, index_friendly_name, doc)
 
     # Flow: consume from kafka -> process -> send to es
     async def consume_then_produce(self, topic_pattern: str, group_id: str = "default"):
@@ -66,11 +66,28 @@ class AsyncProcessor:
 
                 # Use set to avoid duplicate mappings
                 unique_tuples = set()
+                index_docs = {}
                 for input_msg in input_msgs:
-                    user_id, index_name, index_friendly_name = await self.process_msg(
-                        input_msg
+                    user_id, index_name, index_friendly_name, doc = (
+                        await self.process_msg(input_msg)
                     )
+                    index_docs[index_name] = index_docs.get(index_name, []) + [doc]
                     unique_tuples.add((user_id, index_name, index_friendly_name))
+
+                # Bulk index documents to Elasticsearch
+                for index_name, docs in index_docs.items():
+                    try:
+                        response = await self.es.bulk_index_docs(index_name, docs)
+                        logging.info(
+                            "Bulk indexed documents to index: %s, response: %s",
+                            index_name,
+                            await response.text(),
+                        )
+                    except Exception as e:
+                        logging.error(
+                            f"Error bulk indexing documents to index {index_name}: {e}",
+                            exc_info=True,
+                        )
 
                 for user_id, index_name, index_friendly_name in unique_tuples:
                     # Do not run concurrently

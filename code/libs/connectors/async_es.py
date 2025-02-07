@@ -1,5 +1,6 @@
 import logging
 import json
+import hashlib
 from typing import Dict, List
 from aiohttp import ClientSession, ClientResponse, BasicAuth  # type: ignore
 
@@ -21,6 +22,10 @@ class AsyncESProcessor:
         """Create a new session."""
         if not self.session:
             self.session = ClientSession()
+
+    def _generate_docid(doc: Dict) -> str:
+        serialized_data = json.dumps(doc, sort_keys=True)
+        return hashlib.sha256(serialized_data.encode("utf-8")).hexdigest()
 
     async def check_health(self) -> ClientResponse:
         """Check the health of the Elasticsearch cluster."""
@@ -95,15 +100,14 @@ class AsyncESProcessor:
 
             return response.json()
 
-    async def index_doc(
-        self, index_name: str, doc_id: str, msg: Dict
-    ) -> ClientResponse:
+    async def index_doc(self, index_name: str, doc: Dict) -> ClientResponse:
         """Send data to a specific Elasticsearch index."""
+        await self._create_session()
+        doc_id = self._generate_docid(doc)
+
         es_url = f"{self.es_baseurl}/{index_name}/_doc/{doc_id}"
 
-        await self._create_session()
-
-        async with self.session.put(es_url, json=msg, auth=self.auth) as response:
+        async with self.session.put(es_url, json=doc, auth=self.auth) as response:
             logging.info("Index: %s - Document ID: %s", index_name, doc_id)
             if response.status == 201:
                 logging.info("Document created successfully.")
@@ -115,7 +119,6 @@ class AsyncESProcessor:
                     response.status,
                     await response.text(),
                 )
-                raise ESException(response.status, await response.text())
 
             return response
 
@@ -123,9 +126,8 @@ class AsyncESProcessor:
         self, index_name: str, docs: List[Dict]
     ) -> ClientResponse:
         """Send multiple documents to a specific Elasticsearch index using the bulk API."""
-        es_url = f"{self.es_baseurl}/{index_name}/_bulk"
-
         await self._create_session()
+        es_url = f"{self.es_baseurl}/{index_name}/_bulk"
 
         # Prepare the bulk request payload
         bulk_payload = ""
@@ -142,14 +144,13 @@ class AsyncESProcessor:
         ) as response:
             logging.info("Bulk indexing to index: %s", index_name)
             if response.status in [200, 201]:
-                logging.info("Bulk indexing completed successfully.")
+                logging.info("%s docs indexed successfully", len(docs))
             else:
                 logging.error(
                     "Failed to send bulk data to Elasticsearch. Status %s - %s",
                     response.status,
                     await response.text(),
                 )
-                raise ESException(response.status, await response.text())
 
             return response
 
