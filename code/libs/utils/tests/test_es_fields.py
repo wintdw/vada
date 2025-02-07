@@ -68,7 +68,7 @@ def test_determine_es_field_types():
     expected_field_types = {
         "name": "keyword",
         "age": "double",
-        "is_student": "keyword",
+        "is_student": "boolean",
         "scores": "unknown",
         "binary_data": "binary",
         "address": "nested",
