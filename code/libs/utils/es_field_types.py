@@ -1,6 +1,6 @@
+from datetime import datetime, timezone
 import base64
 from collections import defaultdict
-from datetime import datetime, timezone
 from dateutil import parser  # type: ignore
 from typing import Dict, List, Any
 
@@ -76,7 +76,7 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                         except (base64.binascii.Error, ValueError):
                             # Check if the string is a valid date-time
                             try:
-                                parser.isoparse(value)  # Try parsing as ISO format
+                                parser.parse(value)  # Try parsing as date
                                 field_type_counts[field]["date"] += 1
                             except (ValueError, TypeError):
                                 # If not a date, classify as keyword
@@ -187,7 +187,11 @@ def convert_es_field_types(
                                 int_value, timezone.utc
                             ).isoformat()
                         except (ValueError, TypeError):
-                            continue  # If conversion fails, leave it unchanged
+                            # If all parsing fails, try dateutil parser
+                            try:
+                                data[field] = parser.parse(value).isoformat()
+                            except (ValueError, TypeError):
+                                continue  # If conversion fails, leave it unchanged
                 elif isinstance(value, int):
                     # Convert integer timestamp to ISO format date
                     try:

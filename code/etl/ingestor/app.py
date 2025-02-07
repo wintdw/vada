@@ -19,7 +19,7 @@ from libs.utils.es_field_types import determine_and_convert_es_field_types
 from .dependencies import get_kafka_processor
 
 app = FastAPI()
-asyncio.get_event_loop().set_debug(True)
+# asyncio.get_event_loop().set_debug(True)
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",

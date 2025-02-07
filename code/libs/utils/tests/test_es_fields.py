@@ -60,6 +60,7 @@ json_lines = [
     },  # Price as string "123.45" and discount as string "10"
     {"price": ""},  # Empty price to test convert intelligence
     {"price": ""},
+    {"another_date": "15/01/2025 15:46:56"},
 ]
 
 
@@ -78,6 +79,7 @@ def test_determine_es_field_types():
         "timestamp": "date",
         "price": "double",
         "discount": "long",
+        "another_date": "date",
     }
     assert field_types == expected_field_types
 
