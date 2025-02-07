@@ -139,5 +139,6 @@ def test_determine_and_convert_es_field_types():
         {"price": 123.45, "discount": 10},
         {"price": 0},
         {"price": 0},
+        {"another_date": "2025-01-15T15:46:56"},
     ]
     assert converted_json_lines == expected_converted_json_lines
