@@ -245,3 +245,39 @@ def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str
     logging.info("Field types: %s", field_types)
 
     return converted_json_lines
+
+
+def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
+    """
+    Construct Elasticsearch mappings based on field types.
+
+    Args:
+        field_types (Dict[str, str]): A dictionary where keys are field names and values are the determined Elasticsearch field types.
+
+    Returns:
+        Dict[str, Any]: A dictionary representing the Elasticsearch mappings.
+    """
+    es_mappings = {"properties": {}}
+
+    for field, field_type in field_types.items():
+        es_field_type = field_type
+        if field_type == "long":
+            es_field_type = "long"
+        elif field_type == "double":
+            es_field_type = "double"
+        elif field_type == "keyword":
+            es_field_type = "keyword"
+        elif field_type == "boolean":
+            es_field_type = "boolean"
+        elif field_type == "date":
+            es_field_type = "date"
+        elif field_type == "binary":
+            es_field_type = "binary"
+        elif field_type == "nested":
+            es_field_type = "nested"
+        else:
+            es_field_type = "text"
+
+        es_mappings["properties"][field] = {"type": es_field_type}
+
+    return es_mappings
