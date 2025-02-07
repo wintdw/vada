@@ -3,6 +3,7 @@ import json
 from libs.utils.es_field_types import (
     determine_es_field_types,
     determine_and_convert_es_field_types,
+    construct_es_mappings,
 )
 
 json_lines = [
@@ -150,3 +151,43 @@ def test_determine_and_convert_es_field_types():
 
     print(json.dumps(converted_json_lines, indent=4))
     assert converted_json_lines == expected_converted_json_lines
+
+
+def test_construct_es_mappings():
+    field_types = {
+        "name": "keyword",
+        "age": "double",
+        "is_student": "boolean",
+        "scores": "unknown",
+        "binary_data": "binary",
+        "address": "nested",
+        "created_at": "date",
+        "tags": "keyword",
+        "contacts": "nested",
+        "timestamp": "date",
+        "price": "double",
+        "discount": "long",
+        "another_date": "date",
+    }
+
+    expected_mappings = {
+        "properties": {
+            "name": {"type": "keyword"},
+            "age": {"type": "double"},
+            "is_student": {"type": "boolean"},
+            "scores": {"type": "text"},
+            "binary_data": {"type": "binary"},
+            "address": {"type": "nested"},
+            "created_at": {"type": "date"},
+            "tags": {"type": "keyword"},
+            "contacts": {"type": "nested"},
+            "timestamp": {"type": "date"},
+            "price": {"type": "double"},
+            "discount": {"type": "long"},
+            "another_date": {"type": "date"},
+        }
+    }
+
+    es_mappings = construct_es_mappings(field_types)
+    print(json.dumps(es_mappings, indent=4))
+    assert es_mappings == expected_mappings
