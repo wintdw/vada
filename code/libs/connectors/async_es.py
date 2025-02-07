@@ -1,5 +1,6 @@
 import logging
-from typing import Dict
+import json
+from typing import Dict, List
 from aiohttp import ClientSession, ClientResponse, BasicAuth  # type: ignore
 
 
@@ -111,6 +112,40 @@ class AsyncESProcessor:
             else:
                 logging.error(
                     "Failed to send data to Elasticsearch. Status %s - %s",
+                    response.status,
+                    await response.text(),
+                )
+                raise ESException(response.status, await response.text())
+
+            return response
+
+    async def bulk_index_docs(
+        self, index_name: str, docs: List[Dict]
+    ) -> ClientResponse:
+        """Send multiple documents to a specific Elasticsearch index using the bulk API."""
+        es_url = f"{self.es_baseurl}/{index_name}/_bulk"
+
+        await self._create_session()
+
+        # Prepare the bulk request payload
+        bulk_payload = ""
+        for doc in docs:
+            action_metadata = {"index": {"_index": index_name, "_id": doc.get("id")}}
+            bulk_payload += json.dumps(action_metadata) + "\n"
+            bulk_payload += json.dumps(doc) + "\n"
+
+        async with self.session.post(
+            es_url,
+            data=bulk_payload,
+            headers={"Content-Type": "application/x-ndjson"},
+            auth=self.auth,
+        ) as response:
+            logging.info("Bulk indexing to index: %s", index_name)
+            if response.status in [200, 201]:
+                logging.info("Bulk indexing completed successfully.")
+            else:
+                logging.error(
+                    "Failed to send bulk data to Elasticsearch. Status %s - %s",
                     response.status,
                     await response.text(),
                 )
