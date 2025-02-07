@@ -12,9 +12,10 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status  # type: ig
 from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
-import libs.utils
-import libs.security
-from libs.async_kafka import AsyncKafkaProcessor
+import etl.libs.utils
+from libs.security.jwt import verify_jwt
+from libs.connectors.async_kafka import AsyncKafkaProcessor
+from libs.utils.es_field_types import determine_and_convert_es_field_types
 from .dependencies import get_kafka_processor
 
 app = FastAPI()
@@ -42,7 +43,7 @@ async def check_health() -> JSONResponse:
 @app.post("/v1/jsonl")
 async def process_jsonl(
     req: Request,
-    jwt_dict: Dict = Depends(libs.security.verify_jwt),
+    jwt_dict: Dict = Depends(verify_jwt),
     kafka_processor: AsyncKafkaProcessor = Depends(get_kafka_processor),
 ):
     """
@@ -60,13 +61,14 @@ async def process_jsonl(
 
     for line in lines:
         try:
-            json_msg = libs.utils.process_msg(line)
+            json_msg = etl.libs.utils.process_msg(line)
             json_msgs.append(json_msg)
-        except libs.utils.ValidationError as json_err:
+        except etl.libs.utils.ValidationError as json_err:
             logging.error("Invalid JSON format: %s - %s", line, json_err)
             failed_lines.append({"line": line, "error": str(json_err)})
+            failed_count += 1
 
-    json_converted_msgs = libs.utils.convert_dict_values(json_msgs)
+    json_converted_msgs = determine_and_convert_es_field_types(json_msgs)
     try:
         # Start the producer
         await kafka_processor.create_producer()

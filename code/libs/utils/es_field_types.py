@@ -211,3 +211,18 @@ def convert_es_field_types(
             continue  # Skip invalid JSON lines
 
     return converted_json_lines
+
+
+def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str, Any]]:
+    """
+    Determine and convert Elasticsearch field types for a list of JSON lines.
+
+    Args:
+        json_lines (List[str]): A list of JSON strings, each representing a line of data.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries with fields converted to the specified types.
+    """
+    field_types = determine_es_field_types(json_lines)
+    converted_json_lines = convert_es_field_types(json_lines, field_types)
+    return converted_json_lines

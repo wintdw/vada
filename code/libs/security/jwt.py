@@ -16,11 +16,6 @@ if token_secret_file and os.path.isfile(token_secret_file):
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 
 
 class JWTPayload(BaseModel):

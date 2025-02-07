@@ -1,6 +1,7 @@
-import json
-
-from es_utils import determine_es_field_types, convert_es_field_types
+from libs.utils.es_field_types import (
+    determine_es_field_types,
+    determine_and_convert_es_field_types,
+)
 
 json_lines = [
     '{"name": "Alice", "age": 30, "is_student": false, "scores": [95, 85], "binary_data": "aGVsbG8=", "address": {"city": "New York", "zip": "10001"}, "created_at": "2023-10-01T12:34:56Z"}',  # Base64 for "hello"
@@ -34,9 +35,8 @@ def test_determine_es_field_types():
     assert field_types == expected_field_types
 
 
-def test_convert_es_field_types():
-    field_types = determine_es_field_types(json_lines)
-    converted_json_lines = convert_es_field_types(json_lines, field_types)
+def determine_and_convert_es_field_types():
+    converted_json_lines = determine_and_convert_es_field_types(json_lines)
 
     expected_converted_json_lines = [
         {
