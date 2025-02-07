@@ -11,8 +11,8 @@ networks:
 services:
   es_inserter_vtad:
     build:
-      context: .
-      dockerfile: Dockerfile.es_inserter
+      context: ..
+      dockerfile: etl/Dockerfile.es_inserter
     image: es_inserter:latest
     container_name: es_inserter_vtad
     restart: always
@@ -32,8 +32,8 @@ services:
   
   ingestor_vtad:
     build:
-      context: .
-      dockerfile: Dockerfile.ingestor
+      context: ..
+      dockerfile: etl/Dockerfile.ingestor
     image: ingestor:latest
     container_name: ingestor_vtad
     restart: always
@@ -50,8 +50,8 @@ services:
   
   kafka_to_es_vtad:
     build:
-      context: .
-      dockerfile: Dockerfile.kafka_to_es
+      context: ..
+      dockerfile: etl/Dockerfile.kafka_to_es
     image: kafka_to_es:latest
     container_name: kafka_to_es_vtad
     restart: always
