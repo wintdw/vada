@@ -2,5 +2,5 @@ FROM python
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-CMD uvicorn es_inserter.kafka_to_es:app --host 0.0.0.0 --port $PORT --workers 6
+COPY .. .
+CMD uvicorn etl.es_inserter.kafka_to_es:app --host 0.0.0.0 --port $PORT --workers 6
