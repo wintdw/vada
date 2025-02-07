@@ -54,13 +54,14 @@ json_lines = [
     {
         "timestamp": "1609459200"
     },  # A timestamp (Unix epoch time for 2021-01-01T00:00:00Z)
+    {"timestamp": ""},  # empty timestamp
     {
         "price": "123.45",
         "discount": "10",
     },  # Price as string "123.45" and discount as string "10"
     {"price": ""},  # Empty price to test convert intelligence
     {"price": ""},
-    {"another_date": "15/01/2025 15:46:56"},
+    {"another_date": "2025-01-15T15:46:56"},
 ]
 
 
@@ -136,6 +137,7 @@ def test_determine_and_convert_es_field_types():
             "created_at": "2023-06-01T12:00:00+00:00",
         },
         {"timestamp": "2021-01-01T00:00:00+00:00"},
+        {"timestamp": "2000-01-01T00:00:00+00:00"},
         {"price": 123.45, "discount": 10},
         {"price": 0},
         {"price": 0},

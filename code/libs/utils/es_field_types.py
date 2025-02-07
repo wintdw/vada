@@ -140,11 +140,14 @@ def convert_es_field_types(
         for field, value in data.items():
             field_type = field_types.get(field)
 
-            # If value is None or an empty string, set to 0 for numeric fields
             if value is None or value == "":
                 if field_type in ["long", "double"]:
+                    # If value is None or an empty string, set to 0 for numeric fields
                     data[field] = 0
-                continue  # No need for further conversion checks, as it's now 0
+                if field_type == "date":
+                    # Set default date to 1/1/2000 if the value is empty
+                    data[field] = datetime(2000, 1, 1, tzinfo=timezone.utc).isoformat()
+                continue  # No need for further conversion checks
 
             if field_type == "boolean":
                 # Convert "true"/"false" strings to boolean
@@ -176,28 +179,22 @@ def convert_es_field_types(
             elif field_type == "date":
                 # Convert string to ISO format date if it's not already
                 if isinstance(value, str):
-                    if not value:
-                        # Set default date to 1/1/2000 if the value is empty
-                        data[field] = datetime(
-                            2000, 1, 1, tzinfo=timezone.utc
-                        ).isoformat()
-                    else:
+                    try:
+                        # Attempt to parse string as date and convert to ISO format
+                        data[field] = parser.isoparse(value).isoformat()
+                    except (ValueError, TypeError):
+                        # If parsing fails, try to convert string to int and then to date
                         try:
-                            # Attempt to parse string as date and convert to ISO format
-                            data[field] = parser.isoparse(value).isoformat()
+                            int_value = int(value)
+                            data[field] = datetime.fromtimestamp(
+                                int_value, timezone.utc
+                            ).isoformat()
                         except (ValueError, TypeError):
-                            # If parsing fails, try to convert string to int and then to date
+                            # If all parsing fails, try dateutil parser
                             try:
-                                int_value = int(value)
-                                data[field] = datetime.fromtimestamp(
-                                    int_value, timezone.utc
-                                ).isoformat()
+                                data[field] = parser.parse(value).isoformat()
                             except (ValueError, TypeError):
-                                # If all parsing fails, try dateutil parser
-                                try:
-                                    data[field] = parser.parse(value).isoformat()
-                                except (ValueError, TypeError):
-                                    continue  # If conversion fails, leave it unchanged
+                                continue  # If conversion fails, leave it unchanged
                 elif isinstance(value, int):
                     # Convert integer timestamp to ISO format date
                     try:
