@@ -9,7 +9,7 @@ import asyncio
 from fastapi import FastAPI, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from es_inserter.async_proc import AsyncProcessor
+from .async_proc import AsyncProcessor
 
 
 APP_ENV = os.getenv("APP_ENV", "dev")

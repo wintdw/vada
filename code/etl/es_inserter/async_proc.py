@@ -8,8 +8,8 @@ import asyncio
 from typing import Dict, Optional, Tuple
 from aiohttp import ClientResponseError  # type: ignore
 
-import etl.libs.utils
-from etl.libs.mappings import MappingsClient
+from etl.libs.utils import remove_fields, generate_docid
+from libs.connectors.mappings import MappingsClient
 from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 
@@ -40,12 +40,12 @@ class AsyncProcessor:
             logging.warning("Missing required fields, skipping message: %s", msg)
             return None
 
-        doc = etl.libs.utils.remove_fields(msg, ["__vada"])
-        doc_id = etl.libs.utils.generate_docid(doc)
+        doc = remove_fields(msg, ["__vada"])
+        doc_id = generate_docid(doc)
         # logging.info(doc)
 
         # send to ES
-        response = await self.es.send_to_es(index_name, doc_id, doc)
+        response = await self.es.index_doc(index_name, doc_id, doc)
         if response.status not in {200, 201}:
             logging.error("Failed to send to ES: %s - %s", doc, await response.text())
 

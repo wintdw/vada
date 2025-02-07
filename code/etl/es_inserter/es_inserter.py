@@ -17,8 +17,9 @@ from fastapi import (  # type: ignore
 )
 from fastapi.responses import JSONResponse  # type: ignore
 
-import libs.utils
-from libs.async_es import AsyncESProcessor
+from etl.libs.utils import ValidationError, remove_fields, generate_docid
+from libs.connectors.async_es import AsyncESProcessor
+from libs.utils.es_field_types import determine_and_convert_es_field_types
 
 
 app = FastAPI()
@@ -83,11 +84,11 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             try:
                 json_msg = json.loads(line)
             except json.JSONDecodeError as e:
-                raise libs.utils.ValidationError(f"Invalid JSON format: {e}")
+                raise ValidationError(f"Invalid JSON format: {e}")
             json_msgs.append(json_msg)
 
         # convert
-        json_converted_msgs = libs.utils.convert_dict_values(json_msgs)
+        json_converted_msgs = determine_and_convert_es_field_types(json_msgs)
         for event in json_converted_msgs:
             try:
                 index_name = (
@@ -107,14 +108,14 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                     continue
                 index_name = event["index_name"]
 
-            doc = libs.utils.remove_fields(event, ["index_name", "_vada"])
+            doc = remove_fields(event, ["index_name", "_vada"])
             try:
                 doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
             except Exception:
                 doc_id = ""
 
             if not doc_id:
-                doc_id = libs.utils.generate_docid(doc)
+                doc_id = generate_docid(doc)
             # logging.debug(doc)
 
             response = await es_processor.send_to_es(index_name, doc_id, doc)
