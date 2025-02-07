@@ -1,6 +1,6 @@
 import os
 
-from libs.async_kafka import AsyncKafkaProcessor
+from libs.connectors.async_kafka import AsyncKafkaProcessor
 
 
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
