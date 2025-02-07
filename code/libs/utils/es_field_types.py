@@ -53,6 +53,9 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
             elif isinstance(value, str):
                 if not value:
                     continue  # Skip empty strings
+                if value.lower() in ["true", "false"]:
+                    field_type_counts[field]["boolean"] += 1
+                    continue
                 # Try to convert the string into a number (either int or float)
                 try:
                     int_value = int(value)
@@ -143,9 +146,12 @@ def convert_es_field_types(
                     data[field] = 0
                 continue  # No need for further conversion checks, as it's now 0
 
-            if field_type == "boolean" and isinstance(value, str):
+            if field_type == "boolean":
                 # Convert "true"/"false" strings to boolean
-                data[field] = value.lower() == "true"
+                if isinstance(value, str):
+                    data[field] = value.lower() == "true"
+                elif isinstance(value, bool):
+                    data[field] = value
 
             elif field_type == "long":
                 # Convert string or float to int
