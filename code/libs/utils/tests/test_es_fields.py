@@ -133,7 +133,7 @@ def test_determine_and_convert_es_field_types():
             ],
             "created_at": "2023-06-01T12:00:00+00:00",
         },
-        {"timestamp": "1609459200"},
+        {"timestamp": "2021-01-01T00:00:00"},
         {"price": 123.45, "discount": 10},
         {"price": 0},
         {"price": 0},

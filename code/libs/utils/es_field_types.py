@@ -1,6 +1,6 @@
-import json
 import base64
 from collections import defaultdict
+from datetime import datetime
 from dateutil import parser  # type: ignore
 from typing import Dict, List, Any
 
@@ -179,6 +179,19 @@ def convert_es_field_types(
                     try:
                         # Attempt to parse string as date and convert to ISO format
                         data[field] = parser.isoparse(value).isoformat()
+                    except (ValueError, TypeError):
+                        # If parsing fails, try to convert string to int and then to date
+                        try:
+                            int_value = int(value)
+                            data[field] = datetime.utcfromtimestamp(
+                                int_value
+                            ).isoformat()
+                        except (ValueError, TypeError):
+                            continue  # If conversion fails, leave it unchanged
+                elif isinstance(value, int):
+                    # Convert integer timestamp to ISO format date
+                    try:
+                        data[field] = datetime.utcfromtimestamp(value).isoformat()
                     except (ValueError, TypeError):
                         continue  # If parsing fails, leave it unchanged
 
