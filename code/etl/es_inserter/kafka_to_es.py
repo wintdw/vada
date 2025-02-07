@@ -53,12 +53,12 @@ async def check_health() -> JSONResponse:
     """
 
     response = await processor.es.check_health()
-    if response.status < 400:
+    if response["status"] < 400:
         return JSONResponse(
             content={"status": "success", "detail": "Service Available"}
         )
-    logging.error(await response.text())
-    raise HTTPException(status_code=response.status)
+    logging.error(response["json"])
+    raise HTTPException(status_code=response["status"])
 
 
 @app.on_event("startup")
