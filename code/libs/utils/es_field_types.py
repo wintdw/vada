@@ -1,5 +1,6 @@
-from datetime import datetime, timezone
 import base64
+import logging
+from datetime import datetime, timezone
 from collections import defaultdict
 from dateutil import parser  # type: ignore
 from typing import Dict, List, Any
@@ -97,13 +98,12 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
     # Determine the most probable type for each field, applying the logic for 'double' when needed
     field_types = {}
     for field, type_counts in field_type_counts.items():
-        # If any 'double' values were detected, classify the field as 'double'
-        if "double" in type_counts and type_counts["double"] > 0:
-            field_types[field] = "double"
-        else:
-            # Otherwise, take the most probable type
-            most_probable_type = max(type_counts, key=type_counts.get)
-            field_types[field] = most_probable_type
+        most_probable_type = max(type_counts, key=type_counts.get)
+        if most_probable_type == "long" and "double" in type_counts:
+            # If the most probable type is 'long' but 'double' was also detected, classify as 'double'
+            most_probable_type = "double"
+
+        field_types[field] = most_probable_type
 
     return field_types
 
@@ -241,4 +241,7 @@ def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str
     """
     field_types = determine_es_field_types(json_lines)
     converted_json_lines = convert_es_field_types(json_lines, field_types)
+
+    logging.info("Field types: %s", field_types)
+
     return converted_json_lines
