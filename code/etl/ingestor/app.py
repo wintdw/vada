@@ -57,7 +57,7 @@ async def handle_jsonl_req(
 
     user_id = jwt_dict.get("id")
 
-    response = process_jsonl(
+    response = await process_jsonl(
         APP_ENV, lines, user_id, kafka_processor, es_processor, mappings_client
     )
 
