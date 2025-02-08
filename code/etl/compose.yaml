@@ -1,8 +1,6 @@
 secrets:
   es_elastic:
     file: /var/secret/docker/es/elastic
-  crm:
-    file: /var/secret/docker/crm/vada
 
 networks:
   etl_network:
@@ -48,6 +46,8 @@ services:
       MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+    secrets:
+      - es_elastic
     ports:
       - "8001:8001"
     networks:
@@ -72,7 +72,6 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
     secrets:
       - es_elastic
-      - crm
     ports:
       - "8002:8002"
     networks:
