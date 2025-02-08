@@ -84,6 +84,8 @@ class AsyncESProcessor:
 
         await self._create_session()
 
+        # remove unnecessary meta field
+        mappings = remove_fields(mappings, ["_vada"])
         async with self.session.put(es_url, json=mappings, auth=self.auth) as response:
             if response.status == 200:
                 logging.info("Mappings set successfully: %s", mappings)

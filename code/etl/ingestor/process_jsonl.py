@@ -8,7 +8,6 @@ from etl.libs.vadadoc import VadaDocument
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.mappings import MappingsClient
-from libs.utils.common import remove_fields
 from libs.utils.es_field_types import (
     determine_es_field_types,
     convert_es_field_types,
@@ -52,8 +51,7 @@ async def create_es_index_mappings_if_not_exist(
     async with set_mappings_lock:
         if not await es_processor.check_index_exists(index_name):
             mappings = construct_es_mappings(field_types)
-            mappings_no_meta = remove_fields(mappings, ["_vada"])
-            response = await es_processor.set_mappings(index_name, mappings_no_meta)
+            response = await es_processor.set_mappings(index_name, mappings)
             return response
         else:
             return {"status": "unchanged", "detail": "Index already exists"}
