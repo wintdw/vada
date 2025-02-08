@@ -5,7 +5,6 @@ This module is for processing jsonl and pushing to ES index
 """
 
 import os
-import json
 import logging
 import traceback
 import asyncio
@@ -17,6 +16,7 @@ from fastapi import (  # type: ignore
 )
 from fastapi.responses import JSONResponse  # type: ignore
 
+from etl.libs.vadadoc import VadaDocument
 from libs.connectors.async_es import AsyncESProcessor
 from libs.utils.es_field_types import determine_and_convert_es_field_types
 
@@ -75,35 +75,30 @@ async def receive_jsonl(request: Request) -> JSONResponse:
 
         status_msg = "success"
 
-        json_msgs = []
+        json_docs = []
         for line in json_lines:
             try:
-                json_msg = json.loads(line)
-            except json.JSONDecodeError as e:
-                raise RuntimeError(f"Invalid JSON format: {e}")
-            json_msgs.append(json_msg)
+                vada_doc = VadaDocument(line)
+            except Exception as e:
+                raise RuntimeError("Invalid JSON format: %s - %s", e, line)
+            json_docs.append(vada_doc.get_doc())
 
         # convert
-        json_converted_msgs = determine_and_convert_es_field_types(json_msgs)
+        json_converted_docs = determine_and_convert_es_field_types(json_docs)
 
         # We expect all the messages received in one chunk will be in the same index
-        index_name = (
-            json_converted_msgs[0]
-            .get("_vada", {})
-            .get("ingest", {})
-            .get("destination", {})
-            .get("index", "")
-        )
+        # so we take only the first message to get the index name
+        index_name = vada_doc.get_index_name()
 
         if not index_name:
-            logging.error("Missing index name: %s", json_converted_msgs[0])
+            logging.error("Missing index name: %s", vada_doc.get_doc())
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index name"
             )
 
-        response = await es_processor.bulk_index_docs(index_name, json_converted_msgs)
+        response = await es_processor.bulk_index_docs(index_name, json_converted_docs)
         if response["status"] not in {200, 201}:
-            status = "failure"
+            status_msg = "failure"
 
         return JSONResponse(
             content={"status": status_msg, "detail": response["detail"]}

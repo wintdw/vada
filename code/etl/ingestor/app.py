@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status  # type: ig
 from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
-from etl.libs.utils import process_msg
+from etl.libs.vadadoc import VadaDocument
 from libs.security.jwt import verify_jwt
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.utils.es_field_types import determine_and_convert_es_field_types
@@ -56,37 +56,38 @@ async def process_jsonl(
     # Reconstruct the list of json data
     successful_count = 0
     failed_count = 0
-    json_msgs = []
+    json_docs = []
     failed_lines = []
 
     for line in lines:
         try:
-            json_msg = process_msg(line)
-            json_msgs.append(json_msg)
-        except RuntimeError as json_err:
+            vada_doc = VadaDocument(line)
+        except Exception as json_err:
             logging.error("Invalid JSON format: %s - %s", line, json_err)
             failed_lines.append({"line": line, "error": str(json_err)})
             failed_count += 1
+        vada_doc.populate_ingestor_metadata()
+        vada_doc.set_user_id(jwt_dict.get("id"))
+        json_docs.append(vada_doc.get_doc())
 
-    json_converted_msgs = determine_and_convert_es_field_types(json_msgs)
+    json_converted_docs = determine_and_convert_es_field_types(json_docs)
     try:
         # Start the producer
         await kafka_processor.create_producer()
         # Concurrently process messages
         tasks = []
-        for json_msg in json_converted_msgs:
+        for json_doc in json_converted_docs:
             try:
-                json_msg["_vada"]["ingest"]["user_id"] = jwt_dict.get("id")
-                kafka_topic = (
-                    f"{APP_ENV}.{json_msg["_vada"]["ingest"]["destination"]["index"]}"
-                )
+                vada_doc = VadaDocument(json_doc)
+                index_name = vada_doc.get_index_name()
+                kafka_topic = f"{APP_ENV}.{index_name}"
                 # Create task for producing the message
-                tasks.append(kafka_processor.produce_message(kafka_topic, json_msg))
+                tasks.append(kafka_processor.produce_message(kafka_topic, json_doc))
                 successful_count += 1
             except Exception as e:
                 error_trace = traceback.format_exc()
-                logging.error("Error processing line: %s\n%s", json_msg, error_trace)
-                failed_lines.append({"line": json_msg, "error": str(e)})
+                logging.error("Error processing line: %s\n%s", json_doc, error_trace)
+                failed_lines.append({"line": json_doc, "error": str(e)})
                 failed_count += 1
 
         # Await all produce tasks

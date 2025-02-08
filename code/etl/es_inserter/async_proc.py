@@ -8,7 +8,7 @@ import asyncio
 from typing import Dict, Optional, Tuple
 from aiohttp import ClientResponseError  # type: ignore
 
-from etl.libs.utils import remove_fields, generate_docid
+from etl.libs.vadadoc import VadaDocument
 from libs.connectors.mappings import MappingsClient
 from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.async_kafka import AsyncKafkaProcessor
@@ -23,31 +23,25 @@ class AsyncProcessor:
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
         )
 
-    async def process_msg(self, msg: Dict) -> Optional[Tuple[str, str, str]]:
+    async def extract_metadata_from_doc(
+        self, doc: Dict
+    ) -> Optional[Tuple[str, str, str, str]]:
         """
         Function to process single message from Kafka and send to ES.
 
         Returns
-        (user_id, index_name, index_friendly_name) on success, None otherwise.
+        (user_id, index_name, index_friendly_name, doc) on success, None otherwise.
         """
-        meta = msg.get("__vada", {})
-        index_name = meta.get("index_name")
-        index_friendly_name = meta.get("index_friendly_name", index_name)
-        user_id = meta.get("user_id")
+        vada_doc = VadaDocument(doc)
+        index_name = vada_doc.get_index_name()
+        index_friendly_name = vada_doc.get_index_friendly_name()
+        user_id = vada_doc.get_user_id()
+        doc = vada_doc.get_doc()
 
         # Skip if essential data is missing
         if not index_name or not user_id:
-            logging.warning("Missing required fields, skipping message: %s", msg)
+            logging.warning("Missing required fields, skipping message: %s", doc)
             return None
-
-        doc = remove_fields(msg, ["__vada"])
-        # doc_id = generate_docid(doc)
-        # logging.info(doc)
-
-        # send to ES
-        # response = await self.es.index_doc(index_name, doc_id, doc)
-        # if response.status not in {200, 201}:
-        #     logging.error("Failed to send to ES: %s - %s", doc, await response.text())
 
         return (user_id, index_name, index_friendly_name, doc)
 
@@ -58,18 +52,18 @@ class AsyncProcessor:
 
         try:
             while True:
-                input_msgs = await self.kafka.consume_messages()
+                consumed_msgs = await self.kafka.consume_messages()
                 # If no message retrieved
-                if not input_msgs:
+                if not consumed_msgs:
                     await asyncio.sleep(3.0)
                     continue
 
                 # Use set to avoid duplicate mappings
                 unique_tuples = set()
                 index_docs = {}
-                for input_msg in input_msgs:
+                for consumed_msg in consumed_msgs:
                     user_id, index_name, index_friendly_name, doc = (
-                        await self.process_msg(input_msg)
+                        await self.extract_metadata_from_doc(consumed_msg)
                     )
                     index_docs[index_name] = index_docs.get(index_name, []) + [doc]
                     unique_tuples.add((user_id, index_name, index_friendly_name))
