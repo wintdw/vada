@@ -4,7 +4,7 @@ import hashlib
 from typing import Dict, List
 from aiohttp import ClientSession, BasicAuth  # type: ignore
 
-from libs.utils.common import remove_fields
+from libs.utils.common import remove_fields, generate_docid
 
 
 class ESException(Exception):
@@ -24,10 +24,6 @@ class AsyncESProcessor:
         """Create a new session."""
         if not self.session:
             self.session = ClientSession()
-
-    def _generate_docid(doc: Dict) -> str:
-        serialized_data = json.dumps(doc, sort_keys=True)
-        return hashlib.sha256(serialized_data.encode("utf-8")).hexdigest()
 
     async def check_health(self) -> Dict:
         """Check the health of the Elasticsearch cluster."""
@@ -105,8 +101,15 @@ class AsyncESProcessor:
     async def index_doc(self, index_name: str, doc: Dict, doc_id: str = None) -> Dict:
         """Send data to a specific Elasticsearch index."""
         await self._create_session()
+        if "_vada" in doc:
+            try:
+                doc_id = doc.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+            except Exception:
+                doc_id = ""
+
+            doc = remove_fields(doc, ["_vada"])
         if not doc_id:
-            doc_id = self._generate_docid(doc)
+            doc_id = generate_docid(doc)
 
         es_url = f"{self.es_baseurl}/{index_name}/_doc/{doc_id}"
 
@@ -140,7 +143,7 @@ class AsyncESProcessor:
                 except Exception:
                     doc_id = ""
                 if not doc_id:
-                    doc_id = self._generate_docid(doc)
+                    doc_id = generate_docid(doc)
                 doc = remove_fields(doc, ["_vada"])
 
             action_metadata = {"index": {"_index": index_name, "_id": doc_id}}
