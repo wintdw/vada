@@ -28,8 +28,8 @@ async def prepare_jsonl(json_lines: List[str], user_id: str) -> Dict:
         vada_doc.set_user_id(user_id)
         json_docs.append(vada_doc.get_doc())
 
-    # Take the last message to get the index name
-    index_name = vada_doc.get_index_name()
+    # Take the first message to get the index name
+    index_name = VadaDocument(json_docs[0]).get_index_name()
     field_types = determine_es_field_types(json_docs)
     converted_json_docs = convert_es_field_types(json_docs, field_types)
     logging.info("Field types: %s", field_types)
