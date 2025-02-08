@@ -172,9 +172,19 @@ class AsyncESProcessor:
             # For accounting purposes
             success = 0
             failure = 0
+            error_msgs = []
             for item in response_json["items"]:
                 if item["index"]["status"] not in [200, 201]:
-                    logging.error("Failed to index doc_id: %s", item["index"]["_id"])
+                    error_msg = {
+                        "index": item["index"]["_index"],
+                        "status": item["index"]["status"],
+                        "doc_id": item["index"]["_id"],
+                        "reason": item["index"]["error"]["reason"],
+                    }
+                    logging.error(
+                        "Failed to index doc_id: %s", json.dumps(error_msg, indent=4)
+                    )
+                    error_msgs.append(error_msg)
                     failure += 1
                 else:
                     success += 1
@@ -184,6 +194,7 @@ class AsyncESProcessor:
                 "errors": response_json["errors"],
                 "success": success,
                 "failure": failure,
+                "error_msgs": error_msgs,
             }
 
             return {"status": response.status, "detail": response_detail}
