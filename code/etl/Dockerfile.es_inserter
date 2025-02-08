@@ -3,4 +3,4 @@ WORKDIR /app
 COPY etl/requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
 COPY .. /app
-CMD uvicorn etl.es_inserter.es_inserter:app --host 0.0.0.0 --port $PORT --workers 6
+CMD uvicorn etl.es_inserter.es_inserter:app --host 0.0.0.0 --port $PORT --workers 1
