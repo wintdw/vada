@@ -166,7 +166,27 @@ class AsyncESProcessor:
                     await response.text(),
                 )
 
-            return {"status": response.status, "detail": await response.json()}
+            response_json = await response.json()
+            logging.debug("Bulk response: %s", response_json)
+
+            # For accounting purposes
+            success = 0
+            failure = 0
+            for item in response_json["items"]:
+                if item["index"]["status"] not in [200, 201]:
+                    logging.error("Failed to index doc_id: %s", item["index"]["_id"])
+                    failure += 1
+                else:
+                    success += 1
+
+            response_detail = {
+                "took": response_json["took"],
+                "errors": response_json["errors"],
+                "success": success,
+                "failure": failure,
+            }
+
+            return {"status": response.status, "detail": response_detail}
 
     async def close(self):
         """Close the session."""
