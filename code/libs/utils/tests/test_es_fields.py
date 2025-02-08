@@ -171,21 +171,34 @@ def test_construct_es_mappings():
     }
 
     expected_mappings = {
-        "properties": {
-            "name": {"type": "keyword"},
-            "age": {"type": "double"},
-            "is_student": {"type": "boolean"},
-            "scores": {"type": "text"},
-            "binary_data": {"type": "binary"},
-            "address": {"type": "nested"},
-            "created_at": {"type": "date"},
-            "tags": {"type": "keyword"},
-            "contacts": {"type": "nested"},
-            "timestamp": {"type": "date"},
-            "price": {"type": "double"},
-            "discount": {"type": "long"},
-            "another_date": {"type": "date"},
-        }
+        "mappings": {
+            "properties": {
+                "name": {"type": "keyword"},
+                "age": {"type": "double"},
+                "is_student": {"type": "boolean"},
+                "scores": {"type": "text"},
+                "binary_data": {"type": "binary"},
+                "address": {"type": "nested"},
+                "created_at": {"type": "date"},
+                "tags": {"type": "keyword"},
+                "contacts": {"type": "nested"},
+                "timestamp": {"type": "date"},
+                "price": {"type": "double"},
+                "discount": {"type": "long"},
+                "another_date": {"type": "date"},
+            },
+        },
+        "dynamic_templates": [
+            {
+                "dates_as_default": {
+                    "match_mapping_type": "string",
+                    "mapping": {
+                        "type": "date",
+                        "null_value": "2000-01-01T00:00:00Z",
+                    },
+                }
+            }
+        ],
     }
 
     es_mappings = construct_es_mappings(field_types)
