@@ -8,11 +8,16 @@ from etl.libs.vadadoc import VadaDocument
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.mappings import MappingsClient
+from libs.utils.common import remove_fields
 from libs.utils.es_field_types import (
     determine_es_field_types,
     convert_es_field_types,
     construct_es_mappings,
 )
+
+
+# Create a global lock for setting mappings
+set_mappings_lock = asyncio.Lock()
 
 
 async def prepare_jsonl(json_lines: List[str], user_id: str) -> Dict:
@@ -44,19 +49,22 @@ async def prepare_jsonl(json_lines: List[str], user_id: str) -> Dict:
 async def create_es_index_mappings_if_not_exist(
     index_name: str, field_types: Dict, es_processor: AsyncESProcessor
 ) -> Dict:
-    if not await es_processor.check_index_exists(index_name):
-        mappings = construct_es_mappings(field_types)
-        response = await es_processor.set_mappings(index_name, mappings)
-        return response
-    else:
-        return {"status": "unchanged", "detail": "Index already exists"}
+    async with set_mappings_lock:
+        if not await es_processor.check_index_exists(index_name):
+            mappings = construct_es_mappings(field_types)
+            mappings_no_meta = remove_fields(mappings, ["_vada"])
+            response = await es_processor.set_mappings(index_name, mappings_no_meta)
+            return response
+        else:
+            return {"status": "unchanged", "detail": "Index already exists"}
 
 
 async def create_crm_mappings(
     user_id: str, index_name: str, mappings_client: MappingsClient
 ) -> Dict:
-    response = await mappings_client.create_mappings(user_id, index_name)
-    return response
+    async with set_mappings_lock:
+        response = await mappings_client.create_mappings(user_id, index_name)
+        return response
 
 
 async def produce_jsonl(

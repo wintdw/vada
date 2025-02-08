@@ -21,5 +21,4 @@ class MappingsClient:
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=payload) as response:
-                response.raise_for_status()
                 return await response.json()

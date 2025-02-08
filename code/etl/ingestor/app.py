@@ -57,8 +57,12 @@ async def handle_jsonl_req(
 
     user_id = jwt_dict.get("id")
 
-    response = await process_jsonl(
-        APP_ENV, lines, user_id, kafka_processor, es_processor, mappings_client
-    )
+    try:
+        response = await process_jsonl(
+            APP_ENV, lines, user_id, kafka_processor, es_processor, mappings_client
+        )
+    finally:
+        await kafka_processor.close()
+        await es_processor.close()
 
     return JSONResponse(content=response)
