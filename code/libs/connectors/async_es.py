@@ -2,7 +2,9 @@ import logging
 import json
 import hashlib
 from typing import Dict, List
-from aiohttp import ClientSession, ClientResponse, BasicAuth  # type: ignore
+from aiohttp import ClientSession, BasicAuth  # type: ignore
+
+from libs.utils.common import remove_fields
 
 
 class ESException(Exception):
@@ -131,7 +133,17 @@ class AsyncESProcessor:
         # Prepare the bulk request payload
         bulk_payload = ""
         for doc in docs:
-            action_metadata = {"index": {"_index": index_name, "_id": doc.get("id")}}
+            # Find the doc_id in the metadata, if appears
+            if "_vada" in doc:
+                try:
+                    doc_id = doc.get("_vada", {}).get("ingest", {}).get("doc_id", "")
+                except Exception:
+                    doc_id = ""
+                if not doc_id:
+                    doc_id = self._generate_docid(doc)
+                doc = remove_fields(doc, ["_vada"])
+
+            action_metadata = {"index": {"_index": index_name, "_id": doc_id}}
             bulk_payload += json.dumps(action_metadata) + "\n"
             bulk_payload += json.dumps(doc) + "\n"
 
