@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status  # type: ig
 from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
-import etl.libs.utils
+from etl.libs.utils import process_msg
 from libs.security.jwt import verify_jwt
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.utils.es_field_types import determine_and_convert_es_field_types
@@ -61,9 +61,9 @@ async def process_jsonl(
 
     for line in lines:
         try:
-            json_msg = etl.libs.utils.process_msg(line)
+            json_msg = process_msg(line)
             json_msgs.append(json_msg)
-        except etl.libs.utils.ValidationError as json_err:
+        except RuntimeError as json_err:
             logging.error("Invalid JSON format: %s - %s", line, json_err)
             failed_lines.append({"line": line, "error": str(json_err)})
             failed_count += 1
@@ -76,8 +76,10 @@ async def process_jsonl(
         tasks = []
         for json_msg in json_converted_msgs:
             try:
-                json_msg["__vada"]["user_id"] = jwt_dict.get("id")
-                kafka_topic = f"{APP_ENV}.{json_msg["__vada"]["index_name"]}"
+                json_msg["_vada"]["ingest"]["user_id"] = jwt_dict.get("id")
+                kafka_topic = (
+                    f"{APP_ENV}.{json_msg["_vada"]["ingest"]["destination"]["index"]}"
+                )
                 # Create task for producing the message
                 tasks.append(kafka_processor.produce_message(kafka_topic, json_msg))
                 successful_count += 1
