@@ -17,7 +17,6 @@ from fastapi import (  # type: ignore
 )
 from fastapi.responses import JSONResponse  # type: ignore
 
-from etl.libs.utils import ValidationError, remove_fields, generate_docid
 from libs.connectors.async_es import AsyncESProcessor
 from libs.utils.es_field_types import determine_and_convert_es_field_types
 
@@ -75,76 +74,42 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         json_lines = body.decode("utf-8").splitlines()
 
         status_msg = "success"
-        success = 0
-        failure = 0
-        err_msgs = []
 
         json_msgs = []
         for line in json_lines:
             try:
                 json_msg = json.loads(line)
             except json.JSONDecodeError as e:
-                raise ValidationError(f"Invalid JSON format: {e}")
+                raise RuntimeError(f"Invalid JSON format: {e}")
             json_msgs.append(json_msg)
 
         # convert
         json_converted_msgs = determine_and_convert_es_field_types(json_msgs)
-        for event in json_converted_msgs:
-            try:
-                index_name = (
-                    event.get("_vada", {})
-                    .get("ingest", {})
-                    .get("destination", {})
-                    .get("index", "")
-                )
-            except Exception:
-                index_name = ""
 
-            if not index_name:
-                if "index_name" not in event:
-                    logging.error(event)
-                    failure += 1
-                    err_msgs.append("Missing index_name")
-                    continue
-                index_name = event["index_name"]
+        # We expect all the messages received in one chunk will be in the same index
+        index_name = (
+            json_converted_msgs[0]
+            .get("_vada", {})
+            .get("ingest", {})
+            .get("destination", {})
+            .get("index", "")
+        )
 
-            try:
-                doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
-            except Exception:
-                doc_id = ""
+        if not index_name:
+            logging.error("Missing index name: %s", json_converted_msgs[0])
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index name"
+            )
 
-            doc = remove_fields(event, ["index_name", "_vada"])
-
-            if not doc_id:
-                doc_id = generate_docid(doc)
-            # logging.debug(doc)
-
-            response = await es_processor.index_doc(index_name, doc, doc_id)
-            if response["status"] not in {200, 201}:
-                err_msg = response["detail"]
-                logging.error(event)
-                logging.error(err_msg)
-                err_msgs.append(err_msg)
-                failure += 1
-
-            success += 1
-
-        if failure > 0:
-            status_msg = "partial success"
-        if success == 0:
-            status_msg = "failure"
+        response = await es_processor.bulk_index_docs(index_name, json_converted_msgs)
+        if response["status"] not in {200, 201}:
+            status = "failure"
 
         return JSONResponse(
-            content={
-                "status": status_msg,
-                "detail": f"{success} success, {failure} failure",
-                "errors": err_msgs,
-            }
+            content={"status": status_msg, "detail": response["detail"]}
         )
 
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
-    # finally:
-    #     await es_processor.close()
