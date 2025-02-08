@@ -6,18 +6,15 @@
 import logging
 import asyncio
 from typing import Dict, Optional, Tuple
-from aiohttp import ClientResponseError  # type: ignore
 
 from etl.libs.vadadoc import VadaDocument
-from libs.connectors.mappings import MappingsClient
 from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 
 
 class AsyncProcessor:
-    def __init__(self, kafka_broker: str, es_conf_dict: Dict, mappings_url: str):
+    def __init__(self, kafka_broker: str, es_conf_dict: Dict):
         self.lock = asyncio.Lock()
-        self.mappings = MappingsClient(mappings_url)
         self.kafka = AsyncKafkaProcessor(kafka_broker)
         self.es = AsyncESProcessor(
             es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
@@ -59,14 +56,14 @@ class AsyncProcessor:
                     continue
 
                 # Use set to avoid duplicate mappings
-                unique_tuples = set()
+                # unique_tuples = set()
                 index_docs = {}
                 for consumed_msg in consumed_msgs:
                     user_id, index_name, index_friendly_name, doc = (
                         await self.extract_metadata_from_doc(consumed_msg)
                     )
                     index_docs[index_name] = index_docs.get(index_name, []) + [doc]
-                    unique_tuples.add((user_id, index_name, index_friendly_name))
+                    # unique_tuples.add((user_id, index_name, index_friendly_name))
 
                 # Bulk index documents to Elasticsearch
                 for index_name, docs in index_docs.items():
@@ -83,22 +80,22 @@ class AsyncProcessor:
                             exc_info=True,
                         )
 
-                for user_id, index_name, index_friendly_name in unique_tuples:
-                    # Do not run concurrently
-                    async with self.lock:
-                        try:
-                            response_json = await self.mappings.create_mappings(
-                                user_id, index_name, index_friendly_name
-                            )
-                            logging.info(
-                                "Mappings created for user: %s, index: %s, response: %s",
-                                user_id,
-                                index_name,
-                                response_json,
-                            )
-                        # it will raise httpexpetion on failure, but we do not stop the process
-                        except ClientResponseError as e:
-                            logging.warning(f"Error creating Mappings: {e}")
+                # for user_id, index_name, index_friendly_name in unique_tuples:
+                #     # Do not run concurrently
+                #     async with self.lock:
+                #         try:
+                #             response_json = await self.mappings.create_mappings(
+                #                 user_id, index_name, index_friendly_name
+                #             )
+                #             logging.info(
+                #                 "Mappings created for user: %s, index: %s, response: %s",
+                #                 user_id,
+                #                 index_name,
+                #                 response_json,
+                #             )
+                #         # it will raise httpexpetion on failure, but we do not stop the process
+                #         except ClientResponseError as e:
+                #             logging.warning(f"Error creating Mappings: {e}")
 
         except Exception as e:
             logging.error(f"Error creating Mappings: {e}", exc_info=True)

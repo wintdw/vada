@@ -26,8 +26,6 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
 KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka.ilb.vadata.vn:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "dev_input")
 
-MAPPINGS_BASEURL = os.getenv("MAPPINGS_BASEURL", "http://mappings.internal.vadata.vn")
-
 
 app = FastAPI()
 asyncio.get_event_loop().set_debug(True)
@@ -40,7 +38,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 es_conf_dict = {"url": ELASTIC_URL, "user": ELASTIC_USER, "passwd": ELASTIC_PASSWD}
-processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict, MAPPINGS_BASEURL)
+processor = AsyncProcessor(KAFKA_BROKER_URL, es_conf_dict)
 
 
 @app.get("/health")

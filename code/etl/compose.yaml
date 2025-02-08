@@ -42,7 +42,10 @@ services:
       PORT: "8001"
       APP_ENV: dev
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      KAFKA_TOPIC: dev_input
+      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_USER: elastic
+      ELASTIC_URL: http://demo.internal.vadata.vn:9200
+      MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     ports:
@@ -65,7 +68,6 @@ services:
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: dev_input
-      MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
     secrets:

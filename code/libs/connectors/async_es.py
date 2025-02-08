@@ -1,6 +1,5 @@
 import logging
 import json
-import hashlib
 from typing import Dict, List
 from aiohttp import ClientSession, BasicAuth  # type: ignore
 
