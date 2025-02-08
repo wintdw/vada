@@ -81,7 +81,7 @@ class AsyncProcessor:
                         logging.info(
                             "Bulk indexed documents to index: %s, response: %s",
                             index_name,
-                            response["json"],
+                            response["detail"],
                         )
                     except Exception as e:
                         logging.error(

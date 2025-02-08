@@ -27,7 +27,7 @@ class AsyncESProcessor:
         serialized_data = json.dumps(doc, sort_keys=True)
         return hashlib.sha256(serialized_data.encode("utf-8")).hexdigest()
 
-    async def check_health(self) -> ClientResponse:
+    async def check_health(self) -> Dict:
         """Check the health of the Elasticsearch cluster."""
         es_url = f"{self.es_baseurl}/_cluster/health"
 
@@ -41,7 +41,7 @@ class AsyncESProcessor:
                 )
 
             logging.debug("Cluster health: %s", await response.text())
-            return {"status": response.status, "json": await response.json()}
+            return {"status": response.status, "detail": await response.json()}
 
     async def check_index_exists(self, index_name: str) -> bool:
         """Check if an Elasticsearch index exists."""
@@ -98,12 +98,13 @@ class AsyncESProcessor:
                 )
                 raise ESException(response.status, await response.text())
 
-            return {"status": response.status, "json": await response.json()}
+            return {"status": response.status, "detail": await response.json()}
 
-    async def index_doc(self, index_name: str, doc: Dict) -> Dict:
+    async def index_doc(self, index_name: str, doc: Dict, doc_id: str = None) -> Dict:
         """Send data to a specific Elasticsearch index."""
         await self._create_session()
-        doc_id = self._generate_docid(doc)
+        if not doc_id:
+            doc_id = self._generate_docid(doc)
 
         es_url = f"{self.es_baseurl}/{index_name}/_doc/{doc_id}"
 
@@ -120,7 +121,7 @@ class AsyncESProcessor:
                     await response.text(),
                 )
 
-            return {"status": response.status, "json": await response.json()}
+            return {"status": response.status, "detail": await response.json()}
 
     async def bulk_index_docs(self, index_name: str, docs: List[Dict]) -> Dict:
         """Send multiple documents to a specific Elasticsearch index using the bulk API."""
@@ -150,7 +151,7 @@ class AsyncESProcessor:
                     await response.text(),
                 )
 
-            return {"status": response.status, "json": await response.json()}
+            return {"status": response.status, "detail": await response.json()}
 
     async def close(self):
         """Close the session."""

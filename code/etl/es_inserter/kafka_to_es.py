@@ -57,7 +57,7 @@ async def check_health() -> JSONResponse:
         return JSONResponse(
             content={"status": "success", "detail": "Service Available"}
         )
-    logging.error(response["json"])
+    logging.error(response["detail"])
     raise HTTPException(status_code=response["status"])
 
 

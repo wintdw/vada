@@ -47,12 +47,12 @@ es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
 async def check_health():
     """Check the health of the Elasticsearch cluster."""
     response = await es_processor.check_health()
-    if response.status < 400:
+    if response["status"] < 400:
         return JSONResponse(
             content={"status": "success", "detail": "Service Available"}
         )
-    logging.error(await response.text())
-    raise HTTPException(status_code=response.status)
+    logging.error(response["detail"])
+    raise HTTPException(status_code=response["status"])
 
 
 # This function can deal with duplicate messages
@@ -108,19 +108,20 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                     continue
                 index_name = event["index_name"]
 
-            doc = remove_fields(event, ["index_name", "_vada"])
             try:
                 doc_id = event.get("_vada", {}).get("ingest", {}).get("doc_id", "")
             except Exception:
                 doc_id = ""
 
+            doc = remove_fields(event, ["index_name", "_vada"])
+
             if not doc_id:
                 doc_id = generate_docid(doc)
             # logging.debug(doc)
 
-            response = await es_processor.send_to_es(index_name, doc_id, doc)
-            if response.status not in {200, 201}:
-                err_msg = await response.text()
+            response = await es_processor.index_doc(index_name, doc, doc_id)
+            if response["status"] not in {200, 201}:
+                err_msg = response["detail"]
                 logging.error(event)
                 logging.error(err_msg)
                 err_msgs.append(err_msg)
