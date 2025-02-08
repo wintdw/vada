@@ -167,7 +167,7 @@ class AsyncESProcessor:
                 )
 
             response_json = await response.json()
-            logging.debug("Bulk response: %s", response_json)
+            logging.info("Bulk response: %s", response_json)
 
             # For accounting purposes
             success = 0
