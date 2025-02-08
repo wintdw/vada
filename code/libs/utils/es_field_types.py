@@ -259,18 +259,9 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     """
     es_mappings = {
         "mappings": {"properties": {}},
-        "dynamic_templates": [
-            {
-                "dates_as_default": {
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "date",
-                        "null_value": "2000-01-01T00:00:00Z",
-                    },
-                }
-            }
-        ],
     }
+
+    has_date_field = False
 
     for field, field_type in field_types.items():
         es_field_type = field_type
@@ -284,6 +275,7 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             es_field_type = "boolean"
         elif field_type == "date":
             es_field_type = "date"
+            has_date_field = True
         elif field_type == "binary":
             es_field_type = "binary"
         elif field_type == "nested":
@@ -292,5 +284,18 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             es_field_type = "text"
 
         es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
+
+    if has_date_field:
+        es_mappings["dynamic_templates"] = [
+            {
+                "dates_as_default": {
+                    "match_mapping_type": "string",
+                    "mapping": {
+                        "type": "date",
+                        "null_value": "2000-01-01T00:00:00Z",
+                    },
+                }
+            }
+        ]
 
     return es_mappings
