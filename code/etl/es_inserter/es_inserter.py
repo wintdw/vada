@@ -18,7 +18,11 @@ from fastapi.responses import JSONResponse  # type: ignore
 
 from etl.libs.vadadoc import VadaDocument
 from libs.connectors.async_es import AsyncESProcessor
-from libs.utils.es_field_types import determine_and_convert_es_field_types
+from libs.utils.es_field_types import (
+    determine_es_field_types,
+    convert_es_field_types,
+    construct_es_mappings,
+)
 
 
 app = FastAPI()
@@ -84,7 +88,9 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             json_docs.append(vada_doc.get_doc())
 
         # convert
-        json_converted_docs = determine_and_convert_es_field_types(json_docs)
+        field_types = determine_es_field_types(json_docs)
+        json_converted_docs = convert_es_field_types(json_docs, field_types)
+        mappings = construct_es_mappings(field_types)
 
         # We expect all the messages received in one chunk will be in the same index
         # so we take only the first message to get the index name
@@ -96,12 +102,29 @@ async def receive_jsonl(request: Request) -> JSONResponse:
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index name"
             )
 
-        response = await es_processor.bulk_index_docs(index_name, json_converted_docs)
-        if response["status"] not in {200, 201}:
-            status_msg = "failure"
+        # Create index mappings if not exist
+        mappings_response = await es_processor.create_mappings(index_name, mappings)
+        if mappings_response["status"] > 400:
+            status_msg = "mappings failure"
+            logging.error("Failed to create mappings: %s", mappings_response["detail"])
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=mappings_response["detail"],
+            )
+
+        index_response = await es_processor.bulk_index_docs(
+            index_name, json_converted_docs
+        )
+        if index_response["status"] not in {200, 201}:
+            status_msg = "index failure"
+            logging.error("Failed to index documents: %s", index_response["detail"])
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=index_response["detail"],
+            )
 
         return JSONResponse(
-            content={"status": status_msg, "detail": response["detail"]}
+            content={"status": status_msg, "detail": index_response["detail"]}
         )
 
     except Exception as e:

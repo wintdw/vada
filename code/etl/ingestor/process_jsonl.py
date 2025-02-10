@@ -45,24 +45,19 @@ async def prepare_jsonl(json_lines: List[str], user_id: str) -> Dict:
     }
 
 
-async def create_es_index_mappings_if_not_exist(
+async def create_es_index_mappings(
     index_name: str, field_types: Dict, es_processor: AsyncESProcessor
 ) -> Dict:
     async with set_mappings_lock:
-        if not await es_processor.check_index_exists(index_name):
-            mappings = construct_es_mappings(field_types)
-            response = await es_processor.set_mappings(index_name, mappings)
-            return response
-        else:
-            return {"status": "unchanged", "detail": "Index already exists"}
+        mappings = construct_es_mappings(field_types)
+        return await es_processor.create_mappings(index_name, mappings)
 
 
 async def create_crm_mappings(
     user_id: str, index_name: str, mappings_client: MappingsClient
 ) -> Dict:
     async with set_mappings_lock:
-        response = await mappings_client.create_mappings(user_id, index_name)
-        return response
+        return await mappings_client.create_mappings(user_id, index_name)
 
 
 async def produce_jsonl(
@@ -115,7 +110,7 @@ async def process_jsonl(
     # This outputs the field_types and converted_json_docs
     prepare_dict = await prepare_jsonl(jsonlines, user_id)
     # This take the field_types to create mappings in ES
-    mappings_es_dict = await create_es_index_mappings_if_not_exist(
+    mappings_es_dict = await create_es_index_mappings(
         prepare_dict["index_name"], prepare_dict["field_types"], es_processor
     )
     # Create mappings in CRM

@@ -101,6 +101,16 @@ class AsyncESProcessor:
 
             return {"status": response.status, "detail": await response.json()}
 
+    async def create_mappings(self, index_name: str, mappings: Dict) -> Dict:
+        """Create a new Elasticsearch index with mappings.
+        If the index already exists, it will not be changed
+        """
+        if not await self.check_index_exists(index_name):
+            response = await self.set_mappings(index_name, mappings)
+            return response
+        else:
+            return {"status": 204, "detail": "Index already exists"}
+
     async def index_doc(self, index_name: str, doc: Dict, doc_id: str = None) -> Dict:
         """Send data to a specific Elasticsearch index."""
         await self._create_session()
