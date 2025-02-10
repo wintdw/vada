@@ -127,6 +127,8 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             content={"status": status_msg, "detail": index_response["detail"]}
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
