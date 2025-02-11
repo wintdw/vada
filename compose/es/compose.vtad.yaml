@@ -1,0 +1,12 @@
+services:
+  elasticsearch_exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    container_name: elasticsearch_exporter
+    command:
+     - "--es.uri=http://es-vtad.internal.vadata.vn"
+     - "--es.indices"
+    restart: always
+    env_file:
+      - /var/secret/docker/es/exporter.vtad.env
+    ports:
+    - "9115:9115"

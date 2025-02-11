@@ -47,3 +47,8 @@ scrape_configs:
       - bus00.internal.vadata.vn:9308
       - bus01.internal.vadata.vn:9308
       - bus02.internal.vadata.vn:9308
+  - job_name: elasticsearch
+    static_configs:
+    - targets:
+      - mon.internal.vadata.vn:9114
+      - mon.internal.vadata.vn:9115
