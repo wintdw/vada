@@ -17,6 +17,7 @@ services:
     command:
      - "--es.uri=http://es-vtad.internal.vadata.vn"
      - "--es.indices"
+     - "--web.listen-address=:9115"
     restart: always
     env_file:
       - /var/secret/docker/es/exporter.vtad.env
