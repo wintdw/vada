@@ -1,7 +1,10 @@
-elasticsearch_exporter:
+services:
+  elasticsearch_exporter:
     image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    container_name: elasticsearch_exporter
     command:
      - "--es.uri=http://demo.internal.vadata.vn:9200"
+     - "--es.indices"
     restart: always
     env_file:
       - /var/secret/docker/es/exporter.env
