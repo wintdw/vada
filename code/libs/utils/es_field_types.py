@@ -265,22 +265,16 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
 
     for field, field_type in field_types.items():
         es_field_type = field_type
-        if field_type == "long":
-            es_field_type = "long"
-        elif field_type == "double":
-            es_field_type = "double"
-        elif field_type == "keyword":
-            es_field_type = "keyword"
-        elif field_type == "boolean":
-            es_field_type = "boolean"
-        elif field_type == "date":
-            es_field_type = "date"
+        if field_type == "date":
             has_date_field = True
-        elif field_type == "binary":
-            es_field_type = "binary"
-        elif field_type == "nested":
-            es_field_type = "nested"
-        else:
+        elif field_type not in {
+            "long",
+            "double",
+            "keyword",
+            "boolean",
+            "binary",
+            "nested",
+        }:
             es_field_type = "text"
 
         es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
