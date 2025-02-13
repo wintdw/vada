@@ -15,6 +15,10 @@ services:
       - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/instance/instance.crt
       - xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/instance/instance.key
       - xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca/ca.crt
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     ports:
       - "9200:9200"
       - "9300:9300"
