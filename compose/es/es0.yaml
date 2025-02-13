@@ -1,0 +1,23 @@
+services:
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.2
+    container_name: es
+    environment:
+      - node.name=es00.internal.vadata.vn
+      - cluster.name=prod
+      - discovery.seed_hosts=es00.internal.vadata.vn,es01.internal.vadata.vn,es02.internal.vadata.vn
+      - cluster.initial_master_nodes=es00.internal.vadata.vn,es01.internal.vadata.vn,es02.internal.vadata.vn
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms8g -Xmx8g"
+      - xpack.security.enabled=true
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/instance/instance.crt
+      - xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/instance/instance.key
+      - xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca/ca.crt
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /mnt/es/certs:/usr/share/elasticsearch/config/certs
+      - /mnt/es/data:/usr/share/elasticsearch/data
