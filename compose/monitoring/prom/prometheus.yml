@@ -23,9 +23,11 @@ scrape_configs:
       - proxy02.internal.vadata.vn:9100
       - backend00.internal.vadata.vn:9100
       - backend01.internal.vadata.vn:9100
-      - db00.internal.vadata.vn:9100
-      - bus00.internal.vadata.vn:9100
       - mysql00.internal.vadata.vn:9100
+      - bus00.internal.vadata.vn:9100
+      - es00.internal.vadata.vn:9100
+      - es01.internal.vadata.vn:9100
+      - es02.internal.vadata.vn:9100
   - job_name: nginx
     static_configs:
     - targets:
