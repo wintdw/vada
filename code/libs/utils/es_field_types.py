@@ -1,4 +1,3 @@
-import base64
 import logging
 from datetime import datetime, timezone
 from collections import defaultdict
@@ -21,8 +20,7 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
         - "long": For integer values that are not likely timestamps.
         - "double": For floating-point numbers or strings that can be converted to floats.
         - "date": For integer values that are likely timestamps or strings that can be parsed as dates.
-        - "keyword": For strings that are not dates, numbers, or binary data.
-        - "binary": For strings that are valid Base64 encoded binary data.
+        - "keyword": For strings that are not dates, numbers.
         - "nested": For lists of dictionaries or dictionaries.
         - "unknown": For lists that do not fit the above criteria.
 
@@ -70,21 +68,16 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                         field_type_counts[field]["long"] += 1
                 except ValueError:
                     try:
-                        float_value = float(value)
+                        float(value)
                         field_type_counts[field]["double"] += 1
                     except ValueError:
-                        # Check if the string is a valid Base64 encoded binary
+                        # Check if the string is a valid date-time
                         try:
-                            base64.b64decode(value, validate=True)
-                            field_type_counts[field]["binary"] += 1
-                        except (base64.binascii.Error, ValueError):
-                            # Check if the string is a valid date-time
-                            try:
-                                parser.parse(value)  # Try parsing as date
-                                field_type_counts[field]["date"] += 1
-                            except (ValueError, TypeError):
-                                # If not a date, classify as keyword
-                                field_type_counts[field]["keyword"] += 1
+                            parser.parse(value)
+                            field_type_counts[field]["date"] += 1
+                        except (ValueError, TypeError):
+                            # If not a date, classify as keyword
+                            field_type_counts[field]["keyword"] += 1
             elif isinstance(value, list):
                 # If the list contains dictionaries, classify as nested
                 if all(isinstance(item, dict) for item in value):
@@ -117,7 +110,7 @@ def convert_es_field_types(
     Args:
         json_objects (List[Dict[str, Any]]): A list of JSON objects, each representing a line of data.
         field_types (Dict[str, str]): A dictionary mapping field names to their desired types.
-            Supported types include "boolean", "long", "double", "date", "binary", "nested", and "keyword".
+            Supported types include "boolean", "long", "double", "date", "nested", and "keyword".
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries with fields converted to the specified types.
@@ -127,7 +120,6 @@ def convert_es_field_types(
         - "long": Converts strings or floats to integers.
         - "double": Converts strings or integers to floats.
         - "date": Converts strings to ISO format dates if they are not already.
-        - "binary": Validates base64-encoded strings.
         - "nested": Leaves nested dictionaries unchanged.
         - "keyword": Leaves strings unchanged.
         - For numeric fields ("long", "double"), sets None or empty string values to 0.
@@ -204,14 +196,6 @@ def convert_es_field_types(
                     except (ValueError, TypeError):
                         continue  # If parsing fails, leave it unchanged
 
-            elif field_type == "binary":
-                # If base64-encoded string, leave it as it is
-                if isinstance(value, str):
-                    try:
-                        base64.b64decode(value, validate=True)
-                    except (base64.binascii.Error, ValueError):
-                        continue  # If not valid base64, leave it unchanged
-
             elif field_type == "nested" and isinstance(value, dict):
                 # If it's a nested dictionary, no need to modify
                 pass
@@ -272,7 +256,6 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             "double",
             "keyword",
             "boolean",
-            "binary",
             "nested",
         }:
             es_field_type = "text"

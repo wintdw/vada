@@ -12,7 +12,6 @@ json_lines = [
         "age": 30,
         "is_student": "false",
         "scores": [95, 85],
-        "binary_data": "aGVsbG8=",
         "address": {"city": "New York", "zip": "10001"},
         "created_at": "2023-10-01T12:34:56Z",
     },  # Base64 for "hello"
@@ -21,7 +20,6 @@ json_lines = [
         "age": "25",
         "is_student": "true",
         "scores": [88, 92],
-        "binary_data": "d29ybGQ=",
         "address": {"city": "San Francisco", "zip": "94105"},
         "created_at": "2023-09-15T08:00:00Z",
     },  # Base64 for "world"
@@ -30,7 +28,6 @@ json_lines = [
         "age": 35,
         "is_student": "false",
         "scores": [90, 80],
-        "binary_data": "Zm9v",
         "address": {"city": "Chicago", "zip": "60601"},
         "created_at": "2023-08-20T15:30:00Z",
     },  # Base64 for "foo"
@@ -75,7 +72,6 @@ def test_determine_es_field_types():
         "age": "double",
         "is_student": "boolean",
         "scores": "unknown",
-        "binary_data": "binary",
         "address": "nested",
         "created_at": "date",
         "tags": "keyword",
@@ -99,7 +95,6 @@ def test_determine_and_convert_es_field_types():
             "age": 30.0,
             "is_student": False,
             "scores": [95, 85],
-            "binary_data": "aGVsbG8=",
             "address": {"city": "New York", "zip": "10001"},
             "created_at": "2023-10-01T12:34:56+00:00",
         },
@@ -108,7 +103,6 @@ def test_determine_and_convert_es_field_types():
             "age": 25.0,
             "is_student": True,
             "scores": [88, 92],
-            "binary_data": "d29ybGQ=",
             "address": {"city": "San Francisco", "zip": "94105"},
             "created_at": "2023-09-15T08:00:00+00:00",
         },
@@ -117,7 +111,6 @@ def test_determine_and_convert_es_field_types():
             "age": 35.0,
             "is_student": False,
             "scores": [90, 80],
-            "binary_data": "Zm9v",
             "address": {"city": "Chicago", "zip": "60601"},
             "created_at": "2023-08-20T15:30:00+00:00",
         },
@@ -159,7 +152,6 @@ def test_construct_es_mappings():
         "age": "double",
         "is_student": "boolean",
         "scores": "unknown",
-        "binary_data": "binary",
         "address": "nested",
         "created_at": "date",
         "tags": "keyword",
@@ -172,12 +164,12 @@ def test_construct_es_mappings():
 
     expected_mappings = {
         "mappings": {
+            "dynamic": True,
             "properties": {
                 "name": {"type": "keyword"},
                 "age": {"type": "double"},
                 "is_student": {"type": "boolean"},
                 "scores": {"type": "text"},
-                "binary_data": {"type": "binary"},
                 "address": {"type": "nested"},
                 "created_at": {"type": "date"},
                 "tags": {"type": "keyword"},
@@ -187,18 +179,7 @@ def test_construct_es_mappings():
                 "discount": {"type": "long"},
                 "another_date": {"type": "date"},
             },
-        },
-        "dynamic_templates": [
-            {
-                "dates_as_default": {
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "date",
-                        "null_value": "2000-01-01T00:00:00Z",
-                    },
-                }
-            }
-        ],
+        }
     }
 
     es_mappings = construct_es_mappings(field_types)
