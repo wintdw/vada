@@ -33,7 +33,10 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
         # Unix timestamps for the years 2000 to 2100
         # Start of 2000: 946684800
         # End of 2100: 4102444800
-        return 946684800 <= value <= 4102444800
+        # With milliseconds: Start of 2000: 946684800000, End of 2100: 4102444800000
+        return (946684800 <= value <= 4102444800) or (
+            946684800000 <= value <= 4102444800000
+        )
 
     # Initialize a dictionary to count the occurrences of each type for each field
     field_type_counts = defaultdict(lambda: defaultdict(int))
