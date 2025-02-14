@@ -282,17 +282,17 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
 
         es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
 
-    if has_date_field:
-        es_mappings["mappings"]["dynamic_templates"] = [
-            {
-                "dates_as_default": {
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "date",
-                        "null_value": "2000-01-01T00:00:00Z",
-                    },
-                }
-            }
-        ]
+    # if has_date_field:
+    #     es_mappings["mappings"]["dynamic_templates"] = [
+    #         {
+    #             "dates_as_default": {
+    #                 "match_mapping_type": "string",
+    #                 "mapping": {
+    #                     "type": "date",
+    #                     "null_value": "2000-01-01T00:00:00Z",
+    #                 },
+    #             }
+    #         }
+    #     ]
 
     return es_mappings
