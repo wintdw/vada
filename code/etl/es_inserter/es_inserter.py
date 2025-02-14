@@ -92,6 +92,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         json_converted_docs = convert_es_field_types(json_docs, field_types)
         mappings = construct_es_mappings(field_types)
 
+        logging.info("Field types: %s", field_types)
         # We expect all the messages received in one chunk will be in the same index
         # so we take only the first message to get the index name
         index_name = vada_doc.get_index_name()
