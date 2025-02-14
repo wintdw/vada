@@ -86,7 +86,7 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                     field_type_counts[field]["unknown"] += 1
             elif isinstance(value, dict):
                 # Classify dictionaries as nested
-                field_type_counts[field]["keyword"] += 1
+                field_type_counts[field]["object"] += 1
 
     # Determine the most probable type for each field, applying the logic for 'double' when needed
     field_types = {}
@@ -196,7 +196,11 @@ def convert_es_field_types(
                     except (ValueError, TypeError):
                         continue  # If parsing fails, leave it unchanged
 
-            elif field_type == "nested" and isinstance(value, dict):
+            elif field_type == "object" and isinstance(value, dict):
+                # If it's a dictionary, no need to modify
+                pass
+
+            elif field_type == "nested" and isinstance(value, list):
                 # If it's a nested dictionary, no need to modify
                 pass
 
@@ -256,6 +260,7 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             "double",
             "keyword",
             "boolean",
+            "object",
             "nested",
         }:
             es_field_type = "text"
