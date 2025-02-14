@@ -89,14 +89,11 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                 # If the list contains dictionaries, classify as nested
                 if all(isinstance(item, dict) for item in value):
                     field_type_counts[field]["nested"] += 1
-                # If the list contains strings, it could be a keyword family
-                elif all(isinstance(item, str) for item in value):
-                    field_type_counts[field]["keyword"] += 1
                 else:
                     field_type_counts[field]["unknown"] += 1
             elif isinstance(value, dict):
                 # Classify dictionaries as nested
-                field_type_counts[field]["nested"] += 1
+                field_type_counts[field]["keyword"] += 1
 
     # Determine the most probable type for each field, applying the logic for 'double' when needed
     field_types = {}
