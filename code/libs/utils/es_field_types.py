@@ -231,13 +231,16 @@ def convert_es_field_types(
 
 def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str, Any]]:
     """
-    Determine and convert Elasticsearch field types for a list of JSON lines.
+    Determine Elasticsearch field types and convert fields in a list of JSON lines.
 
     Args:
         json_lines (List[str]): A list of JSON strings, each representing a line of data.
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries with fields converted to the specified types.
+        List[Dict[str, Any]]: A list of dictionaries with fields converted to their determined Elasticsearch types.
+
+    The function first determines the most probable Elasticsearch field types for each field in the JSON lines.
+    It then converts the fields in the JSON lines to these determined types, ensuring compatibility with Elasticsearch.
     """
     field_types = determine_es_field_types(json_lines)
     converted_json_lines = convert_es_field_types(json_lines, field_types)
@@ -258,16 +261,13 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary representing the Elasticsearch mappings.
     """
     es_mappings = {
-        "mappings": {"properties": {}},
+        "mappings": {"dynamic": True, "properties": {}},
     }
-
-    has_date_field = False
 
     for field, field_type in field_types.items():
         es_field_type = field_type
-        if field_type == "date":
-            has_date_field = True
-        elif field_type not in {
+        if field_type not in {
+            "date",
             "long",
             "double",
             "keyword",
@@ -278,18 +278,5 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             es_field_type = "text"
 
         es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
-
-    # if has_date_field:
-    #     es_mappings["mappings"]["dynamic_templates"] = [
-    #         {
-    #             "dates_as_default": {
-    #                 "match_mapping_type": "string",
-    #                 "mapping": {
-    #                     "type": "date",
-    #                     "null_value": "2000-01-01T00:00:00Z",
-    #                 },
-    #             }
-    #         }
-    #     ]
 
     return es_mappings
