@@ -70,6 +70,14 @@ async def produce_jsonl(
     try:
         # Start the producer
         await kafka_processor.create_producer()
+
+        # we suppose all the messages are in the same index
+        vada_doc = VadaDocument(json_doc[0])
+        index_name = vada_doc.get_index_name()
+        kafka_topic = f"{app_env}.{index_name}"
+
+        await kafka_processor.produce_messages(kafka_topic, json_docs)
+
         # Concurrently process messages
         tasks = []
         for json_doc in json_docs:

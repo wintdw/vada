@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import random
 from typing import List, Dict, Any, Optional
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer  # type: ignore
 
@@ -79,6 +80,7 @@ class AsyncKafkaProcessor:
             self.producer = AIOKafkaProducer(
                 loop=asyncio.get_event_loop(),
                 bootstrap_servers=self.kafka_broker,
+                enable_idempotence=True,
             )
             await self.producer.start()
             logging.info("Kafka producer started.")
@@ -92,6 +94,66 @@ class AsyncKafkaProcessor:
         payload = json.dumps(message).encode("utf-8")
         await self.producer.send_and_wait(topic, payload)
         logging.info(f"Produced message to topic '{topic}': {message}")
+
+    async def produce_messages(
+        self, topic: str, messages: List[Dict[str, Any]], batch_size: int = 1000
+    ):
+        """Produce a batch of messages to a Kafka topic."""
+        if not self.producer:
+            logging.error("Producer is not initialized. Call `create_producer` first.")
+            return
+
+        batch = self.producer.create_batch()
+        partitions = await self.producer.partitions_for(topic)
+        partition_count = len(partitions)
+        partition_index = 0
+        msg_index = 0
+
+        while msg_index < len(messages):
+            # Prepare the message as bytes
+            payload = json.dumps(messages[msg_index]).encode("utf-8")
+
+            # Append to the batch
+            metadata = batch.append(key=None, value=payload, timestamp=None)
+
+            # Batch is full or reached batch_size
+            # Send the batch to Kafka, balancing across partitions
+            if metadata is None or batch.record_count() >= batch_size:
+                # Round-robin partition selection
+                partition = partitions[partition_index % partition_count]
+                batch_result = await self.producer.send_batch(
+                    batch, topic, partition=partition
+                )
+                logging.info("Batch result: %s", batch_result)
+                logging.info(
+                    "Batch %d: %d messages sent to topic %s partition %d",
+                    partition_index,
+                    batch.record_count(),
+                    topic,
+                    partition,
+                )
+
+                # Start a new batch
+                batch = self.producer.create_batch()
+
+                # Move to the next partition for the next batch
+                partition_index += 1
+
+            msg_index += 1
+
+        # Send any remaining messages in the batch
+        if batch.record_count() > 0:
+            partition = partitions[partition_index % partition_count]
+            batch_result = await self.producer.send_batch(
+                batch, topic, partition=partition
+            )
+            logging.info("Batch result: %s", batch_result)
+            logging.info(
+                "Last batch: %d messages sent to topic %s partition %d",
+                batch.record_count(),
+                topic,
+                partition,
+            )
 
     async def close(self):
         """Stop both the consumer and producer."""
