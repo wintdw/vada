@@ -104,7 +104,7 @@ class AsyncKafkaProcessor:
             return
 
         batch = self.producer.create_batch()
-        partitions = await self.producer.partitions_for(topic)
+        partitions = list(await self.producer.partitions_for(topic))
         partition_count = len(partitions)
         partition_index = 0
         msg_index = 0
