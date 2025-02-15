@@ -6,7 +6,7 @@
 import os
 import logging
 from typing import Dict
-from fastapi import FastAPI, Request, Depends  # type: ignore
+from fastapi import FastAPI, Request, Depends, HTTPException, status  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
@@ -52,6 +52,12 @@ async def handle_jsonl_req(
     Accept JSONL data as a string and send each line to Kafka.
     """
     data = await req.body()
+
+    if not data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Request empty"
+        )
+
     data_str = data.decode("utf-8")
     lines = data_str.strip().splitlines()
 
