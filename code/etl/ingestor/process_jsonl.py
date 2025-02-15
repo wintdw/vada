@@ -81,26 +81,15 @@ async def produce_jsonl(
         partition_cnt = 12
         batch_size = len(json_docs) // partition_cnt
 
-        await kafka_processor.produce_messages(kafka_topic, json_docs, batch_size)
-
-        # Concurrently process messages
-        tasks = []
-        for json_doc in json_docs:
+        for i in range(0, len(json_docs), batch_size):
+            batch = json_docs[i : i + batch_size]
             try:
-                vada_doc = VadaDocument(json_doc)
-                index_name = vada_doc.get_index_name()
-                kafka_topic = f"{app_env}.{index_name}"
-                # Create task for producing the message
-                tasks.append(kafka_processor.produce_message(kafka_topic, json_doc))
-                success += 1
+                await kafka_processor.produce_messages(kafka_topic, batch, batch_size)
+                success += len(batch)
             except Exception as e:
-                error_trace = traceback.format_exc()
-                logging.error("Error processing line: %s\n%s", json_doc, error_trace)
-                failed_lines.append({"line": json_doc, "error": str(e)})
-                failure += 1
-
-        # Await all produce tasks
-        await asyncio.gather(*tasks)
+                logging.error("Failed to produce batch: %s", e)
+                failure += len(batch)
+                failed_lines.extend(batch)
 
     except Exception as e:
         error_trace = traceback.format_exc()
