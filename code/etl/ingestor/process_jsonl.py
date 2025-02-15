@@ -120,7 +120,7 @@ async def process_jsonl(
     es_processor: AsyncESProcessor,
     mappings_client: MappingsClient,
 ):
-    # This outputs the field_types and converted_json_docs
+    # This outputs the index_name, field_types and converted_json_docs
     prepare_dict = await prepare_jsonl(jsonlines, user_id)
     # This take the field_types to create mappings in ES
     mappings_es_dict = await create_es_index_mappings(
@@ -132,7 +132,10 @@ async def process_jsonl(
     )
     # This take the converted_json_docs to produce messages to Kafka
     produce_result_dict = await produce_jsonl(
-        app_env, prepare_dict["converted_json_docs"], kafka_processor
+        app_env,
+        prepare_dict["index_name"],
+        prepare_dict["converted_json_docs"],
+        kafka_processor,
     )
 
     # Accouting purpose
