@@ -78,7 +78,6 @@ class AsyncKafkaProcessor:
         """Initialize and start a Kafka producer."""
         if not self.producer:
             self.producer = AIOKafkaProducer(
-                loop=asyncio.get_event_loop(),
                 bootstrap_servers=self.kafka_broker,
                 enable_idempotence=True,
             )
