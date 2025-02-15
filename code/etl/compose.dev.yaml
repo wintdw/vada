@@ -1,6 +1,6 @@
 secrets:
-  es_elastic_prod:
-    file: /var/secret/docker/es/elastic_prod
+  es_elastic:
+    file: /var/secret/docker/es/elastic
 
 networks:
   etl_network:
@@ -16,7 +16,7 @@ services:
     restart: always
     environment:
       PORT: "8000"
-      APP_ENV: prod
+      APP_ENV: dev
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
@@ -38,7 +38,7 @@ services:
     restart: always
     environment:
       PORT: "8001"
-      APP_ENV: prod
+      APP_ENV: dev
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
@@ -62,7 +62,7 @@ services:
     restart: always
     environment:
       PORT: "8002"
-      APP_ENV: prod
+      APP_ENV: dev
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200

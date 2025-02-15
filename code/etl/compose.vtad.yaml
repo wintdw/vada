@@ -18,6 +18,7 @@ services:
     restart: always
     environment:
       PORT: "7000"
+      APP_ENV: vtad
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-vtad.internal.vadata.vn
@@ -39,6 +40,7 @@ services:
     restart: always
     environment:
       PORT: "7001"
+      APP_ENV: vtad
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       KAFKA_TOPIC: vtad_ingest
     healthcheck:
@@ -57,6 +59,7 @@ services:
     restart: always
     environment:
       PORT: "7002"
+      APP_ENV: vtad
       ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-vtad.internal.vadata.vn
