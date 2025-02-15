@@ -111,20 +111,19 @@ async def process_jsonl(
 ):
     # This outputs the index_name, field_types and converted_json_docs
     prepare_dict = await prepare_jsonl(jsonlines, user_id)
+    index_name = prepare_dict["index_name"]
+    field_types = prepare_dict["field_types"]
+    converted_json_docs = prepare_dict["converted_json_docs"]
+
     # This take the field_types to create mappings in ES
     mappings_es_dict = await create_es_index_mappings(
-        prepare_dict["index_name"], prepare_dict["field_types"], es_processor
+        index_name, field_types, es_processor
     )
     # Create mappings in CRM
-    mappings_crm_dict = await create_crm_mappings(
-        user_id, prepare_dict["index_name"], mappings_client
-    )
+    mappings_crm_dict = await create_crm_mappings(user_id, index_name, mappings_client)
     # This take the converted_json_docs to produce messages to Kafka
     produce_result_dict = await produce_jsonl(
-        app_env,
-        prepare_dict["index_name"],
-        prepare_dict["converted_json_docs"],
-        kafka_processor,
+        app_env, index_name, converted_json_docs, kafka_processor
     )
 
     # Accouting purpose
