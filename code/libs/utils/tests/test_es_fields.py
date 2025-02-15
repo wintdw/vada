@@ -156,7 +156,7 @@ def test_construct_es_mappings():
                 "name": {"type": "keyword"},
                 "age": {"type": "double"},
                 "is_student": {"type": "boolean"},
-                "scores": {"type": "text"},
+                "scores": {"type": "keyword"},
                 "address": {"type": "object"},
                 "created_at": {"type": "date"},
                 "tags": {"type": "keyword"},

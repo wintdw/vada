@@ -254,16 +254,9 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
 
     for field, field_type in field_types.items():
         es_field_type = field_type
-        if field_type not in {
-            "date",
-            "long",
-            "double",
-            "keyword",
-            "boolean",
-            "object",
-            "nested",
-        }:
-            es_field_type = "text"
+        # for the list of str/int, or "unknown"
+        if field_type is "unknown":
+            es_field_type = "keyword"
 
         es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
 
