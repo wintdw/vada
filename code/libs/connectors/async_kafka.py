@@ -120,10 +120,7 @@ class AsyncKafkaProcessor:
             if metadata is None or batch.record_count() >= batch_size:
                 # Round-robin partition selection
                 partition = partitions[partition_index % partition_count]
-                batch_result = await self.producer.send_batch(
-                    batch, topic, partition=partition
-                )
-                logging.info("Batch result: %s", batch_result)
+                await self.producer.send_batch(batch, topic, partition=partition)
                 logging.info(
                     "Batch %d: %d messages sent to topic %s partition %d",
                     partition_index,
@@ -143,10 +140,7 @@ class AsyncKafkaProcessor:
         # Send any remaining messages in the batch
         if batch.record_count() > 0:
             partition = partitions[partition_index % partition_count]
-            batch_result = await self.producer.send_batch(
-                batch, topic, partition=partition
-            )
-            logging.info("Batch result: %s", batch_result)
+            await self.producer.send_batch(batch, topic, partition=partition)
             logging.info(
                 "Last batch: %d messages sent to topic %s partition %d",
                 batch.record_count(),
