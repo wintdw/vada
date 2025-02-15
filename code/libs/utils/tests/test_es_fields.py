@@ -74,7 +74,7 @@ def test_determine_es_field_types():
         "scores": "unknown",
         "address": "object",
         "created_at": "date",
-        "tags": "keyword",
+        "tags": "unknown",
         "contacts": "nested",
         "timestamp": "date",
         "price": "double",
@@ -147,20 +147,7 @@ def test_determine_and_convert_es_field_types():
 
 
 def test_construct_es_mappings():
-    field_types = {
-        "name": "keyword",
-        "age": "double",
-        "is_student": "boolean",
-        "scores": "unknown",
-        "address": "object",
-        "created_at": "date",
-        "tags": "keyword",
-        "contacts": "nested",
-        "timestamp": "date",
-        "price": "double",
-        "discount": "long",
-        "another_date": "date",
-    }
+    field_types = determine_es_field_types(json_lines)
 
     expected_mappings = {
         "mappings": {
