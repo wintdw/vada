@@ -44,7 +44,7 @@ class VadaDocument:
         This method is exclusively used by the ingestor to populate the _vada field.
         """
         if "IndexName" not in self.doc:
-            raise RuntimeError("Missing required field: 'IndexName': %s", self.doc)
+            raise RuntimeError("Missing required field: 'IndexName': ", self.doc)
 
         index_name = self.doc["IndexName"]
         if "FriendlyName" in self.doc:

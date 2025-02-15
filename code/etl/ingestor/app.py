@@ -67,6 +67,10 @@ async def handle_jsonl_req(
         response = await process_jsonl(
             APP_ENV, lines, user_id, kafka_processor, es_processor, mappings_client
         )
+    except RuntimeError as run_err:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(run_err)
+        )
     finally:
         await kafka_processor.close()
         await es_processor.close()
