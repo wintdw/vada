@@ -61,7 +61,10 @@ async def create_crm_mappings(
 
 
 async def produce_jsonl(
-    app_env: str, json_docs: List[Dict], kafka_processor: AsyncKafkaProcessor
+    app_env: str,
+    index_name: str,
+    json_docs: List[Dict],
+    kafka_processor: AsyncKafkaProcessor,
 ) -> Dict:
     success = 0
     failure = 0
@@ -71,12 +74,14 @@ async def produce_jsonl(
         # Start the producer
         await kafka_processor.create_producer()
 
-        # we suppose all the messages are in the same index
-        vada_doc = VadaDocument(json_doc[0])
-        index_name = vada_doc.get_index_name()
         kafka_topic = f"{app_env}.{index_name}"
 
-        await kafka_processor.produce_messages(kafka_topic, json_docs)
+        # to balance the partitions
+        # we have by default 12 partitions each topic
+        partition_cnt = 12
+        batch_size = len(json_docs) // partition_cnt
+
+        await kafka_processor.produce_messages(kafka_topic, json_docs, batch_size)
 
         # Concurrently process messages
         tasks = []

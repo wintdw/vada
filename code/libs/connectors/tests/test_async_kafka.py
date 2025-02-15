@@ -13,8 +13,10 @@ async def test_produce_messages():
     await kafka_processor.create_producer()
 
     topic = "dw"
-    messages: List[Dict[str, Any]] = [{"key": f"value{i}"} for i in range(1, 13)]
-    batch_size = 10
+    msg_cnt = 100
+    partition_cnt = 12
+    messages: List[Dict[str, Any]] = [{"key": f"value{i}"} for i in range(1, msg_cnt)]
+    batch_size = msg_cnt // partition_cnt
 
     await kafka_processor.produce_messages(topic, messages, batch_size)
     await kafka_processor.close()
