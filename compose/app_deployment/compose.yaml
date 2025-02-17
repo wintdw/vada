@@ -1,0 +1,7 @@
+services:  
+  frontend:
+    image: vada898989.azurecr.io/prod-webapp:prod-ed9388a0
+    container_name: frontend
+    pull_policy: if_not_present
+    ports:
+      - "3000:80"
