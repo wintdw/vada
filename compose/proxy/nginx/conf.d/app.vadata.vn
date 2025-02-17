@@ -1,0 +1,32 @@
+upstream fe-app {
+    server backend02.internal.vadata.vn:3000;
+}
+
+upstream es-app {
+    server es00.internal.vadata.vn:9200;
+    server es01.internal.vadata.vn:9200;
+    server es02.internal.vadata.vn:9200;
+}
+
+server {
+    listen       80;
+    listen       443 ssl;
+    server_name  app.vadata.vn;
+
+    include includes/security.conf;
+
+    location / {
+        proxy_pass http://fe-app;
+        include includes/proxy.conf;
+    }
+}
+
+server {
+    listen       80;
+    server_name  es-app.internal.vadata.vn;
+
+    location / {
+        proxy_pass http://es-app;
+        include includes/proxy.conf;
+    }
+}
