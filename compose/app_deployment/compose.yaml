@@ -2,6 +2,31 @@ services:
   frontend:
     image: vada898989.azurecr.io/prod-webapp:prod-fa51544e
     container_name: frontend
-    pull_policy: if_not_present
     ports:
       - "3000:80"
+
+  crm:
+    image: vada898989.azurecr.io/crm-api:7bd0fd91
+    container_name: crm
+    ports:
+      - "8080:8080"
+    env_file:
+      - /var/secret/docker/crm/app.env
+
+  qe:
+    image: vada898989.azurecr.io/vada-query-engine:58d9e832
+    container_name: qe
+    ports:
+      - "9675:9675"
+    env_file:
+      - /var/secret/docker/qe/app.env
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.4
+    container_name: kibana
+    env_file:
+      - /var/secret/docker/es/kibana.env
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es-app.internal.vadata.vn
+    ports:
+      - "5601:5601"
