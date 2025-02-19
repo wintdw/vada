@@ -15,6 +15,7 @@ all:
             mysql00.internal.vadata.vn:
             backend00.internal.vadata.vn:
             backend01.internal.vadata.vn:
+            backend02.internal.vadata.vn:
             demo.internal.vadata.vn:
             prod.internal.vadata.vn:
             web.internal.vadata.vn:
