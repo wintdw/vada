@@ -54,3 +54,6 @@ scrape_configs:
     - targets:
       - mon.internal.vadata.vn:9114
       - mon.internal.vadata.vn:9115
+      - es00.internal.vadata.vn:9114
+      - es01.internal.vadata.vn:9114
+      - es02.internal.vadata.vn:9114

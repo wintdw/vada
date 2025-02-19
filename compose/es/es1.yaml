@@ -30,10 +30,9 @@ services:
   es_exporter:
     image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
     container_name: es_exporter
+    network_mode: "host"
     command:
-     - "--es.uri=http://es:9200"
+     - "--es.uri=http://localhost:9200"
     restart: always
     env_file:
       - /var/secret/docker/es/exporter.env
-    ports:
-    - "9114:9114"
