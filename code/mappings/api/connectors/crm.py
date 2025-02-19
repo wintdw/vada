@@ -159,8 +159,10 @@ class CRMAPI:
             "password": user_passwd,
             "permission": "admin",
             "configuration": {
-                "default_time_left": now.strftime("%Y-%m-%d"),
-                "default_time_right": months_ago.strftime("%Y-%m-%d"),
+                "default_values": {
+                    "default_time_left": now.strftime("%Y-%m-%d"),
+                    "default_time_right": months_ago.strftime("%Y-%m-%d"),
+                }
             },
         }
 
