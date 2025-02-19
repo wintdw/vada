@@ -26,3 +26,14 @@ services:
     volumes:
       - /mnt/es/certs:/usr/share/elasticsearch/config/certs
       - /mnt/es/data:/usr/share/elasticsearch/data
+
+  es_exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    container_name: elasticsearch_exporter
+    command:
+     - "--es.uri=http://es:9200"
+    restart: always
+    env_file:
+      - /var/secret/docker/es/exporter.env
+    ports:
+    - "9114:9114"
