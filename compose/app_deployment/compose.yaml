@@ -15,7 +15,7 @@ services:
     environment:
       - APP_ENV=production
       - SERVER_ADDRESS=":8080"
-      - CONTEXT_TIMEOUT="2"
+      - CONTEXT_TIMEOUT=2
       - MONGODB_DATABASE=vada_prod
       - DB_NAME=vada_prod
       - ACCESS_TOKEN_EXPIRY_HOUR=48
@@ -24,7 +24,7 @@ services:
       - VADA_BACKEND_URL=http://qe-app.internal.vadata.vn
       - AZURE_BUS_QUEUE_NAME=quota-queue
       - VADA_FRONTEND_URL=https://app.vadata.vn
-      - ENABLE_SERVICE_PACKAGE="false"
+      - ENABLE_SERVICE_PACKAGE=false
 
   qe:
     image: vada898989.azurecr.io/vada-query-engine:58d9e832
