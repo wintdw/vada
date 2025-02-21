@@ -20,7 +20,7 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-app.internal.vadata.vn
-      CRM_BASEURL: https://crm-app.internal.vadata.vn
+      CRM_BASEURL: http://crm-app.internal.vadata.vn
       CRM_PASSWD_FILE: /run/secrets/crm
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8070/health"]
