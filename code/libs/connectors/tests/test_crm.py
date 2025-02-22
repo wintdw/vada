@@ -3,7 +3,7 @@ import time
 import logging
 import pytest  # type: ignore
 
-from ..crm import CRMAPI
+from libs.connectors.crm import CRMAPI
 
 logging.basicConfig(
     level=logging.DEBUG,

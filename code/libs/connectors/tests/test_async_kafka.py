@@ -1,7 +1,7 @@
 import pytest
 import logging
 from typing import List, Dict, Any
-from ..async_kafka import AsyncKafkaProcessor
+from libs.connectors.async_kafka import AsyncKafkaProcessor
 
 logging.basicConfig(level=logging.DEBUG)
 
