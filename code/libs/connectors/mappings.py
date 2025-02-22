@@ -1,3 +1,4 @@
+import re
 import aiohttp  # type: ignore
 from typing import Dict
 
@@ -12,7 +13,10 @@ class MappingsClient:
         url = f"{self.base_url}/mappings"
 
         if not index_friendly_name:
-            index_friendly_name = index_name
+            # pretify the index_friendly_name
+            match = re.search(r"csv_(.*?)_csv", index_name)
+            if match:
+                index_friendly_name = f"CSV " + match.group(1)
 
         payload = {
             "user_id": user_id,

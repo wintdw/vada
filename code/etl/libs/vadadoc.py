@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Dict, Union
 
 from libs.utils.common import remove_fields, generate_docid
@@ -51,6 +52,11 @@ class VadaDocument:
             index_friendly_name = self.doc["FriendlyName"]
         else:
             index_friendly_name = index_name
+        if index_friendly_name == index_name:
+            # pretify the index_friendly_name
+            match = re.search(r"csv_(.*?)_csv", index_name)
+            if match:
+                index_friendly_name = f"CSV " + match.group(1)
 
         self.doc = remove_fields(self.doc, ["IndexName", "FriendlyName"])
         doc_id = generate_docid(self.doc)

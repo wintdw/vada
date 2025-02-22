@@ -1,3 +1,4 @@
+import re
 import logging
 from typing import Dict, Tuple
 from api.connectors.async_es import AsyncESProcessor
@@ -54,7 +55,10 @@ class MappingsProcessor:
         self, user_id: str, index_name: str, index_friendly_name: str = None
     ) -> Tuple[int, Dict]:
         if not index_friendly_name:
-            index_friendly_name = index_name
+            # pretify the index_friendly_name
+            match = re.search(r"csv_(.*?)_csv", index_name)
+            if match:
+                index_friendly_name = f"CSV " + match.group(1)
 
         index_mappings = await self.get_mappings(index_name)
         logging.info(
