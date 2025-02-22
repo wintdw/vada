@@ -28,8 +28,8 @@ async def test_health():
 
     response = await api.check_health()
 
-    assert isinstance(response, dict)
-    assert response.get("message") == "pong"
+    assert response[0] == 200
+    assert response[1].get("message") == "pong"
 
 
 @pytest.mark.asyncio
