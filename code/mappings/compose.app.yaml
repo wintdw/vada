@@ -4,15 +4,11 @@ secrets:
   crm:
     file: /var/secret/docker/crm/user7500.passwd
 
-networks:
-  mappings_network:
-    driver: bridge
-
 services:  
   mappings:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: mappings/Dockerfile
     image: mappings:latest
     container_name: mappings
     environment:
@@ -29,6 +25,4 @@ services:
       - crm
     ports:
       - "8070:8070"
-    networks:
-      - mappings_network
 

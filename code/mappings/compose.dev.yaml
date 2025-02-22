@@ -1,23 +1,19 @@
 secrets:
-  es_elastic:
-    file: /var/secret/docker/es/elastic
+  es:
+    file: /var/secret/docker/es/elastic.passwd
   crm:
-    file: /var/secret/docker/crm/vada
-
-networks:
-  mappings_network:
-    driver: bridge
+    file: /var/secret/docker/crm/user7500.passwd
 
 services:  
   mappings:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: mappings/Dockerfile
     image: mappings:latest
     container_name: mappings
     environment:
       PORT: "8070"
-      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       CRM_BASEURL: "https://dev-crm-api.vadata.vn"
@@ -25,10 +21,8 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8070/health"]
     secrets:
-      - es_elastic
+      - es
       - crm
     ports:
       - "8070:8070"
-    networks:
-      - mappings_network
 

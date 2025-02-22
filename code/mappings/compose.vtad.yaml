@@ -1,34 +1,28 @@
 secrets:
-  es_elastic_vtad:
-    file: /var/secret/docker/es/elastic_vtad
-  crm_vtad:
-    file: /var/secret/docker/crm/vtad
-
-networks:
-  mappings_vtad_network:
-    driver: bridge
+  es:
+    file: /var/secret/docker/es/elastic.passwd
+  crm:
+    file: /var/secret/docker/crm/user7500.passwd
 
 services:  
-  mappings_vtad:
+  mappings:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: mappings/Dockerfile
     image: mappings:latest
-    container_name: mappings_vtad
+    container_name: mappings
     environment:
-      PORT: "7070"
-      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic_vtad
+      PORT: "8070"
+      ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-vtad.internal.vadata.vn
       CRM_BASEURL: "https://api.vtad.vn"
-      CRM_PASSWD_FILE: /run/secrets/crm_vtad
+      CRM_PASSWD_FILE: /run/secrets/crm
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7070/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8070/health"]
     secrets:
-      - es_elastic_vtad
-      - crm_vtad
+      - es
+      - crm
     ports:
-      - "7070:7070"
-    networks:
-      - mappings_vtad_network
+      - "8070:8070"
 
