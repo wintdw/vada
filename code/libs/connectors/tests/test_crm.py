@@ -65,7 +65,7 @@ async def test_check_index_created():
         end_time = time.time()
 
         assert isinstance(response, dict)
-        print(response)
+        assert response.get("index", "").get("name", "") == index
         print(f"Time taken for API call: {end_time - start_time} seconds")
     finally:
         await api.close()
