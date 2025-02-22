@@ -1,3 +1,8 @@
+"""
+Test by:
+# export CRM_BASEURL=https://dev-crm-api.vadata.vn; export CRM_PASSWD_FILE=/var/secret/docker/crm/user7500.passwd; python3 -m pytest -s -vvv libs/connectors/
+"""
+
 import os
 import time
 import logging
