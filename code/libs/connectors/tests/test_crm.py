@@ -24,60 +24,75 @@ if passwd_file and os.path.isfile(passwd_file):
 @pytest.mark.asyncio
 async def test_health():
     api = CRMAPI(CRM_BASEURL)
-    await api.auth(CRM_USER, CRM_PASS)
+    try:
+        await api.auth(CRM_USER, CRM_PASS)
 
-    response = await api.check_health()
+        response = await api.check_health()
 
-    assert response[0] == 200
-    assert response[1].get("message") == "pong"
+        assert response[0] == 200
+        assert response[1].get("message") == "pong"
+    finally:
+        await api.close()
 
 
 @pytest.mark.asyncio
 async def test_login():
     api = CRMAPI(CRM_BASEURL)
-    await api.auth(CRM_USER, CRM_PASS)
-    assert "Authorization" in api.headers
-    assert api.headers["Authorization"].startswith("Bearer ")
+    try:
+        await api.auth(CRM_USER, CRM_PASS)
+        assert "Authorization" in api.headers
+        assert api.headers["Authorization"].startswith("Bearer ")
 
-    # Test failed login
-    invalid_user = "invalid_user"
-    invalid_pass = "invalid_pass"
-    with pytest.raises(Exception) as excinfo:
-        await api.auth(invalid_user, invalid_pass)
-    assert "Failed to authenticate user" in str(excinfo.value)
+        # Test failed login
+        invalid_user = "invalid_user"
+        invalid_pass = "invalid_pass"
+        with pytest.raises(Exception) as excinfo:
+            await api.auth(invalid_user, invalid_pass)
+        assert "Failed to authenticate user" in str(excinfo.value)
+    finally:
+        await api.close()
 
 
 @pytest.mark.asyncio
 async def test_check_index_created():
     api = CRMAPI(CRM_BASEURL)
-    await api.auth(CRM_USER, CRM_PASS)
-    index = "demo_sale_data"
+    try:
+        await api.auth(CRM_USER, CRM_PASS)
+        index = "demo_sale_data"
 
-    start_time = time.time()
-    response = await api.check_index_created(index)
-    end_time = time.time()
+        start_time = time.time()
+        response = await api.check_index_created(index)
+        end_time = time.time()
 
-    assert isinstance(response, dict)
-    print(response)
-    print(f"Time taken for API call: {end_time - start_time} seconds")
+        assert isinstance(response, dict)
+        print(response)
+        print(f"Time taken for API call: {end_time - start_time} seconds")
+    finally:
+        await api.close()
 
 
 @pytest.mark.asyncio
 async def test_check_index_notfound():
     api = CRMAPI(CRM_BASEURL)
-    await api.auth(CRM_USER, CRM_PASS)
-    index = "non_existent_index"
+    try:
+        await api.auth(CRM_USER, CRM_PASS)
+        index = "non_existent_index"
 
-    response = await api.check_index_created(index)
-    assert response == {}
+        response = await api.check_index_created(index)
+        assert response == {}
+    finally:
+        await api.close()
 
 
 @pytest.mark.asyncio
 async def test_is_auth():
     api = CRMAPI(CRM_BASEURL)
-    await api.auth(CRM_USER, CRM_PASS)
-    assert await api.is_auth() is True
+    try:
+        await api.auth(CRM_USER, CRM_PASS)
+        assert await api.is_auth() is True
 
-    # Invalidate the token by modifying the headers
-    api.headers["Authorization"] = "Bearer invalid_token"
-    assert await api.is_auth() is False
+        # Invalidate the token by modifying the headers
+        api.headers["Authorization"] = "Bearer invalid_token"
+        assert await api.is_auth() is False
+    finally:
+        await api.close()
