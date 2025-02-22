@@ -1,14 +1,7 @@
 import os
 
-from api.internals.mappings import MappingsProcessor
+from mappings.api.internals.mappings import MappingsProcessor
 
-
-# Support TOKEN_SECRET_FILE to read secret from environment variable
-TOKEN_SECRET = ""
-token_secret_file = os.getenv("TOKEN_SECRET_FILE", "")
-if token_secret_file and os.path.isfile(token_secret_file):
-    with open(token_secret_file, "r", encoding="utf-8") as file:
-        TOKEN_SECRET = file.read().strip()
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
 ELASTIC_USER = os.getenv("ELASTIC_USER", "")
@@ -19,7 +12,7 @@ if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
     with open(elastic_passwd_file, "r", encoding="utf-8") as file:
         ELASTIC_PASSWD = file.read().strip()
 
-CRM_BASEURL = os.getenv("CRM_BASEURL", "https://dev-crm-api.vadata.vn")
+CRM_BASEURL = os.getenv("CRM_BASEURL", "")
 CRM_USER = ""
 CRM_PASS = ""
 passwd_file = os.getenv("CRM_PASSWD_FILE", "")

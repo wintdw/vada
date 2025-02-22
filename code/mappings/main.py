@@ -1,7 +1,7 @@
 import logging
-from fastapi import FastAPI, Depends  # type: ignore
+from fastapi import FastAPI
 
-from api.routers import health, mappings, users
+from mappings.api.routers import health, mappings, users
 
 logging.basicConfig(
     level=logging.INFO,

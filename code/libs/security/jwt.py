@@ -7,12 +7,11 @@ from fastapi import Depends, HTTPException, status  # type: ignore
 from fastapi.security import OAuth2PasswordBearer  # type: ignore
 
 
-# Support TOKEN_SECRET_FILE to read secret from environment variable
-TOKEN_SECRET = ""
-token_secret_file = os.getenv("TOKEN_SECRET_FILE", "")
+JWT_TOKEN_SECRET = os.getenv("JWT_TOKEN_SECRET", "")
+token_secret_file = os.getenv("JWT_TOKEN_SECRET_FILE", "")
 if token_secret_file and os.path.isfile(token_secret_file):
     with open(token_secret_file, "r", encoding="utf-8") as file:
-        TOKEN_SECRET = file.read().strip()
+        JWT_TOKEN_SECRET = file.read().strip()
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -48,7 +47,7 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
     """
     try:
         payload = jwt.decode(
-            token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
+            token, JWT_TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
         )
 
         # Validate JWT

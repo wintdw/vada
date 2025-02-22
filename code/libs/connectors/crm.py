@@ -1,16 +1,11 @@
-import jwt
 import logging
 import aiohttp  # type: ignore
 from typing import Dict, Tuple
 from datetime import datetime
 from dateutil.relativedelta import relativedelta  # type: ignore
-from fastapi import HTTPException, status  # type: ignore
+from fastapi import HTTPException  # type: ignore
 
-from api.models.jwt import JWTPayload
-
-
-# Support TOKEN_SECRET_FILE to read secret from environment variable
-TOKEN_SECRET = ""
+from libs.security.jwt import verify_jwt
 
 
 class CRMAPI:
@@ -18,41 +13,6 @@ class CRMAPI:
         self.baseurl = baseurl
         self.headers = {}
         self.session = None
-
-    def _verify_jwt(self, token: str) -> Dict:
-        """
-        Function to verify the JWT Token header from client
-
-        Args:
-            token (str): the JWT token provided.
-
-        Raises:
-            HTTPException: 401 upon Expired or Invalid tokens
-
-        Returns:
-            Dict: The decoded JWT info, and the original token
-        """
-        try:
-            payload = jwt.decode(
-                token, TOKEN_SECRET, algorithms=["HS256"], options={"verify_exp": True}
-            )
-            # Add original token to payload further processing
-            payload["jwt"] = token
-            logging.debug("Authenticated as %s", payload.get("name"))
-
-            # Convert payload to JWTPayload model for validation
-            JWTPayload(**payload)
-
-            return payload
-
-        except jwt.ExpiredSignatureError as exp:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="JWT token has expired"
-            ) from exp
-        except jwt.InvalidTokenError as inv:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid JWT token"
-            ) from inv
 
     async def _get_access_token(self, username: str, password: str) -> str:
         """
@@ -107,11 +67,17 @@ class CRMAPI:
 
         token = self.headers["Authorization"].split(" ")[1]
         try:
-            self._verify_jwt(token)
+            verify_jwt(token)
             return True
         except HTTPException as e:
             logging.debug("JWT verification failed: %s", e.detail)
             return False
+
+    async def check_health(self) -> Dict:
+        url = f"{self.baseurl}/ping"
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return response.status, await response.json()
 
     async def check_index_created(self, index: str) -> Dict:
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"

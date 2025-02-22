@@ -16,7 +16,7 @@ APP_ENV = os.getenv("APP_ENV", "dev")
 
 ELASTIC_URL = os.getenv("ELASTIC_URL", "")
 ELASTIC_USER = os.getenv("ELASTIC_USER", "")
-ELASTIC_PASSWD = ""
+ELASTIC_PASSWD = os.getenv("ELASTIC_PASSWD", "")
 # Passwd
 elastic_passwd_file = os.getenv("ELASTIC_PASSWD_FILE", "")
 if elastic_passwd_file and os.path.isfile(elastic_passwd_file):

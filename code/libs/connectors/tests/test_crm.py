@@ -3,7 +3,7 @@ import time
 import logging
 import pytest  # type: ignore
 
-from api.connectors.crm import CRMAPI
+from ..crm import CRMAPI
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -11,14 +11,25 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-CRM_BASEURL = os.getenv("CRM_BASEURL", "https://dev-crm-api.vadata.vn")
-CRM_USER = ""
-CRM_PASS = ""
-passwd_file = os.getenv("CRM_PASSWD_FILE", "/var/secret/docker/crm/vada")
+CRM_BASEURL = os.getenv("CRM_BASEURL", "")
+CRM_USER = os.getenv("CRM_USER", "")
+CRM_PASS = os.getenv("CRM_PASS", "")
+passwd_file = os.getenv("CRM_PASSWD_FILE", "")
 if passwd_file and os.path.isfile(passwd_file):
     with open(passwd_file, "r", encoding="utf-8") as file:
         content = file.read().strip()
         CRM_USER, CRM_PASS = content.split(maxsplit=1)
+
+
+@pytest.mark.asyncio
+async def test_health():
+    api = CRMAPI(CRM_BASEURL)
+    await api.auth(CRM_USER, CRM_PASS)
+
+    response = await api.check_health()
+
+    assert isinstance(response, dict)
+    assert response.get("message") == "pong"
 
 
 @pytest.mark.asyncio

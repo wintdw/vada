@@ -1,8 +1,8 @@
 import re
 import logging
 from typing import Dict, Tuple
-from api.connectors.async_es import AsyncESProcessor
-from api.connectors.crm import CRMAPI
+from libs.connectors.async_es import AsyncESProcessor
+from libs.connectors.crm import CRMAPI
 
 
 class MappingsProcessor:
