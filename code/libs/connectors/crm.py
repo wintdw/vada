@@ -86,18 +86,18 @@ class CRMAPI:
         url = f"{self.baseurl}/ping"
 
         async with self.session.get(url, headers=self.headers) as response:
-            return response.status, await response.json()
+            return {"status": response.status, "detail": await response.json()}
 
     async def check_index_created(self, index: str) -> Dict:
         await self._get_session()
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"
 
         async with self.session.get(url, headers=self.headers) as response:
-            res = await response.json()
+            response_json = await response.json()
             # Not found
-            if "index" not in res:
+            if "index" not in response_json:
                 return {}
-            return res
+            return {"status": response.status, "detail": response_json}
 
     async def set_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
@@ -117,7 +117,7 @@ class CRMAPI:
         async with self.session.put(
             url, headers=self.headers, json=post_data
         ) as response:
-            return response.status, await response.json()
+            return {"status": response.status, "detail": await response.json()}
 
     async def add_user(
         self,
@@ -147,4 +147,4 @@ class CRMAPI:
         async with self.session.post(
             url, headers=self.headers, json=post_data
         ) as response:
-            return response.status, await response.json()
+            return {"status": response.status, "detail": await response.json()}
