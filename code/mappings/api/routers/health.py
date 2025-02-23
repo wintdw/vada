@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 from mappings.api.internals.mappings import MappingsProcessor
-from dependencies import get_mappings_processor
+from mappings.dependencies import get_mappings_processor
 
 
 router = APIRouter()
