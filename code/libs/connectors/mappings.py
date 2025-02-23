@@ -27,7 +27,14 @@ class MappingsClient:
                 return await response.json()
 
     async def create_crm_mappings(
-        self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
+        self,
+        user_id: str,
+        index_name: str,
+        index_friendly_name: str,
+        mappings: Dict,
+        id_field: str = "",
+        agg_field: str = "",
+        time_field: str = "",
     ) -> Dict:
         url = f"{self.base_url}/crm/mappings"
 
@@ -39,6 +46,9 @@ class MappingsClient:
             "index_name": index_name,
             "index_friendly_name": index_friendly_name,
             "mappings": mappings,
+            "id_field": id_field,
+            "agg_field": agg_field,
+            "time_field": time_field,
         }
         async with aiohttp.ClientSession() as session:
             async with session.put(url, json=payload) as response:
