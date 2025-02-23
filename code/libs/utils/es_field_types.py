@@ -66,10 +66,7 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                         field_type_counts[field]["date"] += 1
                     else:
                         field_type_counts[field]["long"] += 1
-                # do not proceed on OverflowError
-                except OverflowError:
-                    field_type_counts[field]["keyword"] += 1
-                except ValueError:
+                except (ValueError, OverflowError):
                     try:
                         float(value)
                         field_type_counts[field]["double"] += 1
@@ -78,7 +75,8 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                         try:
                             parser.parse(value)
                             field_type_counts[field]["date"] += 1
-                        except (ValueError, TypeError):
+                        # Catch all other exception from dateutil.parser
+                        except:
                             # If not a date, classify as keyword
                             field_type_counts[field]["keyword"] += 1
             elif isinstance(value, list):
