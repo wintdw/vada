@@ -1,9 +1,8 @@
-import logging
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from api.models.users import UsersRequest
-from api.internals.mappings import MappingsProcessor
+from mappings.api.models.users import UsersRequest
+from mappings.api.internals.mappings import MappingsProcessor
 from dependencies import get_mappings_processor
 
 router = APIRouter()

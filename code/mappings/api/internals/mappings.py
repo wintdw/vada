@@ -23,6 +23,12 @@ class MappingsProcessor:
         await self.es.close()
         await self.crm.close()
 
+    async def check_health(self) -> Dict:
+        es_resp = await self.es.check_health()
+        crm_resp = await self.crm.check_health()
+
+        return {"es": es_resp, "crm": crm_resp}
+
     async def auth_crm(self):
         # Auth & reauth
         if not await self.crm.is_auth():
