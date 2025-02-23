@@ -12,7 +12,7 @@ class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
         self.headers = {}
-        self.session = None
+        self.session = aiohttp.ClientSession()
 
     async def _get_access_token(self, username: str, password: str) -> str:
         """
@@ -47,11 +47,9 @@ class CRMAPI:
 
     async def auth(self, user: str, passwd: str) -> str:
         """
-        Function to init session and authenticate the user
+        Function to authenticate the user
         and set the JWT token in headers.
         """
-        if not self.session:
-            self.session = aiohttp.ClientSession()
         jwt_token = await self._get_access_token(user, passwd)
         if jwt_token:
             self.headers["Authorization"] = f"Bearer {jwt_token}"
