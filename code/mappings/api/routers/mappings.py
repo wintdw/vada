@@ -2,7 +2,11 @@ import logging
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from mappings.api.models.mappings import CopyMappingsRequest, SetMappingsRequest
+from mappings.api.models.mappings import (
+    CopyMappingsRequest,
+    SetESMappingsRequest,
+    SetCRMMappingsRequest,
+)
 from mappings.api.internals.mappings import MappingsProcessor
 from mappings.dependencies import get_mappings_processor
 
@@ -10,7 +14,7 @@ router = APIRouter()
 
 
 @router.post("/mappings")
-async def create_mappings(
+async def copy_mappings(
     data: CopyMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
@@ -28,11 +32,31 @@ async def create_mappings(
 
 @router.put("/mappings")
 async def set_es_mappings(
-    data: SetMappingsRequest,
+    data: SetESMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
         await mappings_processor.set_es_mappings(data.index_name, data.mappings)
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "success",
+                "detail": f"Mappings set for index: {data.index_name}",
+            },
+        )
+    finally:
+        await mappings_processor.close()
+
+
+@router.put("/crm/mappings")
+async def set_es_mappings(
+    data: SetCRMMappingsRequest,
+    mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
+):
+    try:
+        await mappings_processor.set_crm_mappings(
+            data.user_id, data.index_name, data.index_friendly_name, data.mappings
+        )
         return JSONResponse(
             status_code=200,
             content={

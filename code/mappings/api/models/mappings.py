@@ -17,6 +17,13 @@ class CopyMappingsRequest(BaseModel):
     index_friendly_name: Optional[str] = None
 
 
-class SetMappingsRequest(BaseModel):
+class SetESMappingsRequest(BaseModel):
     index_name: str
+    mappings: Dict
+
+
+class SetCRMMappingsRequest(BaseModel):
+    user_id: str
+    index_name: str
+    index_friendly_name: str
     mappings: Dict
