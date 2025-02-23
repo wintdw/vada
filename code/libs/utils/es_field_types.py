@@ -66,7 +66,10 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                         field_type_counts[field]["date"] += 1
                     else:
                         field_type_counts[field]["long"] += 1
-                except (ValueError, OverflowError):
+                # do not proceed on OverflowError
+                except OverflowError:
+                    field_type_counts[field]["keyword"] += 1
+                except ValueError:
                     try:
                         float(value)
                         field_type_counts[field]["double"] += 1
