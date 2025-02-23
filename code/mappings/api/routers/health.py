@@ -15,13 +15,20 @@ async def health_check(
 ):
     """Check the health of the Elasticsearch cluster."""
     try:
-        response = await mappings_processor.es.check_health()
-        if response.status < 400:
-            return JSONResponse(content={"status": "ok", "detail": "Service Available"})
+        es_resp = await mappings_processor.es.check_health()
+        crm_resp = await mappings_processor.crm.check_health()
+        if es_resp["status"] >= 400 or crm_resp["status"] >= 400:
+            logging.error(es_resp["detail"])
+            logging.error(crm_resp["detail"])
+            raise HTTPException(status_code=500, detail="Service Unavailable")
         else:
-            logging.error(await response.text())
-            raise HTTPException(
-                status_code=response.status, detail="Service Unavailable"
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "overall": "Available",
+                    "es": "Available",
+                    "crm": "Available",
+                },
             )
     finally:
         await mappings_processor.close()

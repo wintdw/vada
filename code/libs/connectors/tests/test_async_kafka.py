@@ -1,4 +1,4 @@
-import pytest
+import pytest  # type: ignore
 import logging
 from typing import List, Dict, Any
 from libs.connectors.async_kafka import AsyncKafkaProcessor
