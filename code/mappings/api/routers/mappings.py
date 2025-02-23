@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
@@ -14,24 +15,24 @@ async def create_mappings(
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
-        response_status, response_json = await mappings_processor.copy_mappings(
+        response = await mappings_processor.copy_mappings(
             data.user_id, data.index_name, data.index_friendly_name
         )
-        if response_status < 400:
-            return JSONResponse(status_code=response_status, content=response_json)
-        else:
-            raise HTTPException(status_code=response_status, detail=response_json)
+        if response["status"] >= 400:
+            logging.error(response["detail"])
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+        return JSONResponse(status_code=response["status"], content=response["detail"])
     finally:
         await mappings_processor.close()
 
 
 @router.put("/mappings")
-async def set_mappings(
+async def set_es_mappings(
     data: SetMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
-        await mappings_processor.set_mappings(data.index_name, data.mappings)
+        await mappings_processor.set_es_mappings(data.index_name, data.mappings)
         return JSONResponse(
             status_code=200,
             content={
