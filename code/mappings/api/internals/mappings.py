@@ -3,6 +3,7 @@ import logging
 from typing import Dict
 from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.crm import CRMAPI
+from libs.utils.common import friendlify_index_name
 
 
 class MappingsProcessor:
@@ -60,11 +61,7 @@ class MappingsProcessor:
     async def copy_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
     ) -> Dict:
-        if not index_friendly_name:
-            # pretify the index_friendly_name
-            match = re.search(r"csv_(.*?)_csv", index_name)
-            if match:
-                index_friendly_name = f"CSV " + match.group(1)
+        index_friendly_name = friendlify_index_name(index_name)
 
         index_mappings = await self.get_es_mappings(index_name)
         logging.info(
