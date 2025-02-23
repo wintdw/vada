@@ -12,7 +12,16 @@ class CRMAPI:
     def __init__(self, baseurl: str):
         self.baseurl = baseurl
         self.headers = {}
-        self.session = aiohttp.ClientSession()
+        # session could not be init with aiohttp.ClientSession()
+        # because at this moment there is no event loop
+        self.session = None
+
+    async def _get_session(self):
+        """
+        Function to get or create a new session if not exist.
+        """
+        if not self.session:
+            self.session = aiohttp.ClientSession()
 
     async def _get_access_token(self, username: str, password: str) -> str:
         """
@@ -50,6 +59,7 @@ class CRMAPI:
         Function to authenticate the user
         and set the JWT token in headers.
         """
+        await self._get_session()
         jwt_token = await self._get_access_token(user, passwd)
         if jwt_token:
             self.headers["Authorization"] = f"Bearer {jwt_token}"
@@ -72,12 +82,14 @@ class CRMAPI:
             return False
 
     async def check_health(self) -> Dict:
+        await self._get_session()
         url = f"{self.baseurl}/ping"
 
         async with self.session.get(url, headers=self.headers) as response:
             return response.status, await response.json()
 
     async def check_index_created(self, index: str) -> Dict:
+        await self._get_session()
         url = f"{self.baseurl}/v1/querybuilder/master_file/treebeard/{index}"
 
         async with self.session.get(url, headers=self.headers) as response:
@@ -90,6 +102,7 @@ class CRMAPI:
     async def set_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
     ) -> Tuple[int, Dict]:
+        await self._get_session()
         url = f"{self.baseurl}/v1/adm/indices"
 
         post_data = {"user_id": user_id}
@@ -112,6 +125,7 @@ class CRMAPI:
         user_email: str,
         user_passwd: str,
     ) -> Tuple[int, Dict]:
+        await self._get_session()
         url = f"{self.baseurl}/v1/adm/users"
 
         now = datetime.now()
