@@ -27,3 +27,6 @@ class SetCRMMappingsRequest(BaseModel):
     index_name: str
     index_friendly_name: str
     mappings: Dict
+    id_field: Optional[str] = None
+    agg_field: Optional[str] = None
+    time_field: Optional[str] = None

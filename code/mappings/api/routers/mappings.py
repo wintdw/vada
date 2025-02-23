@@ -55,7 +55,13 @@ async def set_es_mappings(
 ):
     try:
         await mappings_processor.set_crm_mappings(
-            data.user_id, data.index_name, data.index_friendly_name, data.mappings
+            data.user_id,
+            data.index_name,
+            data.index_friendly_name,
+            data.mappings,
+            data.id_field,
+            data.agg_field,
+            data.time_field,
         )
         return JSONResponse(
             status_code=200,

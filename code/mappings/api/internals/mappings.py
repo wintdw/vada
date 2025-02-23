@@ -52,10 +52,19 @@ class MappingsProcessor:
         index_name: str,
         index_friendly_name: str,
         mappings: Dict,
+        id_field: str = "",
+        agg_field: str = "",
+        time_field: str = "",
     ):
         await self.auth_crm()
         return await self.crm.set_mappings(
-            user_id, index_name, index_friendly_name, mappings
+            user_id,
+            index_name,
+            index_friendly_name,
+            mappings,
+            id_field,
+            agg_field,
+            time_field,
         )
 
     async def copy_mappings(

@@ -100,8 +100,15 @@ class CRMAPI:
             return {"status": response.status, "detail": response_json}
 
     async def set_mappings(
-        self, user_id: str, index_name: str, index_friendly_name: str, mappings: Dict
-    ) -> Tuple[int, Dict]:
+        self,
+        user_id: str,
+        index_name: str,
+        index_friendly_name: str,
+        mappings: Dict,
+        id_field: str = "",
+        agg_field: str = "",
+        time_field: str = "",
+    ) -> Dict:
         await self._get_session()
         url = f"{self.baseurl}/v1/adm/indices"
 
@@ -109,8 +116,9 @@ class CRMAPI:
         post_data["master_index"] = {
             "name": index_name,
             "friendly_name": index_friendly_name,
-            "agg_field": "",
-            "time_field": "",
+            "id_field": id_field,
+            "agg_field": agg_field,
+            "time_field": time_field,
             "deleted": False,
             "mappings": mappings,
         }
