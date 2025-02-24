@@ -12,7 +12,6 @@ services:
       - discovery.seed_hosts=es00.internal.vadata.vn,es01.internal.vadata.vn,es02.internal.vadata.vn
       - cluster.initial_master_nodes=es00.internal.vadata.vn,es01.internal.vadata.vn,es02.internal.vadata.vn
       - bootstrap.memory_lock=true
-      - index.number_of_shards=12
       - "ES_JAVA_OPTS=-Xms8g -Xmx8g"
       - xpack.security.enabled=true
       - xpack.security.transport.ssl.enabled=true
