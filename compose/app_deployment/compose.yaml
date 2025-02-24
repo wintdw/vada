@@ -6,7 +6,7 @@ services:
       - "3000:80"
 
   crm:
-    image: vada898989.azurecr.io/crm-api:7bd0fd91
+    image: vada898989.azurecr.io/crm-api:6fdb374b
     container_name: crm
     ports:
       - "8080:8080"
@@ -22,7 +22,7 @@ services:
       - MAILGUN_DOMAIN=mg.vadata.vn
       - VADA_BACKEND_URL=http://qe-app.internal.vadata.vn/
       - VADA_FRONTEND_URL=https://app.vadata.vn
-      - VADA_ACL_URL=http://acl-app.internal.vadata.vn/
+      - VADA_ACL_URL=http://acl-app.internal.vadata.vn
       - ENABLE_SERVICE_PACKAGE=false
 
   qe:
