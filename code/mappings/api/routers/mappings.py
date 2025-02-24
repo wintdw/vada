@@ -9,6 +9,7 @@ from mappings.api.models.mappings import (
 )
 from mappings.api.internals.mappings import MappingsProcessor
 from mappings.dependencies import get_mappings_processor
+from libs.utils.common import friendlify_index_name
 
 router = APIRouter()
 
@@ -18,9 +19,12 @@ async def copy_mappings(
     data: CopyMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
+    if not data.index_friendly_name or data.index_friendly_name == data.index_name:
+        index_friendly_name = friendlify_index_name(data.index_name)
+
     try:
         response = await mappings_processor.copy_mappings(
-            data.user_id, data.index_name, data.index_friendly_name
+            data.user_id, data.index_name, index_friendly_name
         )
         if response["status"] >= 400:
             logging.error(response["detail"])
@@ -49,15 +53,18 @@ async def set_es_mappings(
 
 
 @router.put("/crm/mappings")
-async def set_es_mappings(
+async def set_crm_mappings(
     data: SetCRMMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
+    if not data.index_friendly_name or data.index_friendly_name == data.index_name:
+        index_friendly_name = friendlify_index_name(data.index_name)
+
     try:
         await mappings_processor.set_crm_mappings(
             data.user_id,
             data.index_name,
-            data.index_friendly_name,
+            index_friendly_name,
             data.mappings,
             data.id_field,
             data.agg_field,
