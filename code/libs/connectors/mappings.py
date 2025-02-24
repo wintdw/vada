@@ -1,4 +1,3 @@
-import re
 import aiohttp  # type: ignore
 from typing import Dict
 
