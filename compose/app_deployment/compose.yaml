@@ -16,7 +16,7 @@ services:
       - APP_ENV=development
       - SERVER_ADDRESS=:8080
       - CONTEXT_TIMEOUT=2
-      - DB_NAME=vada_prod
+      - MONGODB_DATABASE_NAME=vada_prod
       - ACCESS_TOKEN_EXPIRY_HOUR=48
       - REFRESH_TOKEN_EXPIRY_HOUR=168
       - MAILGUN_DOMAIN=mg.vadata.vn
