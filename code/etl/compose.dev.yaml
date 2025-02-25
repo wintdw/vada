@@ -1,10 +1,6 @@
 secrets:
-  es_elastic:
-    file: /var/secret/docker/es/elastic
-
-networks:
-  etl_network:
-    driver: bridge
+  es:
+    file: /var/secret/docker/es/elastic.passwd
 
 services:
   es_inserter:
@@ -17,17 +13,15 @@ services:
     environment:
       PORT: "8000"
       APP_ENV: dev
-      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
     secrets:
-      - es_elastic
+      - es
     ports:
       - "8000:8000"
-    networks:
-      - etl_network
 
   ingestor:
     build:
@@ -40,18 +34,16 @@ services:
       PORT: "8001"
       APP_ENV: dev
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     secrets:
-      - es_elastic
+      - es
     ports:
       - "8001:8001"
-    networks:
-      - etl_network
   
   kafka_to_es:
     build:
@@ -63,16 +55,14 @@ services:
     environment:
       PORT: "8002"
       APP_ENV: dev
-      ELASTIC_PASSWD_FILE: /run/secrets/es_elastic
+      ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
     secrets:
-      - es_elastic
+      - es
     ports:
       - "8002:8002"
-    networks:
-      - etl_network
 
