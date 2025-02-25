@@ -68,7 +68,7 @@ json_lines = [
 def test_determine_es_field_types():
     field_types = determine_es_field_types(json_lines)
     expected_field_types = {
-        "name": "keyword",
+        "name": "text",
         "age": "double",
         "is_student": "boolean",
         "scores": "unknown",
@@ -153,13 +153,31 @@ def test_construct_es_mappings():
         "mappings": {
             "dynamic": True,
             "properties": {
-                "name": {"type": "keyword"},
+                "name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {"type": "keyword", "ignore_above": 256},
+                        "eager_global_ordinals": True,
+                    },
+                },
                 "age": {"type": "double"},
                 "is_student": {"type": "boolean"},
-                "scores": {"type": "keyword"},
+                "scores": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {"type": "keyword", "ignore_above": 256},
+                        "eager_global_ordinals": True,
+                    },
+                },
                 "address": {"type": "object"},
                 "created_at": {"type": "date"},
-                "tags": {"type": "keyword"},
+                "tags": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {"type": "keyword", "ignore_above": 256},
+                        "eager_global_ordinals": True,
+                    },
+                },
                 "contacts": {"type": "nested"},
                 "timestamp": {"type": "date"},
                 "price": {"type": "double"},
