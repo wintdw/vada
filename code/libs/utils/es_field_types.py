@@ -265,8 +265,11 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             es_mappings["mappings"]["properties"][field] = {
                 "type": "text",
                 "fields": {
-                    "keyword": {"type": "keyword", "ignore_above": 256},
-                    "eager_global_ordinals": True,
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256,
+                        "eager_global_ordinals": True,
+                    },
                 },
             }
         else:
