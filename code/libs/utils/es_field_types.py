@@ -20,7 +20,7 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
         - "long": For integer values that are not likely timestamps.
         - "double": For floating-point numbers or strings that can be converted to floats.
         - "date": For integer values that are likely timestamps or strings that can be parsed as dates.
-        - "keyword": For strings that are not dates, numbers.
+        - "text": For strings that are not dates, numbers.
         - "nested": For lists of dictionaries or dictionaries.
         - "unknown": For lists that do not fit the above criteria.
 
@@ -77,8 +77,8 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                             field_type_counts[field]["date"] += 1
                         # Catch all other exception from dateutil.parser
                         except:
-                            # If not a date, classify as keyword
-                            field_type_counts[field]["keyword"] += 1
+                            # If not a date, classify as text
+                            field_type_counts[field]["text"] += 1
             elif isinstance(value, list):
                 # If the list contains dictionaries, classify as nested
                 if all(isinstance(item, dict) for item in value):
@@ -111,7 +111,7 @@ def convert_es_field_types(
     Args:
         json_objects (List[Dict[str, Any]]): A list of JSON objects, each representing a line of data.
         field_types (Dict[str, str]): A dictionary mapping field names to their desired types.
-            Supported types include "boolean", "long", "double", "date", "nested", and "keyword".
+            Supported types include "boolean", "long", "double", "date", "nested", and "text".
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries with fields converted to the specified types.
@@ -122,7 +122,7 @@ def convert_es_field_types(
         - "double": Converts strings or integers to floats.
         - "date": Converts strings to ISO format dates if they are not already.
         - "nested": Leaves nested dictionaries unchanged.
-        - "keyword": Leaves strings unchanged.
+        - "text": Leaves strings unchanged.
         - For numeric fields ("long", "double"), sets None or empty string values to 0.
         - Skips fields that cannot be converted.
     """
@@ -205,8 +205,8 @@ def convert_es_field_types(
                 # If it's a nested dictionary, no need to modify
                 pass
 
-            elif field_type == "keyword" and isinstance(value, str):
-                # Keywords are typically strings and don't require conversion
+            elif field_type == "text" and isinstance(value, str):
+                # Text are typically strings and don't require conversion
                 pass
 
             else:
@@ -257,8 +257,20 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
         es_field_type = field_type
         # for the list of str/int, or "unknown"
         if field_type == "unknown":
-            es_field_type = "keyword"
+            es_field_type = "text"
 
-        es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
+        # Add field mapping
+        if es_field_type == "text":
+            # Add keyword subfield for text fields
+            es_mappings["mappings"]["properties"][field] = {
+                "type": "text",
+                "fields": {
+                    "keyword": {"type": "keyword", "ignore_above": 256},
+                    "eager_global_ordinals": True,
+                },
+            }
+        else:
+            # For non-text fields, keep as is
+            es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
 
     return es_mappings
