@@ -19,8 +19,7 @@ async def copy_mappings(
     data: CopyMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
-    if not data.index_friendly_name or data.index_friendly_name == data.index_name:
-        index_friendly_name = friendlify_index_name(data.index_name)
+    index_friendly_name = friendlify_index_name(data.index_name)
 
     try:
         response = await mappings_processor.copy_mappings(
@@ -57,8 +56,7 @@ async def set_crm_mappings(
     data: SetCRMMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
-    if not data.index_friendly_name or data.index_friendly_name == data.index_name:
-        index_friendly_name = friendlify_index_name(data.index_name)
+    index_friendly_name = friendlify_index_name(data.index_name)
 
     try:
         await mappings_processor.set_crm_mappings(
