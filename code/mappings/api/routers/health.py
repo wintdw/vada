@@ -26,9 +26,9 @@ async def health_check(
             return JSONResponse(
                 status_code=200,
                 content={
-                    "overall": "Available",
-                    "es": "Available",
-                    "crm": "Available",
+                    "status": "success",
+                    "es": "available",
+                    "crm": "available",
                 },
             )
     finally:
