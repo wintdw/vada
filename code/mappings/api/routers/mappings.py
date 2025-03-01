@@ -28,6 +28,10 @@ async def copy_mappings(
         response = await mappings_processor.copy_mappings(
             data.user_id, data.index_name, index_friendly_name
         )
+
+        msg = f"Mappings copied for index: {data.index_name}, user: {data.user_id}"
+        logging.info(msg)
+
         if response["status"] >= 400:
             logging.error(response["detail"])
             raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -36,18 +40,22 @@ async def copy_mappings(
         await mappings_processor.close()
 
 
-@router.put("/mappings")
+@router.put("/es/mappings")
 async def set_es_mappings(
     data: SetESMappingsRequest,
     mappings_processor: MappingsProcessor = Depends(get_mappings_processor),
 ):
     try:
         await mappings_processor.set_es_mappings(data.index_name, data.mappings)
+
+        msg = f"ES Mappings set for index: {data.index_name}"
+        logging.info(msg)
+
         return JSONResponse(
             status_code=200,
             content={
                 "status": "success",
-                "detail": f"Mappings set for index: {data.index_name}",
+                "detail": msg,
             },
         )
     finally:
@@ -74,11 +82,15 @@ async def set_crm_mappings(
             data.agg_field,
             data.time_field,
         )
+
+        msg = f"CRM Mappings set for index: {data.index_name}, user: {data.user_id}"
+        logging.info(msg)
+
         return JSONResponse(
             status_code=200,
             content={
                 "status": "success",
-                "detail": f"Mappings set for index: {data.index_name}",
+                "detail": msg,
             },
         )
     finally:
