@@ -35,27 +35,30 @@ async def check_health(
     mappings_client: MappingsClient = Depends(get_mappings_client),
 ):
     """Check the health of the Elasticsearch cluster and Mappings service."""
-    es_response = await es_processor.check_health()
-    mappings_response = await mappings_client.check_health()
+    try:
+        es_response = await es_processor.check_health()
+        mappings_response = await mappings_client.check_health()
 
-    if es_response["status"] < 400 and mappings_response["status"] < 400:
-        return JSONResponse(
-            content={
-                "status": "success",
-                "es": "available",
-                "mappings": "available",
-            }
+        if es_response["status"] < 400 and mappings_response["status"] < 400:
+            return JSONResponse(
+                content={
+                    "status": "success",
+                    "es": "available",
+                    "mappings": "available",
+                }
+            )
+
+        if es_response["status"] >= 400:
+            logging.error(es_response["detail"])
+        if mappings_response["status"] >= 400:
+            logging.error(mappings_response["detail"])
+
+        raise HTTPException(
+            status_code=max(es_response["status"], mappings_response["status"]),
+            detail="Downstream services are unavailable!",
         )
-
-    if es_response["status"] >= 400:
-        logging.error(es_response["detail"])
-    if mappings_response["status"] >= 400:
-        logging.error(mappings_response["detail"])
-
-    raise HTTPException(
-        status_code=max(es_response["status"], mappings_response["status"]),
-        detail="Downstream services are unavailable!",
-    )
+    finally:
+        await es_processor.close()
 
 
 @app.post("/v1/jsonl")
