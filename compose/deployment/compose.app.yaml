@@ -25,13 +25,18 @@ services:
       - VADA_ACL_URL=http://acl-app.internal.vadata.vn
       - ENABLE_SERVICE_PACKAGE=false
 
-  qe:
+  qe: &qe
     image: vada898989.azurecr.io/vada-query-engine:58d9e832
     container_name: qe
     ports:
       - "9675:9675"
     env_file:
       - /var/secret/docker/qe/app.env
+  qe-replica:
+    <<: *qe
+    container_name: qe-replica
+    ports:
+      - "9676:9675"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.10.4
