@@ -11,17 +11,17 @@ services:
     container_name: es_inserter
     restart: always
     environment:
-      PORT: "7000"
+      PORT: "8000"
       APP_ENV: vtad
       ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-vtad.internal.vadata.vn
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
     secrets:
       - es
     ports:
-      - "7000:7000"
+      - "8000:8000"
   
   ingestor:
     build:
@@ -31,7 +31,7 @@ services:
     container_name: ingestor
     restart: always
     environment:
-      PORT: "7001"
+      PORT: "8001"
       APP_ENV: vtad
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       ELASTIC_PASSWD_FILE: /run/secrets/es
@@ -39,11 +39,11 @@ services:
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
       MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     secrets:
       - es
     ports:
-      - "7001:7001"
+      - "8001:8001"
   
   kafka_to_es:
     build:
@@ -53,15 +53,15 @@ services:
     container_name: kafka_to_es
     restart: always
     environment:
-      PORT: "7002"
+      PORT: "8002"
       APP_ENV: vtad
       ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-vtad.internal.vadata.vn
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7002/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
     secrets:
       - es
     ports:
-      - "7002:7002"
+      - "8002:8002"
