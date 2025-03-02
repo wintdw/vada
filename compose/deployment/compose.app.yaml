@@ -26,7 +26,7 @@ services:
       - ENABLE_SERVICE_PACKAGE=false
 
   qe: &qe
-    image: vada898989.azurecr.io/vada-query-engine:58d9e832
+    image: vada898989.azurecr.io/vada-query-engine:fc166427
     container_name: qe
     ports:
       - "9675:9675"

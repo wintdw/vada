@@ -26,12 +26,14 @@ services:
       - ENABLE_SERVICE_PACKAGE=false
 
   qe: &qe
-    image: vada898989.azurecr.io/vada-query-engine:58d9e832
+    image: vada898989.azurecr.io/vada-query-engine:fc166427
     container_name: qe
     ports:
       - "9675:9675"
     env_file:
       - /var/secret/docker/qe/app.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9675/health"]
   qe-replica:
     <<: *qe
     container_name: qe-replica
