@@ -32,6 +32,8 @@ services:
       - "9675:9675"
     env_file:
       - /var/secret/docker/qe/app.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9675/health"]
   qe-replica:
     <<: *qe
     container_name: qe-replica
