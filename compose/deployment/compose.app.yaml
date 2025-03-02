@@ -46,5 +46,6 @@ services:
       - /var/secret/docker/es/kibana.env
     environment:
       - ELASTICSEARCH_HOSTS=http://es-app.internal.vadata.vn
+      - STATUS_ALLOWANONYMOUS=true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5601"]
+      test: ["CMD", "sh", "-c", "curl -s http://localhost:5601/api/status | jq -e '.status.overall.state == \"green\"'"]
