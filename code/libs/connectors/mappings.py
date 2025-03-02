@@ -25,7 +25,7 @@ class MappingsClient:
     ) -> Dict:
         url = f"{self.base_url}/mappings"
 
-        if not index_friendly_name:
+        if not index_friendly_name or index_friendly_name == index_name:
             index_friendly_name = friendlify_index_name(index_name)
 
         payload = {

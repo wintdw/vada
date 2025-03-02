@@ -7,7 +7,7 @@ secrets:
 services:  
   mappings:
     build:
-      context: ../
+      context: ..
       dockerfile: mappings/Dockerfile
     image: mappings:latest
     container_name: mappings
@@ -16,7 +16,7 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://es-vtad.internal.vadata.vn
-      CRM_BASEURL: https://api.vtad.vn
+      CRM_BASEURL: http://crm-vtad.internal.vadata.vn
       CRM_PASSWD_FILE: /run/secrets/crm
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8070/health"]
