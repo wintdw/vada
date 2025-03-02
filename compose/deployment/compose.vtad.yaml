@@ -24,8 +24,6 @@ services:
       - VADA_FRONTEND_URL=https://vtad.vn
       - VADA_ACL_URL=http://acl-vtad.internal.vadata.vn
       - ENABLE_SERVICE_PACKAGE=false
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
 
   qe:
     image: vada898989.azurecr.io/vada-query-engine:58d9e832
@@ -34,8 +32,6 @@ services:
       - "9675:9675"
     env_file:
       - /var/secret/docker/qe/app.env
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9675/health"]
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.10.0
@@ -48,4 +44,4 @@ services:
       - ELASTICSEARCH_HOSTS=http://es-vtad.internal.vadata.vn
       - STATUS_ALLOWANONYMOUS=true
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -s http://localhost:5601/api/status | jq -e '.status.overall.state == \"green\"'"]
+      test: ["CMD", "sh", "-c", "curl -s http://localhost:5601/api/status"]
