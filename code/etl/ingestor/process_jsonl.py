@@ -25,7 +25,7 @@ async def prepare_jsonl(json_lines: List[str], user_id: str) -> Dict:
     for line in json_lines:
         try:
             vada_doc = VadaDocument(line)
-        except Exception as json_err:
+        except RuntimeError as json_err:
             logging.error("Invalid JSON format: %s - %s", line, json_err)
 
         vada_doc.populate_ingestor_metadata()
@@ -79,7 +79,9 @@ async def produce_jsonl(
         # to balance the partitions
         # we have by default 12 partitions each topic
         partition_cnt = 12
-        batch_size = len(json_docs) // partition_cnt
+        batch_size = 1
+        if len(json_docs) >= partition_cnt:
+            batch_size = len(json_docs) // partition_cnt
 
         for i in range(0, len(json_docs), batch_size):
             batch = json_docs[i : i + batch_size]

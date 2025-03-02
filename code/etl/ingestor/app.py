@@ -53,7 +53,7 @@ async def handle_jsonl_req(
     """
     data = await req.body()
 
-    if not data:
+    if not data or len(data) <= 10:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Request empty"
         )
