@@ -8,6 +8,18 @@ class MappingsClient:
     def __init__(self, base_url: str):
         self.base_url = base_url
 
+    async def check_health(self) -> Dict:
+        url = f"{self.base_url}/health"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    return {"status": response.status, "detail": await response.json()}
+        except Exception as e:
+            return {
+                "status": 500,
+                "detail": f"Mappings service is down - {await response.text()}",
+            }
+
     async def create_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
     ) -> Dict:

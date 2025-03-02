@@ -26,18 +26,36 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-APP_ENV = os.getenv("APP_ENV", "dev")
+APP_ENV = os.getenv("APP_ENV")
 
 
 @app.get("/health")
-async def check_health() -> JSONResponse:
-    """
-    Health check url
+async def check_health(
+    es_processor: AsyncESProcessor = Depends(get_es_processor),
+    mappings_client: MappingsClient = Depends(get_mappings_client),
+):
+    """Check the health of the Elasticsearch cluster and Mappings service."""
+    es_response = await es_processor.check_health()
+    mappings_response = await mappings_client.check_health()
 
-    Returns:
-        JSONResponse: HTTP 200 if ok
-    """
-    return JSONResponse(content={"status": "success", "detail": "Service Available"})
+    if es_response["status"] < 400 and mappings_response["status"] < 400:
+        return JSONResponse(
+            content={
+                "status": "success",
+                "es": "available",
+                "mappings": "available",
+            }
+        )
+
+    if es_response["status"] >= 400:
+        logging.error(es_response["detail"])
+    if mappings_response["status"] >= 400:
+        logging.error(mappings_response["detail"])
+
+    raise HTTPException(
+        status_code=max(es_response["status"], mappings_response["status"]),
+        detail="Downstream services are unavailable!",
+    )
 
 
 @app.post("/v1/jsonl")
