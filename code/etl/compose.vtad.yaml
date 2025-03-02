@@ -3,12 +3,12 @@ secrets:
     file: /var/secret/docker/es/elastic.passwd
 
 services:
-  es_inserter:
+  insert:
     build:
       context: ../
-      dockerfile: etl/Dockerfile.es_inserter
-    image: es_inserter:latest
-    container_name: es_inserter
+      dockerfile: etl/Dockerfile.insert
+    image: insert:latest
+    container_name: insert
     restart: always
     environment:
       PORT: "8000"
@@ -23,12 +23,12 @@ services:
     ports:
       - "8000:8000"
   
-  ingestor:
+  ingest:
     build:
       context: ..
-      dockerfile: etl/Dockerfile.ingestor
-    image: ingestor:latest
-    container_name: ingestor
+      dockerfile: etl/Dockerfile.ingest
+    image: ingest:latest
+    container_name: ingest
     restart: always
     environment:
       PORT: "8001"
@@ -45,12 +45,12 @@ services:
     ports:
       - "8001:8001"
   
-  kafka_to_es:
+  process:
     build:
       context: ..
-      dockerfile: etl/Dockerfile.kafka_to_es
-    image: kafka_to_es:latest
-    container_name: kafka_to_es
+      dockerfile: etl/Dockerfile.process
+    image: process:latest
+    container_name: process
     restart: always
     environment:
       PORT: "8002"
