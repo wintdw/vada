@@ -18,13 +18,17 @@ async def create_user(
         response = await mappings_processor.add_user(
             data.user_name, data.user_email, data.user_passwd
         )
-
-        msg = f"User created: {data.user_name}, email: {data.user_email}"
-        logging.info(msg)
-
-        if response["status"] >= 400:
-            logging.error(response["detail"])
-            raise HTTPException(status_code=500, detail="Internal Server Error")
-        return JSONResponse(status_code=response["status"], content=response["detail"])
+    except Exception as e:
+        logging.error(f"Failed to create user: {str(e)}")
+        raise
     finally:
         await mappings_processor.close()
+
+    if response["status"] >= 400:
+        logging.error(response["detail"])
+        raise HTTPException(status_code=response["status"], detail=response["detail"])
+
+    msg = f"User created: {data.user_name}, email: {data.user_email}"
+    logging.info(msg)
+
+    return JSONResponse(status_code=response["status"], content=response["detail"])
