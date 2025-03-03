@@ -44,7 +44,13 @@ class MappingsClient:
                 return response_data["detail"]
 
     async def create_mappings(
-        self, user_id: str, index_name: str, index_friendly_name: str = None
+        self,
+        user_id: str,
+        index_name: str,
+        index_friendly_name: str = "",
+        id_field: str = "",
+        agg_field: str = "",
+        time_field: str = "",
     ) -> Dict:
         url = f"{self.base_url}/mappings"
 
@@ -55,6 +61,9 @@ class MappingsClient:
             "user_id": user_id,
             "index_name": index_name,
             "index_friendly_name": index_friendly_name,
+            "id_field": id_field,
+            "agg_field": agg_field,
+            "time_field": time_field,
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=payload) as response:

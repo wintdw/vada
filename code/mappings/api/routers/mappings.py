@@ -26,7 +26,12 @@ async def copy_mappings(
 
     try:
         response = await mappings_processor.copy_mappings(
-            data.user_id, data.index_name, index_friendly_name
+            data.user_id,
+            data.index_name,
+            index_friendly_name,
+            data.id_field,
+            data.agg_field,
+            data.time_field,
         )
 
         msg = f"Mappings copied for index: {data.index_name}, user: {data.user_id}"

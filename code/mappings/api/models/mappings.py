@@ -15,6 +15,9 @@ class CopyMappingsRequest(BaseModel):
     user_id: str
     index_name: str
     index_friendly_name: Optional[str] = None
+    id_field: Optional[str] = None
+    agg_field: Optional[str] = None
+    time_field: Optional[str] = None
 
 
 class SetESMappingsRequest(BaseModel):
