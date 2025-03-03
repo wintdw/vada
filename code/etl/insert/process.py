@@ -28,23 +28,18 @@ APP_ENV = os.getenv("APP_ENV")
 
 
 @app.get("/health")
-async def check_health(
-    es_processor: AsyncESProcessor = Depends(get_es_processor),
-) -> JSONResponse:
-    """
-    Health check function
+async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor)):
+    """Check the health of the Elasticsearch cluster."""
+    try:
+        response = await es_processor.check_health()
+    finally:
+        await es_processor.close()
 
-    Returns:
-        JSONResponse: Return 200 when service is available
-    """
+    if response["status"] >= 400:
+        logging.error(response["detail"])
+        raise HTTPException(status_code=response["status"])
 
-    response = await es_processor.check_health()
-    if response["status"] < 400:
-        return JSONResponse(
-            content={"status": "success", "detail": "Service Available"}
-        )
-    logging.error(response["detail"])
-    raise HTTPException(status_code=response["status"])
+    return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 
 @app.on_event("startup")
@@ -57,9 +52,12 @@ async def background(
     then produce to ES topic
     """
 
-    processor = AsyncProcessor(es_processor, kafka_processor)
-
-    asyncio.create_task(
-        # example pattern "dev.csv_dw_csv"
-        processor.consume_then_produce(rf"{APP_ENV}\..*csv_", "es_inserter_group")
-    )
+    try:
+        processor = AsyncProcessor(es_processor, kafka_processor)
+        asyncio.create_task(
+            # example pattern "dev.csv_dw_csv"
+            processor.consume_then_produce(rf"{APP_ENV}\..*csv_", "es_inserter_group")
+        )
+    finally:
+        await es_processor.close()
+        await kafka_processor.close()

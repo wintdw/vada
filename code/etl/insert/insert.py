@@ -33,13 +33,16 @@ logging.basicConfig(
 @app.get("/health")
 async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor)):
     """Check the health of the Elasticsearch cluster."""
-    response = await es_processor.check_health()
-    if response["status"] < 400:
-        return JSONResponse(
-            content={"status": "success", "detail": "Service Available"}
-        )
-    logging.error(response["detail"])
-    raise HTTPException(status_code=response["status"])
+    try:
+        response = await es_processor.check_health()
+    finally:
+        await es_processor.close()
+
+    if response["status"] >= 400:
+        logging.error(response["detail"])
+        raise HTTPException(status_code=response["status"])
+
+    return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 
 # This function can deal with duplicate messages
@@ -120,3 +123,5 @@ async def receive_jsonl(
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    finally:
+        await es_processor.close()
