@@ -66,7 +66,13 @@ class MappingsProcessor:
         )
 
     async def copy_mappings(
-        self, user_id: str, index_name: str, index_friendly_name: str = None
+        self,
+        user_id: str,
+        index_name: str,
+        index_friendly_name: str = "",
+        id_field: str = "",
+        agg_field: str = "",
+        time_field: str = "",
     ) -> Dict:
         index_mappings = await self.get_es_mappings(index_name)
         logging.info(
@@ -77,7 +83,13 @@ class MappingsProcessor:
         )
 
         return await self.set_crm_mappings(
-            user_id, index_name, index_friendly_name, index_mappings
+            user_id,
+            index_name,
+            index_friendly_name,
+            index_mappings,
+            id_field,
+            agg_field,
+            time_field,
         )
 
     async def add_user(

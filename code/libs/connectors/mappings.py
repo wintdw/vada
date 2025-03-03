@@ -21,7 +21,9 @@ class MappingsClient:
                 "detail": f"Mappings service is down - {await response.text()}",
             }
 
-    async def create_user(self, user_name: str, user_email: str, user_passwd: str):
+    async def create_user(
+        self, user_name: str, user_email: str, user_passwd: str
+    ) -> Dict:
         url = f"{self.base_url}/users"
         payload = {
             "user_name": user_name,
