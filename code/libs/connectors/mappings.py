@@ -28,20 +28,18 @@ class MappingsClient:
             "user_email": user_email,
             "user_passwd": user_passwd,
         }
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload) as response:
-                    response_data = await response.json()
-                    msg = f"User created: {user_name}, email: {user_email}"
-                    logging.info(msg)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as response:
+                response_data = await response.json()
 
-                    if response.status >= 400:
-                        logging.error(response_data["detail"])
-                        raise Exception("Internal Server Error")
-                    return response_data["detail"]
-        except Exception as e:
-            logging.error(f"Failed to create user: {str(e)}")
-            raise
+                if response.status >= 400:
+                    logging.error(response_data["detail"])
+                    raise Exception(response_data["detail"])
+
+                msg = f"User created: {user_name}, email: {user_email}"
+                logging.info(msg)
+
+                return response_data["detail"]
 
     async def create_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
