@@ -43,16 +43,15 @@ async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor
 
 
 @app.on_event("startup")
-async def background(
-    es_processor: AsyncESProcessor = Depends(get_es_processor),
-    kafka_processor: AsyncESProcessor = Depends(get_kafka_processor),
-):
+async def background():
     """
     This function runs in the background, constantly monitors Kafka topics to consume, process,
     then produce to ES topic
     """
 
     try:
+        es_processor = get_es_processor()
+        kafka_processor = get_kafka_processor()
         processor = AsyncProcessor(es_processor, kafka_processor)
         asyncio.create_task(
             # example pattern "dev.csv_dw_csv"

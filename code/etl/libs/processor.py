@@ -17,13 +17,13 @@ KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL")
 MAPPINGS_BASEURL = os.getenv("MAPPINGS_BASEURL")
 
 
-def get_es_processor():
+def get_es_processor() -> AsyncESProcessor:
     return AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
 
 
-def get_kafka_processor():
+def get_kafka_processor() -> AsyncKafkaProcessor:
     return AsyncKafkaProcessor(KAFKA_BROKER_URL)
 
 
-def get_mappings_client():
+def get_mappings_client() -> MappingsClient:
     return MappingsClient(MAPPINGS_BASEURL)
