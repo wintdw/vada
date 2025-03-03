@@ -20,6 +20,10 @@ class AsyncProcessor:
         self.kafka = kafka_processor
         self.es = es_processor
 
+    async def close(self):
+        await self.kafka.close()
+        await self.es.close()
+
     async def extract_metadata_from_doc(
         self, doc: Dict
     ) -> Optional[Tuple[str, str, str, str]]:

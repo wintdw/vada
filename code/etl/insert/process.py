@@ -58,6 +58,7 @@ async def background(
             # example pattern "dev.csv_dw_csv"
             processor.consume_then_produce(rf"{APP_ENV}\..*csv_", "es_inserter_group")
         )
-    finally:
-        await es_processor.close()
-        await kafka_processor.close()
+    except Exception as e:
+        logging.error("Failed to start background task: %s", e)
+        await processor.close()
+        raise e
