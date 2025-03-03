@@ -13,12 +13,12 @@ from libs.connectors.async_kafka import AsyncKafkaProcessor
 
 
 class AsyncProcessor:
-    def __init__(self, kafka_broker: str, es_conf_dict: Dict):
+    def __init__(
+        self, es_processor: AsyncESProcessor, kafka_processor: AsyncKafkaProcessor
+    ):
         self.lock = asyncio.Lock()
-        self.kafka = AsyncKafkaProcessor(kafka_broker)
-        self.es = AsyncESProcessor(
-            es_conf_dict["url"], es_conf_dict["user"], es_conf_dict["passwd"]
-        )
+        self.kafka = kafka_processor
+        self.es = es_processor
 
     async def extract_metadata_from_doc(
         self, doc: Dict

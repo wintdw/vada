@@ -8,15 +8,11 @@ import os
 import logging
 import traceback
 import asyncio
-from fastapi import (  # type: ignore
-    FastAPI,
-    Request,
-    HTTPException,
-    status,
-)
+from fastapi import FastAPI, Request, HTTPException, status, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 from etl.libs.vadadoc import VadaDocument
+from etl.libs.processor import get_es_processor
 from libs.connectors.async_es import AsyncESProcessor
 from libs.utils.es_field_types import (
     determine_es_field_types,
@@ -34,20 +30,8 @@ logging.basicConfig(
 )
 
 
-ELASTIC_URL = os.getenv("ELASTIC_URL", "")
-ELASTIC_USER = os.getenv("ELASTIC_USER", "")
-ELASTIC_PASSWD = os.getenv("ELASTIC_PASSWD", "")
-# Passwd
-elastic_passwd_file = os.getenv("ELASTIC_PASSWD_FILE", "")
-if elastic_passwd_file and os.path.isfile(elastic_passwd_file):
-    with open(elastic_passwd_file, "r", encoding="utf-8") as file:
-        ELASTIC_PASSWD = file.read().strip()
-
-es_processor = AsyncESProcessor(ELASTIC_URL, ELASTIC_USER, ELASTIC_PASSWD)
-
-
 @app.get("/health")
-async def check_health():
+async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor)):
     """Check the health of the Elasticsearch cluster."""
     response = await es_processor.check_health()
     if response["status"] < 400:
@@ -60,7 +44,9 @@ async def check_health():
 
 # This function can deal with duplicate messages
 @app.post("/jsonl")
-async def receive_jsonl(request: Request) -> JSONResponse:
+async def receive_jsonl(
+    request: Request, es_processor: AsyncESProcessor = Depends(get_es_processor)
+) -> JSONResponse:
     """
     Main function to process jsonl received from HTTP endpoint
 

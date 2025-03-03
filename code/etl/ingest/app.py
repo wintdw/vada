@@ -15,7 +15,11 @@ from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.connectors.mappings import MappingsClient
 
-from .dependencies import get_kafka_processor, get_es_processor, get_mappings_client
+from etl.libs.processor import (
+    get_kafka_processor,
+    get_es_processor,
+    get_mappings_client,
+)
 from .process_jsonl import process_jsonl
 
 app = FastAPI()
