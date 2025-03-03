@@ -1,4 +1,5 @@
 import aiohttp  # type: ignore
+import logging
 from typing import Dict
 
 from libs.utils.common import friendlify_index_name
@@ -19,6 +20,28 @@ class MappingsClient:
                 "status": 500,
                 "detail": f"Mappings service is down - {await response.text()}",
             }
+
+    async def create_user(self, user_name: str, user_email: str, user_passwd: str):
+        url = f"{self.base_url}/users"
+        payload = {
+            "user_name": user_name,
+            "user_email": user_email,
+            "user_passwd": user_passwd,
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload) as response:
+                    response_data = await response.json()
+                    msg = f"User created: {user_name}, email: {user_email}"
+                    logging.info(msg)
+
+                    if response.status >= 400:
+                        logging.error(response_data["detail"])
+                        raise Exception("Internal Server Error")
+                    return response_data["detail"]
+        except Exception as e:
+            logging.error(f"Failed to create user: {str(e)}")
+            raise
 
     async def create_mappings(
         self, user_id: str, index_name: str, index_friendly_name: str = None
