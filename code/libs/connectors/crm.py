@@ -137,7 +137,7 @@ class CRMAPI:
         url = f"{self.baseurl}/v1/adm/users"
 
         now = datetime.now()
-        months_ago = now - relativedelta(months=6)
+        months_ago = now - relativedelta(months=12)
 
         post_data = {
             "email": user_email,
