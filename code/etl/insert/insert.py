@@ -4,12 +4,12 @@
 This module is for processing jsonl and pushing to ES index
 """
 
-import os
 import logging
 import traceback
 import asyncio
 from fastapi import FastAPI, Request, HTTPException, status, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
+from concurrent.futures import ThreadPoolExecutor
 
 from etl.libs.vadadoc import VadaDocument
 from etl.libs.processor import get_es_processor
@@ -30,13 +30,30 @@ logging.basicConfig(
 )
 
 
+# Create a separate thread pool for health checks
+health_check_executor = ThreadPoolExecutor(max_workers=1)
+
+
+# This functions is for running health check in another threadpool worker 
+# so it's not blocked by the main thread
+def check_health_sync(es_processor: AsyncESProcessor):
+    """Check the health of the Elasticsearch cluster synchronously."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        response = loop.run_until_complete(es_processor.check_health())
+    finally:
+        loop.run_until_complete(es_processor.close())
+        loop.close()
+    return response
+
+
 @app.get("/health")
 async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor)):
     """Check the health of the Elasticsearch cluster."""
-    try:
-        response = await es_processor.check_health()
-    finally:
-        await es_processor.close()
+    response = await asyncio.get_event_loop().run_in_executor(
+        health_check_executor, check_health_sync, es_processor
+    )
 
     if response["status"] >= 400:
         logging.error(response["detail"])
