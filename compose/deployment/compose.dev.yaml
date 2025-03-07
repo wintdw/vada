@@ -1,0 +1,13 @@
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    env_file:
+      - /var/secret/docker/es/kibana.env
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es-dev.internal.vadata.vn
+      - STATUS_ALLOWANONYMOUS=true
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -s http://localhost:5601/api/status"]
