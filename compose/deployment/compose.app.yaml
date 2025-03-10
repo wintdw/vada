@@ -8,7 +8,7 @@ services:
   frontend_vtad:
     <<: *fe
     image: vada898989.azurecr.io/mix-webapp:mix-30ceefdf 
-    container_name: frontend_vtad
+    container_name: frontend-vtad
     ports:
       - "3001:80"
 
@@ -42,9 +42,9 @@ services:
       - /var/secret/docker/qe/app.env
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9675/health"]
-  qe-replica:
+  qe_replica:
     <<: *qe
-    container_name: qe-replica
+    container_name: qe_replica
     ports:
       - "9676:9675"
 
