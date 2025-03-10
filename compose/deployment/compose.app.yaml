@@ -33,8 +33,9 @@ services:
       - ENABLE_SERVICE_PACKAGE=false
 
   qe: &qe
-    image: vada898989.azurecr.io/vada-query-engine:fc166427
+    image: vada898989.azurecr.io/vada-query-engine:es-8.10.0
     container_name: qe
+    pull_policy: always
     ports:
       - "9675:9675"
     env_file:
