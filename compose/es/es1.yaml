@@ -6,6 +6,7 @@ services:
     image: elasticsearch:8.10.4-vada
     container_name: es
     network_mode: "host"
+    restart: always
     environment:
       - node.name=es01.internal.vadata.vn
       - cluster.name=prod
