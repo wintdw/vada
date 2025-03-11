@@ -1,13 +1,13 @@
 services:  
   frontend: &fe
-    image: vada898989.azurecr.io/prod-webapp:prod-9eb9a97c
+    image: vada898989.azurecr.io/prod-webapp:prod-09712421
     container_name: frontend
     ports:
       - "3000:80"
 
   frontend_vtad:
     <<: *fe
-    image: vada898989.azurecr.io/mix-webapp:mix-30ceefdf 
+    image: vada898989.azurecr.io/mix-webapp:mix-30ceefdf
     container_name: frontend_vtad
     ports:
       - "3001:80"
