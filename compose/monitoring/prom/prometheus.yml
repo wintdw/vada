@@ -90,6 +90,10 @@ scrape_configs:
         - http://qe-app.internal.vadata.vn/health
         - http://insert-app.internal.vadata.vn/health
         - http://process-app.internal.vadata.vn/health
+        # INF
+        - https://gr.vadata.vn/api/health
+        - https://prom.vadata.vn/-/healthy
+        - https://kafka-ui.vadata.vn/actuator/health
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
