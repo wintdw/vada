@@ -57,7 +57,10 @@ scrape_configs:
       - es00.internal.vadata.vn:9114
       - es01.internal.vadata.vn:9114
       - es02.internal.vadata.vn:9114
-  - job_name: blackbox
+  - job_name: blackbox_exporter  # collect blackbox exporter's operational metrics.
+    static_configs:
+      - targets: ['mon.internal.vadata.vn:9115']
+  - job_name: blackbox_http
     metrics_path: /probe
     params:
       module: [http_2xx]  # Look for a HTTP 200 response.
@@ -94,6 +97,23 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: mon.internal.vadata.vn:9115  # The blackbox exporter's real hostname:port.
-  - job_name: blackbox_exporter  # collect blackbox exporter's operational metrics.
+  - job_name: 'blackbox_icmp'
+    metrics_path: /probe
+    params:
+      module: [icmp]
     static_configs:
-      - targets: ['mon.internal.vadata.vn:9115']
+      - targets:
+        - web.internal.vadata.vn 
+        - demo.internal.vadata.vn
+        - prod.internal.vadata.vn
+        - mon.internal.vadata.vn
+        - setup.internal.vadata.vn
+        - proxy01.internal.vadata.vn
+        - proxy02.internal.vadata.vn
+        - backend00.internal.vadata.vn
+        - backend01.internal.vadata.vn
+        - mysql00.internal.vadata.vn
+        - bus00.internal.vadata.vn
+        - es00.internal.vadata.vn
+        - es01.internal.vadata.vn
+        - es02.internal.vadata.vn
