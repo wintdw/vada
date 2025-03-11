@@ -30,15 +30,14 @@ services:
       - ./gr/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
       - /var/lib/grafana/data:/var/lib/grafana
 
-  cloudprober:
-    image: cloudprober/cloudprober:latest
-    container_name: cloudprober
-    restart: unless-stopped
+  blackbox_exporter:
+    image: quay.io/prometheus/blackbox-exporter:latest
+    container_name: blackbox
+    restart: always
     ports:
-      - "9313:9313"
+      - "9115:9115"
     volumes:
-      - ./cloudprober:/etc/cloudprober
-    command: [ "--config_file", "/etc/cloudprober/cloudprober.conf" ]
+      - ./blackbox/blackbox.yaml:/etc/blackbox_exporter/config.yml
 
 secrets:
   admin_pass:
