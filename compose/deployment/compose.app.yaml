@@ -1,6 +1,6 @@
 services:  
   frontend: &fe
-    image: vada898989.azurecr.io/prod-webapp:prod-09712421
+    image: vada898989.azurecr.io/prod-webapp:prod-d0ea73d2
     container_name: frontend
     ports:
       - "3000:80"
