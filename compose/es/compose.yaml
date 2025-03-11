@@ -9,7 +9,7 @@ services:
     env_file:
       - /var/secret/docker/es/exporter.env
     ports:
-    - "9114:9114"
+    - "9214:9114"
 
   elasticsearch_exporter_vtad:
     image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
@@ -17,9 +17,9 @@ services:
     command:
      - "--es.uri=http://es-vtad.internal.vadata.vn"
      - "--es.indices"
-     - "--web.listen-address=:9115"
+#     - "--web.listen-address=:9115"
     restart: always
     env_file:
       - /var/secret/docker/es/exporter.vtad.env
     ports:
-    - "9115:9115"
+    - "9215:9114"
