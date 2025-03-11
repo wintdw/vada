@@ -57,3 +57,43 @@ scrape_configs:
       - es00.internal.vadata.vn:9114
       - es01.internal.vadata.vn:9114
       - es02.internal.vadata.vn:9114
+  - job_name: blackbox
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+      - targets:
+        # DEV
+        - https://qa.vadata.vn
+        - https://dev-crm-api.vadata.vn/ping
+        - https://ingestor.vadata.vn/health
+        - https://acl.vadata.vn/health
+        - https://dev-qe.vadata.vn/health
+        - http://insert-dev.internal.vadata.vn/health
+        - http://process-dev.internal.vadata.vn/health
+        # VTAD
+        - https://vtad.vn
+        - https://api-vtad.vadata.vn/crm/ping
+        - https://api-vtad.vadata.vn/ingest/health
+        - https://api-vtad.vadata.vn/acl/health
+        - http://qe-vtad.internal.vadata.vn/health
+        - http://insert-vtad.internal.vadata.vn/health
+        - http://process-vtad.internal.vadata.vn/health
+        # PROD
+        - https://app.vadata.vn
+        - https://api-app.vadata.vn/crm/ping
+        - https://api-app.vadata.vn/ingest/health
+        - https://api-app.vadata.vn/acl/health
+        - http://qe-app.internal.vadata.vn/health
+        - http://insert-app.internal.vadata.vn/health
+        - http://process-app.internal.vadata.vn/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: mon.internal.vadata.vn:9115  # The blackbox exporter's real hostname:port.
+  - job_name: blackbox_exporter  # collect blackbox exporter's operational metrics.
+    static_configs:
+      - targets: ['mon.internal.vadata.vn:9115']
