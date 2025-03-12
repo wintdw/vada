@@ -37,7 +37,7 @@ services:
       ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
       ELASTIC_URL: http://demo.internal.vadata.vn:9200
-      MAPPINGS_BASEURL: http://mappings.internal.vadata.vn
+      MAPPINGS_BASEURL: http://mappings-dev.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     secrets:
