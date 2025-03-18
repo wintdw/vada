@@ -18,18 +18,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class JWTPayload(BaseModel):
-    name: str
+    username: str
+    email: str
     id: str
     exp: int
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "user7500",
-                "id": "65422b6aa2bbacc10b7a22a3",
-                "exp": 1731306868,
-            }
-        }
 
 
 def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
