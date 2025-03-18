@@ -4,7 +4,7 @@ networks:
 
 services:
   nginx:
-    image: nginx-vts:1.26
+    image: nginx-jwt:1.27.4
     container_name: nginx
     restart: unless-stopped
     ports:
