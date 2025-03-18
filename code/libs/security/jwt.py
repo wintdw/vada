@@ -52,7 +52,7 @@ def verify_jwt(token: str = Depends(oauth2_scheme)) -> Dict:
 
         # Add original token to payload further processing
         payload["jwt"] = token
-        logging.debug("Authenticated as %s", payload.get("name"))
+        logging.debug("Authenticated as %s", payload.get("username"))
 
         # Convert payload to JWTPayload model for validation
         JWTPayload(**payload)
