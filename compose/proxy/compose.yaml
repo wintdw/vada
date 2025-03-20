@@ -12,7 +12,9 @@ services:
       - "443:443"
     secrets:
       - auth
-      - jwt
+      - jwt.vtad
+      - jwt.dev
+      - jwt.app
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/includes:/etc/nginx/includes
@@ -33,5 +35,9 @@ services:
 secrets:
   auth:
     file: /var/secret/nginx/auth
-  jwt:
-    file: /var/secret/nginx/jwt
+  jwt.vtad:
+    file: /var/secret/nginx/jwt.vtad
+  jwt.dev:
+    file: /var/secret/nginx/jwt.dev
+  jwt.app:
+    file: /var/secret/nginx/jwt.app
