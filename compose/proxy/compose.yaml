@@ -18,6 +18,7 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/includes:/etc/nginx/includes
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - /etc/ssl/letsencrypt:/etc/nginx/ssl
     networks:
       - nginx-network
