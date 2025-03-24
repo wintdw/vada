@@ -2,6 +2,7 @@ services:
   frontend: &fe
     image: vada898989.azurecr.io/prod-webapp:prod-989ea906
     container_name: frontend
+    pull_policy: always
     ports:
       - "3000:80"
 
