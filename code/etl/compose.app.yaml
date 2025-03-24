@@ -1,6 +1,8 @@
 secrets:
   es:
     file: /var/secret/docker/es/elastic.passwd
+  jwt: 
+    file: /var/secret/docker/ingest/jwt
 
 services:
   insert:
@@ -33,6 +35,7 @@ services:
     environment:
       PORT: "8001"
       APP_ENV: app
+      JWT_TOKEN_SECRET_FILE: /run/secrets/jwt
       KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
       ELASTIC_PASSWD_FILE: /run/secrets/es
       ELASTIC_USER: elastic
