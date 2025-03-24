@@ -7,7 +7,7 @@ services:
 
   frontend_vtad:
     <<: *fe
-    image: vada898989.azurecr.io/mix-webapp:mix-30ceefdf
+    image: vada898989.azurecr.io/mix-webapp:mix-989ea906
     container_name: frontend_vtad
     ports:
       - "3001:80"
