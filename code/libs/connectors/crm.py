@@ -112,6 +112,9 @@ class CRMAPI:
         await self._get_session()
         url = f"{self.baseurl}/v1/adm/indices"
 
+        now = datetime.now()
+        year_ago = now - relativedelta(months=36)
+
         post_data = {"user_id": user_id}
         post_data["master_index"] = {
             "name": index_name,
@@ -120,6 +123,10 @@ class CRMAPI:
             "agg_field": agg_field,
             "time_field": time_field,
             "deleted": False,
+            "default_time_range": [
+                int(year_ago.timestamp() * 1000),
+                int(now.timestamp() * 1000),
+            ],
             "mappings": mappings,
         }
         async with self.session.put(
@@ -136,20 +143,11 @@ class CRMAPI:
         await self._get_session()
         url = f"{self.baseurl}/v1/adm/users"
 
-        now = datetime.now()
-        months_ago = now - relativedelta(months=12)
-
         post_data = {
             "email": user_email,
             "username": user_name,
             "password": user_passwd,
             "permission": "admin",
-            "configuration": {
-                "default_values": {
-                    "default_time_left": months_ago.strftime("%Y-%m-%d"),
-                    "default_time_right": now.strftime("%Y-%m-%d"),
-                }
-            },
         }
 
         async with self.session.post(
