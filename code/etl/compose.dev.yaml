@@ -45,6 +45,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     secrets:
       - es
+      - jwt
     ports:
       - "8001:8001"
   
