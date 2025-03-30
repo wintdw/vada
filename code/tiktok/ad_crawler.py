@@ -125,15 +125,17 @@ def append_metadata(data: List[Dict], metadata: Dict) -> List[Dict]:
     return updated_data
 
 
-def write_to_jsonl(file_path: str, data: List[Dict]) -> None:
+def write_to_jsonl(file_path: str, data: List[Dict], append: bool = False) -> None:
     """
     Writes a list of dictionaries to a JSONL file.
 
     Args:
         file_path (str): The path to the JSONL file.
         data (List[Dict]): The list of dictionaries to write.
+        append (bool): If True, append to file; if False, overwrite. Default is False.
     """
-    with open(file_path, "w") as file:
+    mode = "a" if append else "w"
+    with open(file_path, mode) as file:
         for record in data:
             file.write(json.dumps(record, sort_keys=True) + "\n")
 
@@ -165,16 +167,25 @@ async def main():
             and "list" in advertisers["data"]
             and len(advertisers["data"]["list"]) > 0
         ):
-            advertiser_id: str = advertisers["data"]["list"][0]["advertiser_id"]
-            all_ads: List[Dict] = await tiktok_crawler.get_ad(advertiser_id)
+            total_ads = 0
+            # Write header to new file
+            write_to_jsonl(jsonl_file, [])  # Create/clear the file
 
-            # Append metadata and generate doc_id
-            if all_ads:
-                updated_ads = append_metadata(all_ads, metadata)
-                write_to_jsonl(jsonl_file, updated_ads)
-                print(f"Ad information written to {jsonl_file}")
-            else:
-                print("No ad information found.")
+            # Iterate through all advertisers
+            for advertiser in advertisers["data"]["list"]:
+                advertiser_id: str = advertiser["advertiser_id"]
+                print(f"Fetching ads for advertiser: {advertiser_id}")
+                ads = await tiktok_crawler.get_ad(advertiser_id)
+
+                if ads:
+                    # Process and write ads for this advertiser immediately
+                    updated_ads = append_metadata(ads, metadata)
+                    write_to_jsonl(jsonl_file, updated_ads, append=True)
+                    total_ads += len(ads)
+                    print(f"Wrote {len(ads)} ads for advertiser {advertiser_id}")
+
+            print(f"Ad information written to {jsonl_file}")
+            print(f"Total ads collected: {total_ads}")
         else:
             print("No advertiser information found.")
     finally:
