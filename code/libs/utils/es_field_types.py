@@ -93,7 +93,10 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
     field_types = {}
     for field, type_counts in field_type_counts.items():
         most_probable_type = max(type_counts, key=type_counts.get)
-        if most_probable_type == "long" and "double" in type_counts:
+        # If there are any text values, set the field type to text
+        if "text" in type_counts:
+            most_probable_type = "text"
+        elif most_probable_type == "long" and "double" in type_counts:
             # If the most probable type is 'long' but 'double' was also detected, classify as 'double'
             most_probable_type = "double"
 
