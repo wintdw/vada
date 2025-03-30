@@ -21,7 +21,7 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
         - "double": For floating-point numbers or strings that can be converted to floats.
         - "date": For integer values that are likely timestamps or strings that can be parsed as dates.
         - "text": For strings that are not dates, numbers.
-        - "nested": For lists of dictionaries or dictionaries.
+        - "nested": For lists of dictionaries.
         - "unknown": For lists that do not fit the above criteria.
 
     The function uses heuristics to determine the most probable type for each field, prioritizing "double" if any double values are detected.
@@ -80,13 +80,15 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                             # If not a date, classify as text
                             field_type_counts[field]["text"] += 1
             elif isinstance(value, list):
+                # Handle empty lists
+                if not value:
+                    field_type_counts[field]["unknown"] += 1
                 # If the list contains dictionaries, classify as nested
-                if all(isinstance(item, dict) for item in value):
+                elif all(isinstance(item, dict) for item in value):
                     field_type_counts[field]["nested"] += 1
                 else:
                     field_type_counts[field]["unknown"] += 1
             elif isinstance(value, dict):
-                # Classify dictionaries as nested
                 field_type_counts[field]["object"] += 1
 
     # Determine the most probable type for each field, applying the logic for 'double' when needed
@@ -101,6 +103,8 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
             most_probable_type = "double"
 
         field_types[field] = most_probable_type
+
+    logging.info("Field types: %s", field_types)
 
     return field_types
 
@@ -236,8 +240,6 @@ def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str
     """
     field_types = determine_es_field_types(json_lines)
     converted_json_lines = convert_es_field_types(json_lines, field_types)
-
-    logging.info("Field types: %s", field_types)
 
     return converted_json_lines
 
