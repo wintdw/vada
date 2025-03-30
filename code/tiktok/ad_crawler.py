@@ -119,9 +119,19 @@ def append_metadata(data: List[Dict], metadata: Dict) -> List[Dict]:
     """
     updated_data = []
     for record in data:
+        # Generate a unique doc_id for the record
+        doc_id = generate_docid(record)
+
+        # Create a copy of metadata to avoid modifying the original
+        record_metadata = {
+            **metadata,
+            "ingest": {**metadata["ingest"], "doc_id": doc_id},
+        }
+
         # Merge the record with the metadata
-        record_with_metadata = {**record, "_vada": metadata}
+        record_with_metadata = {**record, "_vada": record_metadata}
         updated_data.append(record_with_metadata)
+
     return updated_data
 
 
