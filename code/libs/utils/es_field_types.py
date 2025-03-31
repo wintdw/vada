@@ -55,6 +55,9 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
             elif isinstance(value, str):
                 if not value:
                     continue  # Skip empty strings
+                # too long "int" str -> looks like ID
+                if len(value) > 15:
+                    field_type_counts[field]["text"] += 1
                 if value.lower() in ["true", "false"]:
                     field_type_counts[field]["boolean"] += 1
                     continue
