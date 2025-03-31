@@ -90,8 +90,11 @@ async def main():
     report_metadata = {
         "ingest": {
             "source": "crawling:tiktok_ad_report",
-            "destination": {"type": "elasticsearch", "index": "tiktok_ad_report"},
-            "vada_client_id": "dw",
+            "destination": {
+                "type": "elasticsearch",
+                "index": "a_quang_nguyen_tiktok_ad_report",
+            },
+            "vada_client_id": "a_quang_nguyen",
             "type": "tiktok_ad_report",
         }
     }
@@ -117,6 +120,21 @@ async def main():
             for advertiser in advertisers["data"]["list"]:
                 advertiser_id: str = advertiser["advertiser_id"]
                 print(f"Fetching ads for advertiser: {advertiser_id}")
+
+                # Get advertiser info
+                advertiser_info = await tiktok_crawler.get_advertiser_info(
+                    advertiser_id
+                )
+                advertiser_name = (
+                    (
+                        advertiser_info.get("data", {})
+                        .get("list", [{}])[0]
+                        .get("name", "unknown")
+                    )
+                    if advertiser_info
+                    else "unknown"
+                )
+
                 ads = await tiktok_crawler.get_ad(advertiser_id)
 
                 if ads:
@@ -135,14 +153,22 @@ async def main():
                     )
 
                     if report and "data" in report and "list" in report["data"]:
+                        # Flatten the report data
+                        flattened_reports = []
+                        for item in report["data"]["list"]:
+                            flattened_item = {
+                                "advertiser_id": advertiser_id,
+                                "advertiser_name": advertiser_name,  # Add advertiser name
+                                **item["dimensions"],  # Unpack dimensions
+                                **item["metrics"],  # Unpack metrics
+                            }
+                            flattened_reports.append(flattened_item)
+
                         updated_reports = append_metadata(
-                            report["data"]["list"], report_metadata
+                            flattened_reports, report_metadata
                         )
                         write_to_jsonl(reports_jsonl_file, updated_reports, append=True)
                         total_reports += len(report["data"]["list"])
-                        print(
-                            f"Wrote {len(report['data']['list'])} reports for advertiser {advertiser_id}"
-                        )
 
             print(f"Ad information written to {ads_jsonl_file}")
             print(f"Report information written to {reports_jsonl_file}")

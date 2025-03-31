@@ -43,9 +43,22 @@ class TiktokAdCrawler:
                     message=f"Request failed with status {response.status}: {error_message}",
                 )
 
-    async def get_advertisers(self) -> Dict:
+    async def get_advertiser_info(self, advertiser_id) -> Dict:
         """
         Method to fetch advertiser information.
+
+        Returns:
+            dict: A dictionary containing advertiser information.
+        """
+        endpoint: str = "/advertiser/info/"
+        params: Dict[str, List] = {"advertiser_ids": ["advertiser_id"]}
+
+        advertiser_info: Dict = await self._get(endpoint, params)
+        return advertiser_info
+
+    async def get_advertisers(self) -> Dict:
+        """
+        Method to fetch all advertisers in the account.
 
         Returns:
             dict: A dictionary containing advertiser information.
@@ -95,7 +108,7 @@ class TiktokAdCrawler:
         start_date: str,
         end_date: str,
         metrics: Optional[List[str]] = None,
-        dimensions: Optional[List[str]] = ["ad_id"],
+        dimensions: Optional[List[str]] = None,
         report_type: str = "BASIC",
         data_level: str = "AUCTION_AD",
         enable_total_metrics: bool = True,
@@ -117,6 +130,9 @@ class TiktokAdCrawler:
             Dict: The report data
         """
         endpoint: str = "/report/integrated/get/"
+
+        if dimensions is None:
+            dimensions = ["ad_id", "stat_time_day"]
 
         if metrics is None:
             metrics = [
