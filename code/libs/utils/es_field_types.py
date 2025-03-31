@@ -55,17 +55,17 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
             elif isinstance(value, str):
                 if not value:
                     continue  # Skip empty strings
-                # too long "int" str -> looks like ID
-                if len(value) > 15:
-                    field_type_counts[field]["text"] += 1
                 if value.lower() in ["true", "false"]:
                     field_type_counts[field]["boolean"] += 1
                     continue
                 # Try to convert the string into a number (either int or float)
                 try:
                     int_value = int(value)
-                    # If conversion to int is successful, classify as long
-                    if is_valid_timestamp(int_value):
+                    # if it's too long -> keep it text
+                    if len(value) > 15:
+                        field_type_counts[field]["text"] += 1
+                    # Check if it's timestamp
+                    elif is_valid_timestamp(int_value):
                         field_type_counts[field]["date"] += 1
                     else:
                         field_type_counts[field]["long"] += 1
