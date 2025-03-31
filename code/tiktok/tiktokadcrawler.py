@@ -28,7 +28,10 @@ class TiktokAdCrawler:
             aiohttp.ClientResponseError: If the response status is not 200, with details about the failure.
         """
         url: str = self.base_url + endpoint
-        headers: Dict[str, str] = {"Access-Token": self.access_token}
+        headers: Dict[str, str] = {
+            "Access-Token": self.access_token,
+            "Content-Type": "application/json",
+        }
 
         if params is None:
             params = {}
@@ -43,15 +46,18 @@ class TiktokAdCrawler:
                     message=f"Request failed with status {response.status}: {error_message}",
                 )
 
-    async def get_advertiser_info(self, advertiser_id) -> Dict:
+    async def get_advertiser_info(self, advertiser_id: str) -> Dict:
         """
         Method to fetch advertiser information.
+
+        Args:
+            advertiser_id (str): The ID of the advertiser to fetch information for.
 
         Returns:
             dict: A dictionary containing advertiser information.
         """
         endpoint: str = "/advertiser/info/"
-        params: Dict[str, List] = {"advertiser_ids": ["advertiser_id"]}
+        params: Dict[str, str] = {"advertiser_ids": f'["{advertiser_id}"]'}
 
         advertiser_info: Dict = await self._get(endpoint, params)
         return advertiser_info
