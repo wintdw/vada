@@ -118,9 +118,9 @@ class TiktokAdCrawler:
         report_type: str = "BASIC",
         data_level: str = "AUCTION_AD",
         enable_total_metrics: bool = True,
-    ) -> Dict:
+    ) -> List[Dict]:
         """
-        Method to fetch integrated report data.
+        Method to fetch integrated report data with pagination support.
 
         Args:
             advertiser_id (str): The ID of the advertiser
@@ -133,9 +133,11 @@ class TiktokAdCrawler:
             enable_total_metrics (bool, optional): Whether to include total metrics. Defaults to True
 
         Returns:
-            Dict: The report data
+            List[Dict]: List of report data entries
         """
         endpoint: str = "/report/integrated/get/"
+        all_reports: List[Dict] = []
+        page: int = 1
 
         if dimensions is None:
             dimensions = ["ad_id", "stat_time_day"]
@@ -174,16 +176,31 @@ class TiktokAdCrawler:
                 "secondary_goal_result_rate",
             ]
 
-        params: Dict[str, str] = {
-            "advertiser_id": advertiser_id,
-            "report_type": report_type,
-            "dimensions": json.dumps(dimensions),
-            "data_level": data_level,
-            "start_date": start_date,
-            "end_date": end_date,
-            "enable_total_metrics": str(enable_total_metrics).lower(),
-            "metrics": json.dumps(metrics),
-        }
+        while True:
+            params: Dict[str, str] = {
+                "advertiser_id": advertiser_id,
+                "report_type": report_type,
+                "dimensions": json.dumps(dimensions),
+                "data_level": data_level,
+                "start_date": start_date,
+                "end_date": end_date,
+                "enable_total_metrics": str(enable_total_metrics).lower(),
+                "metrics": json.dumps(metrics),
+                "page": str(page),
+                "page_size": "100",  # Using larger page size for efficiency
+            }
 
-        report_data: Dict = await self._get(endpoint, params)
-        return report_data
+            report_data: Dict = await self._get(endpoint, params)
+
+            if "data" in report_data and "list" in report_data["data"]:
+                all_reports.extend(report_data["data"]["list"])
+                page_info: Dict = report_data["data"].get("page_info", {})
+                total_pages: int = page_info.get("total_page", 0)
+
+                if page >= total_pages:
+                    break
+                page += 1
+            else:
+                break
+
+        return all_reports
