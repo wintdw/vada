@@ -64,66 +64,75 @@ def write_to_jsonl(file_path: str, data: List[Dict], append: bool = False) -> No
             file.write(json.dumps(record, sort_keys=True) + "\n")
 
 
-async def process_advertiser(
+async def get_ad_details(tiktok_crawler: TiktokAdCrawler, ad_id: str) -> Dict:
+    """
+    Get detailed information for a specific ad including its adgroup and campaign info.
+    """
+    ad_info = await tiktok_crawler.get_ad(ad_id=ad_id)
+    if not ad_info or not ad_info.get("data", {}).get("list"):
+        return {}
+
+    ad = ad_info["data"]["list"][0]
+    adgroup_info = await tiktok_crawler.get_adgroup(
+        advertiser_id=ad["advertiser_id"], adgroup_ids=[ad["adgroup_id"]]
+    )
+    campaign_info = await tiktok_crawler.get_campaign(
+        advertiser_id=ad["advertiser_id"], campaign_ids=[ad["campaign_id"]]
+    )
+
+    return {
+        "ad": ad,
+        "adgroup": (
+            adgroup_info["data"]["list"][0]
+            if adgroup_info.get("data", {}).get("list")
+            else {}
+        ),
+        "campaign": (
+            campaign_info["data"]["list"][0]
+            if campaign_info.get("data", {}).get("list")
+            else {}
+        ),
+    }
+
+
+async def process_single_advertiser(
     tiktok_crawler: TiktokAdCrawler,
-    advertiser: Dict,
+    advertiser_id: str,
     start_date: str,
     end_date: str,
     metadata: Dict,
-    report_metadata: Dict,
-    ads_jsonl_file: str,
-    reports_jsonl_file: str,
-) -> tuple[int, int]:
+) -> List[Dict]:
     """
-    Process a single advertiser's ads and reports in parallel
+    Process a single advertiser and collect all related data.
     """
-    advertiser_id: str = advertiser["advertiser_id"]
-
-    # Get advertiser info first since it's needed for both ads and reports
+    # Get advertiser details
     advertiser_info = await tiktok_crawler.get_advertiser_info(advertiser_id)
-    advertiser_name = (
-        advertiser_info.get("data", {}).get("list", [{}])[0].get("name", "unknown")
-        if advertiser_info
-        else "unknown"
-    )
 
-    # Fetch ads and reports in parallel
-    ads_task = tiktok_crawler.get_ad(advertiser_id)
-    reports_task = tiktok_crawler.get_integrated_report(
+    # Get all campaigns for this advertiser
+    campaigns = await tiktok_crawler.get_campaign(advertiser_id)
+
+    # Get reports for this advertiser
+    reports = await tiktok_crawler.get_integrated_report(
         advertiser_id=advertiser_id,
         start_date=start_date,
         end_date=end_date,
     )
 
-    ads, reports = await asyncio.gather(ads_task, reports_task)
+    # Collect detailed information for each ad mentioned in reports
+    detailed_data = []
+    for report in reports:
+        ad_id = report.get("dimensions", {}).get("ad_id")
+        if ad_id:
+            ad_details = await get_ad_details(tiktok_crawler, ad_id)
+            detailed_data.append(
+                {
+                    "report": report,
+                    **ad_details,
+                    "advertiser": advertiser_info.get("data", {}).get("list", [{}])[0],
+                }
+            )
 
-    ads_count = reports_count = 0
-
-    # Process ads if available
-    if ads:
-        updated_ads = append_metadata(ads, metadata)
-        write_to_jsonl(ads_jsonl_file, updated_ads, append=True)
-        ads_count = len(ads)
-        print(f"Wrote {ads_count} ads for advertiser {advertiser_id}")
-
-    # Process reports if available
-    if reports:
-        flattened_reports = [
-            {
-                "advertiser_id": advertiser_id,
-                "advertiser_name": advertiser_name,
-                **item["dimensions"],
-                **item["metrics"],
-            }
-            for item in reports
-        ]
-
-        updated_reports = append_metadata(flattened_reports, report_metadata)
-        write_to_jsonl(reports_jsonl_file, updated_reports, append=True)
-        reports_count = len(flattened_reports)
-        print(f"Wrote {reports_count} reports for advertiser {advertiser_id}")
-
-    return ads_count, reports_count
+    return detailed_data
 
 
 async def main():
@@ -131,76 +140,55 @@ async def main():
     app_id = "xxx"
     secret = "xxx"
 
-    ads_jsonl_file = "tiktok_ads.jsonl"
-    reports_jsonl_file = "tiktok_ad_reports.jsonl"
+    output_file = "tiktok_detailed_data.jsonl"
     start_date = "2025-03-01"
     end_date = "2025-03-31"
 
     metadata = {
         "ingest": {
-            "source": "crawling:tiktok_ad",
+            "source": "crawling:tiktok_ad_detailed",
             "destination": {
                 "type": "elasticsearch",
-                "index": "a_quang_nguyen_tiktok_ad",
+                "index": "a_quang_nguyen_tiktok_ad_detailed",
             },
             "vada_client_id": "a_quang_nguyen",
-            "type": "tiktok_ad",
+            "type": "tiktok_ad_detailed",
         }
     }
 
-    report_metadata = {
-        "ingest": {
-            "source": "crawling:tiktok_ad_report",
-            "destination": {
-                "type": "elasticsearch",
-                "index": "a_quang_nguyen_tiktok_ad_report",
-            },
-            "vada_client_id": "a_quang_nguyen",
-            "type": "tiktok_ad_report",
-        }
-    }
-
-    tiktok_crawler: TiktokAdCrawler = TiktokAdCrawler(access_token, app_id, secret)
+    tiktok_crawler = TiktokAdCrawler(access_token, app_id, secret)
 
     try:
-        advertisers: Dict = await tiktok_crawler.get_advertisers()
+        # Get all advertisers
+        advertisers = await tiktok_crawler.get_advertiser()
         if (
-            advertisers
-            and "data" in advertisers
-            and "list" in advertisers["data"]
-            and len(advertisers["data"]["list"]) > 0
+            not advertisers
+            or "data" not in advertisers
+            or "list" not in advertisers["data"]
         ):
-            total_ads = total_reports = 0
+            print("No advertisers found")
+            return
 
-            # Write headers to new files
-            write_to_jsonl(ads_jsonl_file, [])
-            write_to_jsonl(reports_jsonl_file, [])
+        # For testing, just use the last advertiser
+        test_advertiser = advertisers["data"]["list"][-1]
+        advertiser_id = test_advertiser["advertiser_id"]
 
-            # Process all advertisers
-            for advertiser in advertisers["data"]["list"]:
-                ads_count, reports_count = await process_advertiser(
-                    tiktok_crawler,
-                    advertiser,
-                    start_date,
-                    end_date,
-                    metadata,
-                    report_metadata,
-                    ads_jsonl_file,
-                    reports_jsonl_file,
-                )
-                total_ads += ads_count
-                total_reports += reports_count
+        print(f"Processing advertiser {advertiser_id}")
 
-            print(f"Ad information written to {ads_jsonl_file}")
-            print(f"Report information written to {reports_jsonl_file}")
-            print(f"Total ads collected: {total_ads}")
-            print(f"Total reports collected: {total_reports}")
-        else:
-            print("No advertiser information found.")
+        # Process the test advertiser
+        detailed_data = await process_single_advertiser(
+            tiktok_crawler, advertiser_id, start_date, end_date, metadata
+        )
+
+        # Add metadata and write to JSONL
+        enriched_data = append_metadata(detailed_data, metadata)
+        write_to_jsonl(output_file, enriched_data)
+
+        print(f"Written {len(detailed_data)} detailed records to {output_file}")
+
     finally:
         await tiktok_crawler.session.close()
 
 
-# Run the main function
 if __name__ == "__main__":
     asyncio.run(main())
