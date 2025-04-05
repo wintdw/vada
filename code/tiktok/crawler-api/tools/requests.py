@@ -8,6 +8,7 @@ async def get(url: str, bearer_token: str = None, access_token: str = None, para
         headers["Authorization"] = f"Bearer {bearer_token}"
     elif access_token:
         headers["Access-Token"] = f"{access_token}"
+    print(params)
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers, params=params) as response:
             status = response.status

@@ -1,6 +1,14 @@
 from pydantic import BaseModel
 
-class Tiktok(BaseModel):
-    access_token: str
-    app_id: str
-    secret: str
+class Advertiser(BaseModel):
+  advertiser_id: str
+  advertiser_name: str
+
+class AdvertiserList(BaseModel):
+  list: list[Advertiser]
+
+class AdvertiserResponse(BaseModel):
+  code: int
+  message: str
+  request_id: str
+  data: AdvertiserList

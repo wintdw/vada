@@ -8,3 +8,27 @@ async def tiktok_biz_get_advertiser():
         params = {"app_id": settings.TIKTOK_BIZ_APP_ID, "secret": settings.TIKTOK_BIZ_SECRET}
     )
     return request_json
+
+async def tiktok_biz_info_advertiser(params: dict):
+    request_json = await get(
+        url = f"{settings.TIKTOK_BIZ_API_URL}/advertiser/info/",
+        access_token = settings.TIKTOK_BIZ_ACCESS_TOKEN,
+        params = params
+    )
+    return request_json
+
+async def tiktok_biz_get_campaign(params: dict):
+    request_json = await get(
+        url = f"{settings.TIKTOK_BIZ_API_URL}/campaign/get/",
+        access_token = settings.TIKTOK_BIZ_ACCESS_TOKEN,
+        params = params
+    )
+    return request_json
+
+async def tiktok_biz_get_report_integrated(params: dict):
+    request_json = await get(
+        url = f"{settings.TIKTOK_BIZ_API_URL}/report/integrated/get/",
+        access_token = settings.TIKTOK_BIZ_ACCESS_TOKEN,
+        params = params
+    )
+    return request_json
