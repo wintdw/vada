@@ -128,47 +128,43 @@ class TiktokAdCrawler:
         advertiser_id: str,
         campaign_ids: Optional[List[str]] = None,
         adgroup_ids: Optional[List[str]] = None,
+        ad_ids: Optional[List[str]] = None,
     ) -> List[Dict]:
         """
-        Method to fetch all ad information, including pagination.
+        Method to fetch ad information using filtering.
 
         Args:
             advertiser_id (str): The ID of the advertiser
-            campaign_ids (List[str], optional): List of campaign IDs to filter ads. Defaults to None
-            adgroup_ids (List[str], optional): List of ad group IDs to filter ads. Defaults to None
+            ad_ids (List[str], optional): List of ad IDs to filter specific ads
+            campaign_ids (List[str], optional): List of campaign IDs to filter ads
+            adgroup_ids (List[str], optional): List of ad group IDs to filter ads
 
         Returns:
-            list: A list of dictionaries, where each dictionary contains ad information including:
-                - ad_id: The unique identifier for the ad
-                - ad_name: Name of the ad
-                - campaign_id: ID of the parent campaign
-                - campaign_name: Name of the parent campaign
-                - adgroup_id: ID of the parent ad group
-                - adgroup_name: Name of the parent ad group
-                - operation_status: Ad status (e.g., "ENABLE", "DISABLE")
-                - creative_type: Type of creative
-                - ad_format: Format of the ad (e.g., "SINGLE_VIDEO", "CATALOG_CAROUSEL")
-                - landing_page_url: URL of the landing page
-                - video_id: ID of the video if applicable
-                - image_ids: List of image IDs
-                And other ad-specific fields
+            List[Dict]: List of ad information dictionaries
         """
         endpoint: str = "/ad/get/"
         all_ads: List[Dict] = []
         page: int = 1
 
+        # Construct filtering dictionary
+        filtering = {}
+        if ad_ids:
+            filtering["ad_ids"] = ad_ids
+        if campaign_ids:
+            filtering["campaign_ids"] = campaign_ids
+        if adgroup_ids:
+            filtering["adgroup_ids"] = adgroup_ids
+
         while True:
             params: Dict[str, str] = {
                 "advertiser_id": advertiser_id,
                 "page": str(page),
-                "page_size": "100",  # Using larger page size for efficiency
+                "page_size": "100",
             }
 
-            if campaign_ids:
-                params["campaign_ids"] = json.dumps(campaign_ids)
-
-            if adgroup_ids:
-                params["adgroup_ids"] = json.dumps(adgroup_ids)
+            # Add filtering if any filters are specified
+            if filtering:
+                params["filtering"] = json.dumps(filtering)
 
             ad_info: Dict = await self._get(endpoint, params)
             if "data" in ad_info and "list" in ad_info["data"]:
@@ -184,7 +180,10 @@ class TiktokAdCrawler:
         return all_ads
 
     async def get_adgroup(
-        self, advertiser_id: str, campaign_ids: Optional[List[str]] = None
+        self,
+        advertiser_id: str,
+        campaign_ids: Optional[List[str]] = None,
+        adgroup_ids: Optional[List[str]] = None,
     ) -> List[Dict]:
         """
         Method to fetch all ad group information, including pagination.
@@ -192,6 +191,7 @@ class TiktokAdCrawler:
         Args:
             advertiser_id (str): The ID of the advertiser
             campaign_ids (List[str], optional): List of campaign IDs to filter ad groups. Defaults to None.
+            adgroup_ids (List[str], optional): List of ad group IDs to filter specific ad groups. Defaults to None.
 
         Returns:
             list: A list of dictionaries, where each dictionary contains ad group information including:
@@ -218,8 +218,16 @@ class TiktokAdCrawler:
                 "page_size": "100",  # Using larger page size for efficiency
             }
 
+            # Construct filtering dictionary
+            filtering = {}
             if campaign_ids:
-                params["campaign_ids"] = json.dumps(campaign_ids)
+                filtering["campaign_ids"] = campaign_ids
+            if adgroup_ids:
+                filtering["adgroup_ids"] = adgroup_ids
+
+            # Add filtering if any filters are specified
+            if filtering:
+                params["filtering"] = json.dumps(filtering)
 
             adgroup_info: Dict = await self._get(endpoint, params)
             if "data" in adgroup_info and "list" in adgroup_info["data"]:
@@ -234,12 +242,17 @@ class TiktokAdCrawler:
 
         return all_adgroups
 
-    async def get_campaign(self, advertiser_id: str) -> List[Dict]:
+    async def get_campaign(
+        self,
+        advertiser_id: str,
+        campaign_ids: Optional[List[str]] = None,
+    ) -> List[Dict]:
         """
         Method to fetch all campaign information, including pagination.
 
         Args:
-            advertiser_id (str): The ID of the advertiser.
+            advertiser_id (str): The ID of the advertiser
+            campaign_ids (List[str], optional): List of campaign IDs to filter specific campaigns
 
         Returns:
             list: A list of dictionaries, where each dictionary contains campaign information including:
@@ -265,6 +278,11 @@ class TiktokAdCrawler:
                 "page": str(page),
                 "page_size": "100",  # Using larger page size for efficiency
             }
+
+            # Add filtering if campaign_ids are specified
+            if campaign_ids:
+                params["filtering"] = json.dumps({"campaign_ids": campaign_ids})
+
             campaign_info: Dict = await self._get(endpoint, params)
             if "data" in campaign_info and "list" in campaign_info["data"]:
                 all_campaigns.extend(campaign_info["data"]["list"])
@@ -290,20 +308,37 @@ class TiktokAdCrawler:
         enable_total_metrics: bool = True,
     ) -> List[Dict]:
         """
-        Method to fetch integrated report data with pagination support.
+        Fetch and flatten integrated advertising reports with metrics and dimensions.
 
         Args:
-            advertiser_id (str): The ID of the advertiser
-            start_date (str): Start date in YYYY-MM-DD format
-            end_date (str): End date in YYYY-MM-DD format
-            metrics (List[str], optional): List of metrics to fetch. Defaults to basic engagement metrics
-            dimensions (List[str], optional): List of dimensions. Defaults to ["ad_id"]
-            report_type (str, optional): Type of report. Defaults to "BASIC"
-            data_level (str, optional): Level of data aggregation. Defaults to "AUCTION_AD"
+            advertiser_id (str): The ID of the advertiser to fetch reports for
+            start_date (str): Start date in format 'YYYY-MM-DD'
+            end_date (str): End date in format 'YYYY-MM-DD'
+            metrics (List[str], optional): List of metrics to include in report. Defaults to comprehensive list including:
+                spend, billed_cost, cpc, cpm, impressions, clicks, ctr, reach, conversion, etc.
+            dimensions (List[str], optional): List of dimensions to group data by. Defaults to ['ad_id', 'stat_time_day']
+            report_type (str, optional): Type of report to generate. Defaults to 'BASIC'
+            data_level (str, optional): Level of data aggregation. Defaults to 'AUCTION_AD'
             enable_total_metrics (bool, optional): Whether to include total metrics. Defaults to True
 
         Returns:
-            List[Dict]: List of report data entries
+            List[Dict]: List of flattened report entries where metrics and dimensions are merged into each entry.
+            Each entry contains:
+                - All specified dimensions (e.g., ad_id, stat_time_day)
+                - All specified metrics (e.g., spend, clicks, impressions)
+                Example:
+                {
+                    "ad_id": "123456789",
+                    "stat_time_day": "2025-03-01",
+                    "spend": 100.50,
+                    "clicks": 50,
+                    "impressions": 1000,
+                    "ctr": 0.05
+                }
+
+        Note:
+            This method automatically paginates through all available results and
+            flattens the nested structure of metrics and dimensions into a single level.
         """
         endpoint: str = "/report/integrated/get/"
         all_reports: List[Dict] = []
@@ -357,13 +392,23 @@ class TiktokAdCrawler:
                 "enable_total_metrics": str(enable_total_metrics).lower(),
                 "metrics": json.dumps(metrics),
                 "page": str(page),
-                "page_size": "100",  # Using larger page size for efficiency
+                "page_size": "100",
             }
 
             report_data: Dict = await self._get(endpoint, params)
 
             if "data" in report_data and "list" in report_data["data"]:
-                all_reports.extend(report_data["data"]["list"])
+                # Flatten each report entry
+                for report in report_data["data"]["list"]:
+                    flattened_report = {}
+                    # Add dimensions at top level
+                    if "dimensions" in report:
+                        flattened_report.update(report["dimensions"])
+                    # Add metrics at top level
+                    if "metrics" in report:
+                        flattened_report.update(report["metrics"])
+                    all_reports.append(flattened_report)
+
                 page_info: Dict = report_data["data"].get("page_info", {})
                 total_pages: int = page_info.get("total_page", 0)
 
