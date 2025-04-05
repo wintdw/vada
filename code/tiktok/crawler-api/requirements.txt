@@ -3,3 +3,5 @@ fastapi
 aiomysql
 cryptography
 python-json-logger
+aiohttp
+pydantic-settings

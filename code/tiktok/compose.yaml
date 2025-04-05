@@ -8,3 +8,8 @@ services:
     restart: always
     ports:
       - "8145:8145"
+    environment:
+      TIKTOK_BIZ_API_URL: https://business-api.tiktok.com/open_api/v1.3
+      TIKTOK_BIZ_ACCESS_TOKEN: ab5b67f3f25aa4da2ea7b9084b14393bf51e0b15
+      TIKTOK_BIZ_APP_ID: 7480814660439146497
+      TIKTOK_BIZ_SECRET: 6fd63e3c5a39cffd0dd2d73c872840008b587148
