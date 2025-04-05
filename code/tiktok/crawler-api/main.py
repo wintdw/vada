@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from routers import (
+    tiktok
+)
 
 app = FastAPI()
 
@@ -15,3 +18,5 @@ async def check_health():
             detail="Database Service Unavailable"
         )
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
+
+app.include_router(tiktok.router)
