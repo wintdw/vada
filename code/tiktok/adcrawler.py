@@ -52,7 +52,7 @@ async def main():
     app_id = "xxx"
     secret = "xxx"
 
-    start_date = "2025-03-01"
+    start_date = "2025-03-30"
     end_date = "2025-03-31"
 
     crawler = TiktokAdCrawler(access_token, app_id, secret)
