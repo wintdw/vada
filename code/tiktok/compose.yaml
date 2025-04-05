@@ -1,0 +1,10 @@
+services:
+  crawler-api:
+    build:
+      context: ./crawler-api
+      dockerfile: Dockerfile
+    image: crawler-api:latest
+    container_name: crawler_api
+    restart: always
+    ports:
+      - "8145:8145"

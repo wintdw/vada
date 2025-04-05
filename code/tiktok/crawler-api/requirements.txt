@@ -1,0 +1,5 @@
+uvicorn
+fastapi
+aiomysql
+cryptography
+python-json-logger
