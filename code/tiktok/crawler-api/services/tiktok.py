@@ -32,3 +32,19 @@ async def tiktok_biz_get_report_integrated(params: dict):
         params = params
     )
     return request_json
+
+async def tiktok_biz_get_ad(params: dict):
+    request_json = await get(
+        url = f"{settings.TIKTOK_BIZ_API_URL}/ad/get/",
+        access_token = settings.TIKTOK_BIZ_ACCESS_TOKEN,
+        params = params
+    )
+    return request_json
+
+async def tiktok_biz_get_adgroup(params: dict):
+    request_json = await get(
+        url = f"{settings.TIKTOK_BIZ_API_URL}/adgroup/get/",
+        access_token = settings.TIKTOK_BIZ_ACCESS_TOKEN,
+        params = params
+    )
+    return request_json
