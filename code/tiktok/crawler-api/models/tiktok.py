@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class AdGroup(BaseModel)
+class AdGroup(BaseModel):
     deep_funnel_optimization_status: str | None
     auto_targeting_enabled: bool
     dayparting: str
