@@ -118,7 +118,7 @@ async def capture_logs(
 
         # Create index name with date suffix
         current_date = datetime.now(timezone.utc).strftime("%Y.%m.%d")
-        index_name = f"logs-{current_date}"
+        index_name = f"audit_trail-{current_date}"
 
         # Use bulk indexing with enriched logs
         response = await es_processor.bulk_index_docs(index_name, enriched_logs)
