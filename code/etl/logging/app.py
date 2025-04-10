@@ -7,10 +7,11 @@ This module is for processing jsonl and pushing to ES index
 import logging
 import traceback
 import asyncio
+import os
+from datetime import datetime, timezone
 from fastapi import FastAPI, Request, HTTPException, status, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
 
 from etl.libs.processor import get_es_processor
 from libs.connectors.async_es import AsyncESProcessor
@@ -74,10 +75,11 @@ async def logging(
     Raises:
         HTTPException: For invalid input or processing errors
     """
-    MAX_BATCH_SIZE = 1000  # Configure based on your needs
+    MAX_BATCH_SIZE = 1000
+    # Get environment from env var, default to 'development'
+    APP_ENV = os.getenv("APP_ENV")
 
     try:
-        # Get JSON data from request body
         data = await request.json()
 
         if not data or "logs" not in data:
@@ -99,12 +101,27 @@ async def logging(
                 detail=f"Batch size exceeds maximum limit of {MAX_BATCH_SIZE}",
             )
 
-        # Create index name with date suffix: logs-YYYY.MM.DD
-        current_date = datetime.now(datetime.timezone.utc).strftime("%Y.%m.%d")
+        # Add environment and timestamp to each log entry
+        current_timestamp = datetime.now(timezone.utc).isoformat()
+        enriched_logs = []
+        for log in logs:
+            if not isinstance(log, dict):
+                log = {"message": str(log)}
+
+            log.update(
+                {
+                    "environment": APP_ENV,
+                    "@timestamp": log.get("@timestamp", current_timestamp),
+                }
+            )
+            enriched_logs.append(log)
+
+        # Create index name with date suffix
+        current_date = datetime.now(timezone.utc).strftime("%Y.%m.%d")
         index_name = f"logs-{current_date}"
 
-        # Use bulk indexing with date-suffixed index name
-        response = await es_processor.bulk_index_docs(index_name, logs)
+        # Use bulk indexing with enriched logs
+        response = await es_processor.bulk_index_docs(index_name, enriched_logs)
 
         if response["status"] not in {200, 201}:
             logging.error("Failed to index documents: %s", response["detail"])
