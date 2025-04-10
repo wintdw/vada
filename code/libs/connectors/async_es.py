@@ -151,12 +151,11 @@ class AsyncESProcessor:
         for doc in docs:
             # Find the doc_id in the metadata, if appears
             if "_vada" in doc:
-                try:
-                    doc_id = doc.get("_vada", {}).get("ingest", {}).get("doc_id", "")
-                except Exception:
-                    doc_id = ""
+                doc_id = doc.get("_vada", {}).get("ingest", {}).get("doc_id", "")
 
+            # remove the metadata
             doc = remove_fields(doc, ["_vada"])
+            # If doc_id is not found in the metadata, generate a new one
             if not doc_id:
                 doc_id = generate_docid(doc)
 
