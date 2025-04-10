@@ -149,6 +149,7 @@ class AsyncESProcessor:
         # Prepare the bulk request payload
         bulk_payload = ""
         for doc in docs:
+            doc_id = None
             # Find the doc_id in the metadata, if appears
             if "_vada" in doc:
                 doc_id = doc.get("_vada", {}).get("ingest", {}).get("doc_id", "")
