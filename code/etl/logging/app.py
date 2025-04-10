@@ -59,7 +59,7 @@ async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor
 
 
 @app.post("/v1/logs")
-async def logging(
+async def capture_logs(
     request: Request, es_processor: AsyncESProcessor = Depends(get_es_processor)
 ) -> JSONResponse:
     """

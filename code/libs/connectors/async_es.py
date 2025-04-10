@@ -155,9 +155,10 @@ class AsyncESProcessor:
                     doc_id = doc.get("_vada", {}).get("ingest", {}).get("doc_id", "")
                 except Exception:
                     doc_id = ""
-                if not doc_id:
-                    doc_id = generate_docid(doc)
-                doc = remove_fields(doc, ["_vada"])
+
+            doc = remove_fields(doc, ["_vada"])
+            if not doc_id:
+                doc_id = generate_docid(doc)
 
             action_metadata = {"index": {"_index": index_name, "_id": doc_id}}
             bulk_payload += json.dumps(action_metadata) + "\n"
