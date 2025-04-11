@@ -123,6 +123,8 @@ async def capture_logs(
         # Use bulk indexing with enriched logs
         response = await es_processor.bulk_index_docs(index_name, enriched_logs)
 
+        logging.info(response)
+
         if response["status"] not in {200, 201}:
             logging.error("Failed to index documents: %s", response["detail"])
             raise HTTPException(
@@ -130,10 +132,17 @@ async def capture_logs(
                 detail=response["detail"],
             )
 
+        status_msg = "success"
+        if len(enriched_logs) != response["detail"]["success"]:
+            if response["detail"]["success"] == 0:
+                status_msg = "failure"
+            else:
+                status_msg = "partial success"
+
         return JSONResponse(
             content={
-                "status": "success",
-                "message": f"Successfully processed {len(logs)} log entries",
+                "status": status_msg,
+                "message": f"Indexed {response["detail"]["success"]} log entries, {response["detail"]["failure"]} failures",
                 "detail": response["detail"],
                 "index": index_name,
             }
