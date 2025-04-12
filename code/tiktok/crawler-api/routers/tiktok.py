@@ -18,15 +18,19 @@ from models import (
   CampaignResponse,
   AdGroupResponse
 )
+from handlers import (
+  create_report,
+  save_report
+)
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
 async def tiktok_business_get(start_date: str, end_date: str):
-  tiktok_response = await tiktok_biz_get_advertiser()
-  logger.debug(tiktok_response)
-  advertiser_response = AdvertiserResponse.model_validate(tiktok_response)
+  advertiser_json = await tiktok_biz_get_advertiser()
+  logger.debug(advertiser_json)
+  advertiser_response = AdvertiserResponse.model_validate(advertiser_json)
   logger.info(advertiser_response)
 
   dimensions = ["ad_id", "stat_time_day"]
@@ -65,16 +69,16 @@ async def tiktok_business_get(start_date: str, end_date: str):
 
   for advertiser in advertiser_response.data.list:
 
-    time.sleep(1)
+    time.sleep(3)
   
-    tiktok_response = await tiktok_biz_info_advertiser(params={"advertiser_ids": json.dumps([advertiser.advertiser_id])})
-    logger.debug(tiktok_response)
+    advertiser_info_json = await tiktok_biz_info_advertiser(params={"advertiser_ids": json.dumps([advertiser.advertiser_id])})
+    logger.debug(advertiser_info_json)
 
     page = 1
     report_integrated_done = False
     
     while report_integrated_done == False:
-      tiktok_response = await tiktok_biz_get_report_integrated(params={
+      report_integrated_json = await tiktok_biz_get_report_integrated(params={
         "advertiser_id": advertiser.advertiser_id,
         "report_type": "BASIC",
         "dimensions": json.dumps(dimensions),
@@ -85,42 +89,53 @@ async def tiktok_business_get(start_date: str, end_date: str):
         "page": page,
         "page_size": 100
       })
-      logger.debug(tiktok_response)
-      report_integrated_response = ReportIntegratedResponse.model_validate(tiktok_response)
+      logger.debug(report_integrated_json)
+      report_integrated_response = ReportIntegratedResponse.model_validate(report_integrated_json)
       logger.info(report_integrated_response)
     
-      if report_integrated_response.page_info.total_page > page:
+      if report_integrated_response.data.page_info.total_page > page:
         page += 1
       else:
         report_integrated_done = True
 
       for report_integrated in report_integrated_response.data.list:
       
-        time.sleep(1)
+        time.sleep(3)
         
         ad_filtering = {"ad_ids": [report_integrated.dimensions.ad_id]}
-        tiktok_response = await tiktok_biz_get_ad(params={
+        ad_json = await tiktok_biz_get_ad(params={
           "advertiser_id": advertiser.advertiser_id,
           "filtering": json.dumps(ad_filtering)
         })
-        logger.debug(tiktok_response)
-        ad_response = AdResponse.model_validate(tiktok_response)
+        logger.debug(ad_json)
+        ad_response = AdResponse.model_validate(ad_json)
         logger.info(ad_response)
 
         campaign_filtering = {"campaign_ids": [ad_response.data.list[0].campaign_id]}
-        tiktok_response = await tiktok_biz_get_campaign(params={
+        campaign_json = await tiktok_biz_get_campaign(params={
           "advertiser_id": advertiser.advertiser_id,
           "filtering": json.dumps(campaign_filtering)
         })
-        logger.debug(tiktok_response)
-        campaign_response = CampaignResponse.model_validate(tiktok_response)
+        logger.debug(campaign_json)
+        campaign_response = CampaignResponse.model_validate(campaign_json)
         logger.info(campaign_response)
 
         adgroup_filtering = {"campaign_ids": [ad_response.data.list[0].campaign_id], "adgroup_ids": [ad_response.data.list[0].adgroup_id]}
-        tiktok_response = await tiktok_biz_get_adgroup(params={
+        adgroup_json = await tiktok_biz_get_adgroup(params={
           "advertiser_id": advertiser.advertiser_id,
           "filtering": json.dumps(adgroup_filtering)
         })
-        logger.debug(tiktok_response)
-        adgroup_response = AdGroupResponse.model_validate(tiktok_response)
+        logger.debug(adgroup_json)
+        adgroup_response = AdGroupResponse.model_validate(adgroup_json)
         logger.info(adgroup_response)
+
+        report = create_report(
+          advertiser_info=advertiser_info_json,
+          report_integrated=report_integrated_json,
+          ad=ad_json,
+          campaign=campaign_json,
+          adgroup=adgroup_json
+        )
+        logger.info(report)
+        
+        save_report(report, "report.jsonl")
