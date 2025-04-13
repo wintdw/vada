@@ -1,2 +1,2 @@
 from .tiktok import *
-from .inserter import *
+from .insert import *

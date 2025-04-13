@@ -10,7 +10,7 @@ from services import (
   tiktok_biz_get_ad,
   tiktok_biz_get_campaign,
   tiktok_biz_get_adgroup,
-  inserter_post_data
+  insert_post_data
 )
 from models import (
   AdvertiserResponse,
@@ -23,7 +23,8 @@ from handlers import (
   create_report,
   save_report,
   generate_doc_id,
-  enrich_report
+  enrich_report,
+  add_insert_metadata
 )
 
 router = APIRouter()
@@ -36,6 +37,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
   advertiser_response = AdvertiserResponse.model_validate(advertiser_json)
   logger.info(advertiser_response)
 
+  index_name = "a_quang_nguyen_tiktok_ad_report"
   dimensions = ["ad_id", "stat_time_day"]
   metrics = [
     "spend",
@@ -147,13 +149,13 @@ async def tiktok_business_get(start_date: str, end_date: str):
         doc_id = generate_doc_id(report)
         logger.info(doc_id)
 
-        enriched_report = enrich_report(report, doc_id)
+        enriched_report = enrich_report(report, doc_id, index_name)
         logger.info(enriched_report)
 
         batch_report.append(enriched_report)
         if len(batch_report) == batch_size:
-          inserter_json = await inserter_post_data(enriched_report)
-          logger.info(inserter_json)
+          insert_json = await insert_post_data(add_insert_metadata(enriched_report, index_name))
+          logger.info(insert_json)
           batch_report = []
 
         save_report(enriched_report, "report.jsonl")

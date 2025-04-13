@@ -20,14 +20,14 @@ def generate_doc_id(data: dict) -> str:
     serialized_data = json.dumps(data, sort_keys=True)
     return hashlib.sha256(serialized_data.encode("utf-8")).hexdigest()
 
-def enrich_report(report: dict, doc_id: str) -> dict:
+def enrich_report(report: dict, doc_id: str, index_name: str) -> dict:
     metadata = {
       "_vada": {
         "ingest": {
           "source": "crawling:tiktok_ad_detailed",
           "destination": {
             "type": "elasticsearch",
-            "index": "a_quang_nguyen_tiktok_ad_report"
+            "index": index_name
           },
           "vada_client_id": "a_quang_nguyen",
           "type": "tiktok_ad_detailed",
