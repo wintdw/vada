@@ -154,8 +154,12 @@ async def tiktok_business_get(start_date: str, end_date: str):
 
         batch_report.append(enriched_report)
         if len(batch_report) == batch_size:
-          insert_json = await insert_post_data(add_insert_metadata(enriched_report, index_name))
+          insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
           logger.info(insert_json)
           batch_report = []
 
         save_report(enriched_report, "report.jsonl")
+
+  if len(batch_report) == batch_size:
+    insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
+
