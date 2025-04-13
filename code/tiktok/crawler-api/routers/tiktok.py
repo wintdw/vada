@@ -70,6 +70,9 @@ async def tiktok_business_get(start_date: str, end_date: str):
     "secondary_goal_result_rate",
   ]
 
+  batch_report = []
+  batch_size = 5000
+
   for advertiser in advertiser_response.data.list:
 
     time.sleep(3)
@@ -147,7 +150,10 @@ async def tiktok_business_get(start_date: str, end_date: str):
         enriched_report = enrich_report(report, doc_id)
         logger.info(enriched_report)
 
-        inserter_json = await inserter_post_data(enriched_report)
-        logger.info(inserter_json)
+        batch_report.append(enriched_report)
+        if len(batch_report) == batch_size:
+          inserter_json = await inserter_post_data(enriched_report)
+          logger.info(inserter_json)
+          batch_report = []
 
         save_report(enriched_report, "report.jsonl")
