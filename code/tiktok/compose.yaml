@@ -13,3 +13,4 @@ services:
       TIKTOK_BIZ_ACCESS_TOKEN: 7eef26234e84b613f08fe8ddbbe7c22e2fdc28e3
       TIKTOK_BIZ_APP_ID: 7480814660439146497
       TIKTOK_BIZ_SECRET: 6fd63e3c5a39cffd0dd2d73c872840008b587148
+      INSERTER_URL: http://es-inserter.etl.internal.vadata.vn

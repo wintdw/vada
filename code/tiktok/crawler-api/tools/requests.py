@@ -1,9 +1,10 @@
 import aiohttp
 
-async def get(url: str, bearer_token: str = None, access_token: str = None, params: dict = None) -> dict:
-    headers = {
-        "Content-Type": "application/json"
-    }
+async def get(url: str, bearer_token: str = None, access_token: str = None, params: dict = None, headers: dict = None) -> dict:
+    if not headers:
+      headers = {
+          "Content-Type": "application/json"
+      }
     if bearer_token:
         headers["Authorization"] = f"Bearer {bearer_token}"
     elif access_token:
@@ -17,10 +18,11 @@ async def get(url: str, bearer_token: str = None, access_token: str = None, para
             else:
                 return request_json
 
-async def put(url: str, bearer_token: str = None, access_token: str = None, json_data: dict = None, params: dict = None) -> dict:
-    headers = {
-        "Content-Type": "application/json"
-    }
+async def put(url: str, json_data: dict, bearer_token: str = None, access_token: str = None, params: dict = None, headers: dict = None) -> dict:
+    if not headers:
+      headers = {
+          "Content-Type": "application/json"
+      }
     if bearer_token:
         headers["Authorization"] = f"Bearer {bearer_token}"
     elif access_token:
@@ -34,10 +36,11 @@ async def put(url: str, bearer_token: str = None, access_token: str = None, json
             else:
                 return request_json
 
-async def post(url: str, bearer_token: str = None, access_token: str = None, json_data: dict = None, params: dict = None) -> dict:
-    headers = {
-        "Content-Type": "application/json"
-    }
+async def post(url: str, json_data: dict, bearer_token: str = None, access_token: str = None, params: dict = None, headers: dict = None) -> dict:
+    if not headers:
+      headers = {
+          "Content-Type": "application/json"
+      }
     if bearer_token:
         headers["Authorization"] = f"Bearer {bearer_token}"
     elif access_token:

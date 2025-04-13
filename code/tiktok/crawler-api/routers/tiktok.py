@@ -10,6 +10,7 @@ from services import (
   tiktok_biz_get_ad,
   tiktok_biz_get_campaign,
   tiktok_biz_get_adgroup,
+  inserter_post_data
 )
 from models import (
   AdvertiserResponse,
@@ -20,7 +21,9 @@ from models import (
 )
 from handlers import (
   create_report,
-  save_report
+  save_report,
+  generate_doc_id,
+  enrich_report
 )
 
 router = APIRouter()
@@ -138,4 +141,13 @@ async def tiktok_business_get(start_date: str, end_date: str):
         )
         logger.info(report)
         
-        save_report(report, "report.jsonl")
+        doc_id = generate_doc_id(report)
+        logger.info(doc_id)
+
+        enriched_report = enrich_report(report, doc_id)
+        logger.info(enriched_report)
+
+        inserter_json = await inserter_post_data(enriched_report)
+        logger.info(inserter_json)
+
+        save_report(enriched_report, "report.jsonl")
