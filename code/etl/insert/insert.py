@@ -10,6 +10,8 @@ import asyncio
 from fastapi import FastAPI, Request, HTTPException, status, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
+from pydantic import BaseModel
+from typing import List, Dict, Any
 
 from etl.libs.vadadoc import VadaDocument
 from etl.libs.processor import get_es_processor
@@ -34,7 +36,7 @@ logging.basicConfig(
 health_check_executor = ThreadPoolExecutor(max_workers=1)
 
 
-# This functions is for running health check in another threadpool worker 
+# This functions is for running health check in another threadpool worker
 # so it's not blocked by the main thread
 def check_health_sync(es_processor: AsyncESProcessor):
     """Check the health of the Elasticsearch cluster synchronously."""
@@ -62,16 +64,22 @@ async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 
+class JsonlRequest(BaseModel):
+    meta: Dict[str, str]
+    data: List[Dict[str, Any]]
+
+
 # This function can deal with duplicate messages
-@app.post("/jsonl")
-async def receive_jsonl(
-    request: Request, es_processor: AsyncESProcessor = Depends(get_es_processor)
+@app.post("/json")
+async def insert_json(
+    request: JsonlRequest, es_processor: AsyncESProcessor = Depends(get_es_processor)
 ) -> JSONResponse:
     """
-    Main function to process jsonl received from HTTP endpoint
+    Main function to process JSON data received from HTTP endpoint
 
     Args:
-        request (Request): the request
+        request (JsonlRequest): Request body containing meta information and data
+        es_processor (AsyncESProcessor): Elasticsearch processor dependency
 
     Raises:
         HTTPException: when problems arise
@@ -80,18 +88,23 @@ async def receive_jsonl(
         JSONResponse: number of consumed messages
     """
     try:
-        body = await request.body()
-        json_lines = body.decode("utf-8").splitlines()
-
         status_msg = "success"
+        index_name = request.meta.get("index_name")
+
+        if not index_name:
+            logging.error("Missing index name in meta data")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing index name in meta data",
+            )
 
         json_docs = []
-        for line in json_lines:
+        for data in request.data:
             try:
-                vada_doc = VadaDocument(line)
+                vada_doc = VadaDocument(data)
+                json_docs.append(vada_doc.get_doc())
             except Exception as e:
-                raise RuntimeError("Invalid JSON format: %s - %s", e, line)
-            json_docs.append(vada_doc.get_doc())
+                raise RuntimeError(f"Invalid JSON format: {e} - {data}")
 
         # convert
         field_types = determine_es_field_types(json_docs)
@@ -99,15 +112,6 @@ async def receive_jsonl(
         mappings = construct_es_mappings(field_types)
 
         logging.info("Field types: %s", field_types)
-        # We expect all the messages received in one chunk will be in the same index
-        # so we take only the first message to get the index name
-        index_name = vada_doc.get_index_name()
-
-        if not index_name:
-            logging.error("Missing index name: %s", vada_doc.get_doc())
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index name"
-            )
 
         # Create index mappings if not exist
         mappings_response = await es_processor.create_mappings(index_name, mappings)
