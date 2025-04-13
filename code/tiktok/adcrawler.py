@@ -73,54 +73,52 @@ async def main():
             )
             logging.info(f"Found {len(reports)} reports")
 
-            # Construct detailed reports
-            detailed_reports = []
+            with open(output_file, "a") as f:
+                for report in reports:
+                    logging.info("--- Processing new report ---")
 
-            for report in reports:
-                logging.info("--- Processing new report ---")
+                    ad_id = report.get("ad_id")
+                    logging.info(f"Found ad_id: {ad_id}")
+                    logging.info(f"Getting ads for advertiser_id: {advertiser_id}")
 
-                ad_id = report.get("ad_id")
-                logging.info(f"Found ad_id: {ad_id}")
-                logging.info(f"Getting ads for advertiser_id: {advertiser_id}")
+                    ads = await crawler.get_ad(
+                        advertiser_id=advertiser_id, ad_ids=[ad_id]
+                    )
 
-                ads = await crawler.get_ad(advertiser_id=advertiser_id, ad_ids=[ad_id])
+                    if not ads:
+                        logging.warning(f"Warning: No ads found for ad_id {ad_id}")
+                        continue
 
-                if not ads:
-                    logging.warning(f"Warning: No ads found for ad_id {ad_id}")
-                    continue
+                    campaign_id = ads[0].get("campaign_id")
+                    adgroup_id = ads[0].get("adgroup_id")
+                    logging.info(
+                        f"Found campaign_id: {campaign_id}, adgroup_id: {adgroup_id}"
+                    )
 
-                campaign_id = ads[0].get("campaign_id")
-                adgroup_id = ads[0].get("adgroup_id")
-                logging.info(
-                    f"Found campaign_id: {campaign_id}, adgroup_id: {adgroup_id}"
-                )
+                    campaigns = await crawler.get_campaign(
+                        advertiser_id=advertiser_id, campaign_ids=[campaign_id]
+                    )
 
-                campaigns = await crawler.get_campaign(
-                    advertiser_id=advertiser_id, campaign_ids=[campaign_id]
-                )
+                    adgroups = await crawler.get_adgroup(
+                        advertiser_id=advertiser_id,
+                        campaign_ids=[campaign_id],
+                        adgroup_ids=[adgroup_id],
+                    )
 
-                adgroups = await crawler.get_adgroup(
-                    advertiser_id=advertiser_id,
-                    campaign_ids=[campaign_id],
-                    adgroup_ids=[adgroup_id],
-                )
+                    if not campaigns or not adgroups:
+                        logging.warning("Missing campaign or adgroup data")
+                        continue
 
-                if not campaigns or not adgroups:
-                    logging.warning("Missing campaign or adgroup data")
-                    continue
-
-                logging.info("Constructing detailed report with all entity data")
-                detailed_reports.append(
-                    construct_detailed_report(
+                    logging.info("Constructing detailed report with all entity data")
+                    detailed_report = construct_detailed_report(
                         report, advertiser_info, campaigns[0], adgroups[0], ads[0]
                     )
-                )
-                logging.info("Report processing complete")
 
-        # Replace the logging loop with file writing
-        with open(output_file, "a") as f:
-            for report in detailed_reports:
-                f.write(json.dumps(report) + "\n")
+                    # Write each report immediately
+                    f.write(json.dumps(detailed_report) + "\n")
+                    f.flush()  # Ensure the data is written to disk
+
+                    logging.info("Report processing complete")
 
         logging.info(
             f"Completed processing advertiser: {advertiser['advertiser_name']}. "
