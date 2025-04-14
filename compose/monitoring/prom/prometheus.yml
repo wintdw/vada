@@ -80,7 +80,7 @@ scrape_configs:
         - http://insert-vtad.internal.vadata.vn/health
         - http://process-vtad.internal.vadata.vn/health
         - http://mappings-vtad.internal.vadata.vn/health
-        # PROD
+        # APP
         - https://app.vadata.vn
         - https://api-app.vadata.vn/crm/ping
         - https://api-app.vadata.vn/ingest/health

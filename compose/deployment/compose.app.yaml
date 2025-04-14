@@ -14,7 +14,7 @@ services:
       - "3001:80"
 
   crm:
-    image: vada898989.azurecr.io/crm-api:12f6df52
+    image: vada898989.azurecr.io/crm-api:1800ce0b
     container_name: crm
     ports:
       - "8080:8080"
