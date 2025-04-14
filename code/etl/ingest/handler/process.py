@@ -3,7 +3,7 @@ import traceback
 from typing import Dict, List
 
 # custom libs
-from .mappings import create_es_mappings, create_crm_mappings
+from .mappings import create_es_mappings, copy_crm_mappings
 from etl.libs.vadadoc import VadaDocument
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.connectors.mappings import MappingsClient
@@ -153,7 +153,7 @@ async def process(
     )
 
     # Create CRM mappings
-    mappings_crm_dict = await create_crm_mappings(
+    mappings_crm_dict = await copy_crm_mappings(
         mappings_client,
         prepare_dict["user_id"],
         prepare_dict["index_name"],

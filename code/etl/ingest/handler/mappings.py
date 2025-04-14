@@ -27,8 +27,13 @@ async def create_es_mappings(
         return await mappings_client.create_es_mappings(index_name, mappings)
 
 
-async def create_crm_mappings(
-    mappings_client: MappingsClient, user_id: str, index_name: str
+async def copy_crm_mappings(
+    mappings_client: MappingsClient,
+    user_id: str,
+    index_name: str,
+    index_friendly_name: str = None,
 ) -> Dict:
     async with set_mappings_lock:
-        return await mappings_client.create_mappings(user_id, index_name)
+        return await mappings_client.copy_mappings(
+            user_id, index_name, index_friendly_name
+        )
