@@ -5,12 +5,12 @@ secrets:
     file: /var/secret/docker/ingest/jwt
 
 services:
-  logging:
+  log:
     build:
       context: ../
-      dockerfile: etl/Dockerfile.logging
-    image: logging:latest
-    container_name: logging
+      dockerfile: etl/Dockerfile.log
+    image: log:latest
+    container_name: log
     restart: always
     environment:
       PORT: "8003"
