@@ -1,26 +1,17 @@
 # pylint: disable=import-error,wrong-import-position
 
-"""
-"""
-
 import os
 import logging
-from typing import Dict
-from fastapi import FastAPI, Request, Depends, HTTPException, status  # type: ignore
+from fastapi import FastAPI, Depends, HTTPException, status  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
-from libs.security.jwt import verify_jwt
-from libs.connectors.async_es import AsyncESProcessor
 from libs.connectors.async_kafka import AsyncKafkaProcessor
 from libs.connectors.mappings import MappingsClient
 
-from etl.libs.processor import (
-    get_kafka_processor,
-    get_es_processor,
-    get_mappings_client,
-)
-from .process_jsonl import process_jsonl
+from etl.libs.processor import get_kafka_processor, get_mappings_client
+from etl.ingest.handler.process import process
+from etl.ingest.model.ingest import IngestRequest
 
 app = FastAPI()
 # asyncio.get_event_loop().set_debug(True)
@@ -35,69 +26,63 @@ APP_ENV = os.getenv("APP_ENV")
 
 @app.get("/health")
 async def check_health(
-    es_processor: AsyncESProcessor = Depends(get_es_processor),
     mappings_client: MappingsClient = Depends(get_mappings_client),
 ):
-    """Check the health of the Elasticsearch cluster and Mappings service."""
-    try:
-        es_response = await es_processor.check_health()
-        mappings_response = await mappings_client.check_health()
-    finally:
-        await es_processor.close()
+    """Check the health of Mappings service."""
+    mappings_response = await mappings_client.check_health()
 
-    if es_response["status"] < 400 and mappings_response["status"] < 400:
-        return JSONResponse(
-            content={
-                "status": "success",
-                "es": "available",
-                "mappings": "available",
-            }
-        )
-
-    if es_response["status"] >= 400:
-        logging.error(es_response["detail"])
-    if mappings_response["status"] >= 400:
+    if mappings_response["status"] < 400:
+        return JSONResponse(content={"status": "available"})
+    else:
         logging.error(mappings_response["detail"])
 
     raise HTTPException(
-        status_code=max(es_response["status"], mappings_response["status"]),
-        detail="Downstream services are unavailable!",
+        status_code=mappings_response["status"],
+        detail=mappings_response["detail"],
     )
 
 
-@app.post("/v1/jsonl")
-async def handle_jsonl_req(
-    req: Request,
-    jwt_dict: Dict = Depends(verify_jwt),
+@app.post("/v1/json")
+async def handle_json(
+    request: IngestRequest,
     kafka_processor: AsyncKafkaProcessor = Depends(get_kafka_processor),
-    es_processor: AsyncESProcessor = Depends(get_es_processor),
     mappings_client: MappingsClient = Depends(get_mappings_client),
 ):
+    """Accept JSON data with meta information and data array.
+
+    Format:
+    {
+        "meta": {
+            "user_id": str,
+            "index_name": str,
+            "index_friendly_name": str (optional)
+        },
+        "data": List[Dict]
+    }
     """
-    Accept JSONL data as a string and send each line to Kafka.
-    """
-    data = await req.body()
-
-    if not data or len(data) <= 10:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Request empty"
-        )
-
-    data_str = data.decode("utf-8")
-    lines = data_str.strip().splitlines()
-
-    user_id = jwt_dict.get("id")
-
     try:
-        response = await process_jsonl(
-            APP_ENV, lines, user_id, kafka_processor, es_processor, mappings_client
+        response = await process(
+            kafka_processor=kafka_processor,
+            mappings_client=mappings_client,
+            data=request.data,
+            app_env=APP_ENV,
+            user_id=request.meta.user_id,
+            index_name=request.meta.index_name,
+            index_friendly_name=request.meta.index_friendly_name,
         )
+
+        return JSONResponse(content=response)
+
     except RuntimeError as run_err:
+        logging.error("Runtime error: %s", str(run_err))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(run_err)
         )
+    except Exception as e:
+        logging.error("Error processing request: %s", str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error processing request: {str(e)}",
+        )
     finally:
         await kafka_processor.close()
-        await es_processor.close()
-
-    return JSONResponse(content=response)

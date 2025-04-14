@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from libs.connectors.mappings import MappingsClient
 
 
-async def create_mappings(
+async def copy_mappings(
     base_url,
     user_id,
     index_name,
@@ -18,7 +18,7 @@ async def create_mappings(
 ):
     try:
         client = MappingsClient(base_url)
-        response = await client.create_mappings(
+        response = await client.copy_mappings(
             user_id,
             index_name,
             index_friendly_name,
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     time_field = "time"
 
     asyncio.run(
-        create_mappings(
+        copy_mappings(
             base_url,
             user_id,
             index_name,

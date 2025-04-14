@@ -15,7 +15,7 @@ class MappingsClient:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     return {"status": response.status, "detail": await response.json()}
-        except Exception as e:
+        except Exception:
             return {
                 "status": 500,
                 "detail": f"Mappings service is down - {await response.text()}",
@@ -43,7 +43,7 @@ class MappingsClient:
 
                 return response_data["detail"]
 
-    async def create_mappings(
+    async def copy_mappings(
         self,
         user_id: str,
         index_name: str,
@@ -96,3 +96,34 @@ class MappingsClient:
         async with aiohttp.ClientSession() as session:
             async with session.put(url, json=payload) as response:
                 return await response.json()
+
+    async def create_es_mappings(
+        self,
+        index_name: str,
+        mappings: Dict,
+    ) -> Dict:
+        """Create Elasticsearch mappings for an index
+
+        Args:
+            index_name: Name of the index
+            mappings: Dictionary containing the ES mappings
+
+        Returns:
+            Dict containing the response from the mappings service
+        """
+        url = f"{self.base_url}/es/mappings"
+
+        payload = {"index_name": index_name, "mappings": mappings}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.put(url, json=payload) as response:
+                response_data = await response.json()
+
+                if response.status >= 400:
+                    logging.error(f"Error creating ES mappings: {response_data}")
+                    raise Exception(response_data["detail"])
+
+                msg = f"ES Mappings created for index: {index_name}"
+                logging.info(msg)
+
+                return response_data

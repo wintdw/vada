@@ -37,20 +37,13 @@ class VadaDocument:
         user_id = self.doc.get("_vada", {}).get("ingest", {}).get("user_id", "")
         return user_id
 
-    def set_user_id(self, user_id: str):
-        self.doc["_vada"]["ingest"]["user_id"] = user_id
-
-    def populate_ingestor_metadata(self):
+    def populate_ingestor_metadata(
+        self, user_id: str, index_name: str, index_friendly_name: str = None
+    ):
         """
         This method is exclusively used by the ingestor to populate the _vada field.
         """
-        if "IndexName" not in self.doc:
-            raise RuntimeError("Missing required field: 'IndexName': ", self.doc)
-
-        index_name = self.doc["IndexName"]
-        if "FriendlyName" in self.doc:
-            index_friendly_name = self.doc["FriendlyName"]
-        else:
+        if not index_friendly_name:
             index_friendly_name = index_name
         if index_friendly_name == index_name:
             # pretify the index_friendly_name
@@ -58,12 +51,15 @@ class VadaDocument:
             if match:
                 index_friendly_name = f"CSV " + match.group(1)
 
+        # TODO: remove
         self.doc = remove_fields(self.doc, ["IndexName", "FriendlyName"])
+
         doc_id = generate_docid(self.doc)
 
         # update _vada field
         self.doc["_vada"] = {
             "ingest": {
+                "user_id": user_id,
                 "doc_id": doc_id,
                 "destination": {
                     "type": "elasticsearch",
