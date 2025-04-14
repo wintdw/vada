@@ -64,6 +64,89 @@ async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 
+# This function can deal with duplicate messages
+@app.post("/jsonl")
+async def receive_jsonl(
+    request: Request, es_processor: AsyncESProcessor = Depends(get_es_processor)
+) -> JSONResponse:
+    """
+    Main function to process jsonl received from HTTP endpoint
+
+    Args:
+        request (Request): the request
+
+    Raises:
+        HTTPException: when problems arise
+
+    Returns:
+        JSONResponse: number of consumed messages
+    """
+    try:
+        body = await request.body()
+        json_lines = body.decode("utf-8").splitlines()
+
+        status_msg = "success"
+
+        json_docs = []
+        for line in json_lines:
+            try:
+                vada_doc = VadaDocument(line)
+            except Exception as e:
+                raise RuntimeError("Invalid JSON format: %s - %s", e, line)
+            json_docs.append(vada_doc.get_doc())
+
+        # convert
+        field_types = determine_es_field_types(json_docs)
+        json_converted_docs = convert_es_field_types(json_docs, field_types)
+        mappings = construct_es_mappings(field_types)
+
+        logging.info("Field types: %s", field_types)
+        # We expect all the messages received in one chunk will be in the same index
+        # so we take only the first message to get the index name
+        index_name = vada_doc.get_index_name()
+
+        if not index_name:
+            logging.error("Missing index name: %s", vada_doc.get_doc())
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index name"
+            )
+
+        # Create index mappings if not exist
+        mappings_response = await es_processor.create_mappings(index_name, mappings)
+        if mappings_response["status"] > 400:
+            status_msg = "mappings failure"
+            logging.error("Failed to create mappings: %s", mappings_response["detail"])
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=mappings_response["detail"],
+            )
+
+        index_response = await es_processor.bulk_index_docs(
+            index_name, json_converted_docs
+        )
+        if index_response["status"] not in {200, 201}:
+            status_msg = "index failure"
+            logging.error("Failed to index documents: %s", index_response["detail"])
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=index_response["detail"],
+            )
+
+        return JSONResponse(
+            content={"status": status_msg, "detail": index_response["detail"]}
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        logging.error("Exception: %s\nTraceback: %s", e, error_trace)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    finally:
+        await es_processor.close()
+
+
+##### NEW FORMAT
 class InsertRequest(BaseModel):
     meta: Dict[str, str]
     data: List[Dict[str, Any]]
