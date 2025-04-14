@@ -35,7 +35,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
   advertiser_json = await tiktok_biz_get_advertiser()
   logger.debug(advertiser_json)
   advertiser_response = AdvertiserResponse.model_validate(advertiser_json)
-  logger.info(advertiser_response)
+  logger.debug(advertiser_response)
 
   index_name = "a_quang_nguyen_tiktok_ad_report"
   dimensions = ["ad_id", "stat_time_day"]
@@ -99,7 +99,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
       })
       logger.debug(report_integrated_json)
       report_integrated_response = ReportIntegratedResponse.model_validate(report_integrated_json)
-      logger.info(report_integrated_response)
+      logger.debug(report_integrated_response)
     
       if report_integrated_response.data.page_info.total_page > page:
         page += 1
@@ -117,7 +117,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
         })
         logger.debug(ad_json)
         ad_response = AdResponse.model_validate(ad_json)
-        logger.info(ad_response)
+        logger.debug(ad_response)
 
         campaign_filtering = {"campaign_ids": [ad_response.data.list[0].campaign_id]}
         campaign_json = await tiktok_biz_get_campaign(params={
@@ -126,7 +126,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
         })
         logger.debug(campaign_json)
         campaign_response = CampaignResponse.model_validate(campaign_json)
-        logger.info(campaign_response)
+        logger.debug(campaign_response)
 
         adgroup_filtering = {"campaign_ids": [ad_response.data.list[0].campaign_id], "adgroup_ids": [ad_response.data.list[0].adgroup_id]}
         adgroup_json = await tiktok_biz_get_adgroup(params={
@@ -135,7 +135,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
         })
         logger.debug(adgroup_json)
         adgroup_response = AdGroupResponse.model_validate(adgroup_json)
-        logger.info(adgroup_response)
+        logger.debug(adgroup_response)
 
         report = create_report(
           advertiser_info=advertiser_info_json,
@@ -144,21 +144,26 @@ async def tiktok_business_get(start_date: str, end_date: str):
           campaign=campaign_json,
           adgroup=adgroup_json
         )
-        logger.info(report)
-        
-        doc_id = generate_doc_id(report)
-        logger.info(doc_id)
+        if not report:
+          continue
 
-        enriched_report = enrich_report(report, doc_id, index_name)
-        logger.info(enriched_report)
+        else:
+          logger.debug(report)
+          
+          doc_id = generate_doc_id(report)
+          logger.debug(doc_id)
 
-        batch_report.append(enriched_report)
-        if len(batch_report) == batch_size:
-          insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
-          logger.info(insert_json)
-          batch_report = []
+          enriched_report = enrich_report(report, doc_id, index_name)
+          logger.info(enriched_report)
 
-        save_report(enriched_report, "report.jsonl")
+          batch_report.append(enriched_report)
+          if len(batch_report) == batch_size:
+            insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
+            logger.info(insert_json)
+            batch_report = []
+
+          save_report(enriched_report, "report.jsonl")
 
   if len(batch_report):
     insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
+    logger.info(insert_json)

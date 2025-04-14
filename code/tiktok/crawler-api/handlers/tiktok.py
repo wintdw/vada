@@ -7,9 +7,12 @@ def create_report(
     ad: dict,
     campaign: dict,
     adgroup: dict,
-) -> dict:
-    report_integrated_flattened = dict(item for d in report_integrated.get("data").get("list")[0].values() for item in d.items())
-    return report_integrated_flattened | {"advertiser": advertiser_info.get("data").get("list")[0]} | {"ad": ad.get("data").get("list")[0]} | {"campaign": campaign.get("data").get("list")[0]} | {"adgroup": adgroup.get("data").get("list")[0]}
+) -> dict | None:
+    data = report_integrated.get("data").get("list")[0]
+    if all(v != "0" for v in data["metrics"].values()):
+        return data["dimensions"] | data["metrics"] | {"advertiser": advertiser_info.get("data").get("list")[0]} | {"ad": ad.get("data").get("list")[0]} | {"campaign": campaign.get("data").get("list")[0]} | {"adgroup": adgroup.get("data").get("list")[0]}
+    else:
+        return None
 
 def save_report(data, filename):
   with open(filename, 'a', encoding='utf-8') as f:
