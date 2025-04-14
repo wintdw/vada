@@ -64,7 +64,7 @@ async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 
-class JsonlRequest(BaseModel):
+class InsertRequest(BaseModel):
     meta: Dict[str, str]
     data: List[Dict[str, Any]]
 
@@ -72,13 +72,13 @@ class JsonlRequest(BaseModel):
 # This function can deal with duplicate messages
 @app.post("/json")
 async def insert_json(
-    request: JsonlRequest, es_processor: AsyncESProcessor = Depends(get_es_processor)
+    request: InsertRequest, es_processor: AsyncESProcessor = Depends(get_es_processor)
 ) -> JSONResponse:
     """
     Main function to process JSON data received from HTTP endpoint
 
     Args:
-        request (JsonlRequest): Request body containing meta information and data
+        request (InsertRequest): Request body containing meta information and data
         es_processor (AsyncESProcessor): Elasticsearch processor dependency
 
     Raises:
