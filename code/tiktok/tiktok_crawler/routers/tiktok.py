@@ -29,7 +29,7 @@ logger = get_logger(__name__, logging.INFO)
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
 async def tiktok_business_get(start_date: str, end_date: str):
     # Generate and set request ID at the start of each request
-    req_id = str(uuid.uuid4())
+    req_id = str(uuid.uuid4())[:8]  # Take first 8 characters
     request_id.set(req_id)
 
     start_time = time.time()
