@@ -30,14 +30,18 @@ async def tiktok_business_get(start_date: str, end_date: str):
 
     # Get all advertisers
     advertisers = await tiktok_biz_get_advertiser()
+    total_advertisers = len(advertisers)
+    logger.info(f"Found {total_advertisers} advertisers to process")
     logger.debug(advertisers)
 
     index_name = "a_quang_nguyen_tiktok_ad_report"
     batch_size = 1000
     all_enriched_reports = []
 
-    for advertiser in advertisers:
-        logger.info(f"Processing advertiser ID: {advertiser['advertiser_id']}")
+    for idx, advertiser in enumerate(advertisers, 1):
+        logger.info(
+            f"Processing advertiser {idx}/{total_advertisers} - ID: {advertiser['advertiser_id']}"
+        )
 
         # Get advertiser info
         advertiser_info = await tiktok_biz_info_advertiser(
@@ -52,12 +56,15 @@ async def tiktok_business_get(start_date: str, end_date: str):
             start_date=start_date,
             end_date=end_date,
         )
+        total_reports = len(reports)
+        logger.info(f"  → Found {total_reports} reports for this advertiser")
         logger.debug(reports)
 
-        for report in reports:
-            logger.info(f"Processing report for ad_id: {report.get('ad_id')}")
-            logger.info(f"  → Report date: {report.get('stat_time_day')}")
-            logger.info(f"  → Report spend: {report.get('spend', '0')}")
+        for report_idx, report in enumerate(reports, 1):
+            logger.info(f"  → Processing report {report_idx}/{total_reports}")
+            logger.info(f"    • Ad ID: {report.get('ad_id')}")
+            logger.info(f"    • Date: {report.get('stat_time_day')}")
+            logger.info(f"    • Spend: {report.get('spend', '0')}")
 
             if float(report.get("spend", "0")) == 0:
                 logger.info("    ✗ Skipping report with zero spend")
