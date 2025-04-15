@@ -1,10 +1,10 @@
 services:
   crawler-api:
     build:
-      context: ./crawler-api
+      context: ./tiktok_crawler
       dockerfile: Dockerfile
-    image: crawler-api:latest
-    container_name: crawler_api
+    image: tiktok_crawler:latest
+    container_name: tiktok_crawler
     restart: always
     ports:
       - "8145:8145"
