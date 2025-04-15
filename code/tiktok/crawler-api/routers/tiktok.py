@@ -53,6 +53,10 @@ async def tiktok_business_get(start_date: str, end_date: str):
         logger.debug(reports)
 
         for report in reports:
+            # # Skip reports with zero spend
+            # if float(report.get("spend", "0")) == 0:
+            #     continue
+
             # Get ad information
             ads = await tiktok_biz_get_ad(
                 advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
@@ -86,14 +90,9 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 ad_info=ads[0] if ads else {},
             )
 
-            if not report_data:
-                continue
-
             logger.debug(report_data)
 
             doc_id = generate_doc_id(report_data)
-            logger.debug(doc_id)
-
             enriched_report = enrich_report(report_data, doc_id, index_name)
             logger.info(enriched_report)
 
