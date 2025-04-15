@@ -107,8 +107,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 ad_info=ads[0] if ads else {},
             )
 
-            logger.debug(detailed_report)
-
             doc_id = generate_doc_id(report)
             enriched_report = enrich_report(detailed_report, index_name, doc_id)
             logger.info(enriched_report)
