@@ -26,8 +26,8 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
             "logger_name": record.name,
             "module": record.pathname,
             "line": record.lineno,
-            "message": record.getMessage(),
             "request_id": request_id.get(),
+            "message": record.getMessage(),
         }
 
         return json.dumps(log_payload, ensure_ascii=False)
