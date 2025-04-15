@@ -56,7 +56,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
         logger.debug(reports)
 
         for report in reports:
-            logger.info(f"\nProcessing report for ad_id: {report.get('ad_id')}")
+            logger.info(f"Processing report for ad_id: {report.get('ad_id')}")
             logger.info(f"  → Report date: {report.get('stat_time_day')}")
             logger.info(f"  → Report spend: {report.get('spend', '0')}")
 
@@ -69,11 +69,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
             ads = await tiktok_biz_get_ad(
                 advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
             )
-            if ads:
-                logger.info(f"    ✓ Found ad: {ads[0].get('ad_name', 'N/A')}")
-            else:
-                logger.info("    ✗ No ad information found, skipping")
-                continue
 
             # Get campaign information
             logger.info(
@@ -83,10 +78,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 advertiser_id=advertiser["advertiser_id"],
                 campaign_ids=[ads[0]["campaign_id"]],
             )
-            if campaigns:
-                logger.info(
-                    f"    ✓ Found campaign: {campaigns[0].get('campaign_name', 'N/A')}"
-                )
 
             # Get ad group information
             logger.info(
@@ -97,10 +88,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 campaign_ids=[ads[0]["campaign_id"]],
                 adgroup_ids=[ads[0]["adgroup_id"]],
             )
-            if adgroups:
-                logger.info(
-                    f"    ✓ Found ad group: {adgroups[0].get('adgroup_name', 'N/A')}"
-                )
 
             # Create and process report
             report_data = construct_detailed_report(
