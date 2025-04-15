@@ -1,6 +1,7 @@
 from fastapi import APIRouter  # type: ignore
 import logging
 import time
+import asyncio
 
 from tools import get_logger
 from services import (
@@ -71,29 +72,31 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 continue
 
             # Get ad information
-            logger.info(f"  → Getting ad information for ID: {report['ad_id']}")
+            logger.info(
+                f"  → Getting campaign / adgroup / ad information for Ad ID: {report['ad_id']}"
+            )
             ads = await tiktok_biz_get_ad(
                 advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
             )
 
-            # Get campaign information
-            logger.info(
-                f"  → Getting campaign information for ID: {ads[0]['campaign_id']}"
-            )
-            campaigns = await tiktok_biz_get_campaign(
-                advertiser_id=advertiser["advertiser_id"],
-                campaign_ids=[ads[0]["campaign_id"]],
+            # Create tasks for campaign and adgroup in parallel
+            campaign_task = asyncio.create_task(
+                tiktok_biz_get_campaign(
+                    advertiser_id=advertiser["advertiser_id"],
+                    campaign_ids=[ads[0]["campaign_id"]],
+                )
             )
 
-            # Get ad group information
-            logger.info(
-                f"  → Getting ad group information for ID: {ads[0]['adgroup_id']}"
+            adgroup_task = asyncio.create_task(
+                tiktok_biz_get_adgroup(
+                    advertiser_id=advertiser["advertiser_id"],
+                    campaign_ids=[ads[0]["campaign_id"]],
+                    adgroup_ids=[ads[0]["adgroup_id"]],
+                )
             )
-            adgroups = await tiktok_biz_get_adgroup(
-                advertiser_id=advertiser["advertiser_id"],
-                campaign_ids=[ads[0]["campaign_id"]],
-                adgroup_ids=[ads[0]["adgroup_id"]],
-            )
+
+            # Wait for both tasks to complete
+            campaigns, adgroups = await asyncio.gather(campaign_task, adgroup_task)
 
             # Create and process report
             detailed_report = construct_detailed_report(
