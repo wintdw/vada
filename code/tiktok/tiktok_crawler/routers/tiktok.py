@@ -147,4 +147,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
         "execution_time": execution_time,
         "total_reports": total_reports,
         "total_spend": round(total_spend, 2),
+        "date_start": start_date,
+        "date_end": end_date,
     }
