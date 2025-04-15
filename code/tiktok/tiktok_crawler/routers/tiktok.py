@@ -10,7 +10,7 @@ from services import (
     tiktok_biz_get_ad,
     tiktok_biz_get_campaign,
     tiktok_biz_get_adgroup,
-    insert_post_data,
+    send_to_insert_service,
 )
 from handlers import (
     construct_detailed_report,
@@ -33,7 +33,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
     logger.debug(advertisers)
 
     index_name = "a_quang_nguyen_tiktok_ad_report"
-    batch_report = []
     batch_size = 1000
     all_enriched_reports = []
 
@@ -90,7 +89,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
             )
 
             # Create and process report
-            report_data = construct_detailed_report(
+            detailed_report = construct_detailed_report(
                 report=report,
                 advertiser_info=advertiser_info[0] if advertiser_info else {},
                 campaign_info=campaigns[0] if campaigns else {},
@@ -98,29 +97,37 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 ad_info=ads[0] if ads else {},
             )
 
-            logger.debug(report_data)
+            logger.debug(detailed_report)
 
-            doc_id = generate_doc_id(report_data)
-            enriched_report = enrich_report(report_data, index_name, doc_id)
+            doc_id = generate_doc_id(report)
+            enriched_report = enrich_report(detailed_report, index_name, doc_id)
             logger.info(enriched_report)
 
-            batch_report.append(enriched_report)
             all_enriched_reports.append(enriched_report)
-            if len(batch_report) == batch_size:
-                insert_json = await insert_post_data(
-                    add_insert_metadata(batch_report, index_name)
-                )
-                logger.info(insert_json)
-                batch_report = []
-
             save_report(enriched_report, "report.jsonl")
 
-    # Insert any remaining reports
-    if batch_report:
-        insert_json = await insert_post_data(
-            add_insert_metadata(batch_report, index_name)
+    # Send reports in batches
+    total_reports = len(all_enriched_reports)
+    logger.info(f"Sending {total_reports} reports in batches of {batch_size}")
+
+    for i in range(0, total_reports, batch_size):
+        batch = all_enriched_reports[i : i + batch_size]
+        current_batch = i // batch_size + 1
+        total_batches = (total_reports + batch_size - 1) // batch_size
+
+        logger.info(f"Sending batch {current_batch} of {total_batches}")
+        insert_json = await send_to_insert_service(
+            add_insert_metadata(batch, index_name)
         )
-        logger.info(insert_json)
+
+        status = insert_json.get("status", "unknown")
+        detail = insert_json.get("detail", "no details provided")
+        logger.info(
+            f"Batch {current_batch}/{total_batches} - Status: {status} - Detail: {detail}"
+        )
+
+        if status != "success":
+            logger.error(f"Failed to insert batch {current_batch}: {detail}")
 
     end_time = time.time()
     execution_time = round(end_time - start_time, 2)
@@ -131,6 +138,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
     return {
         "status": "success",
         "execution_time": execution_time,
-        "total_reports": len(all_enriched_reports),
+        "total_reports": total_reports,
         "total_spend": round(total_spend, 2),
     }
