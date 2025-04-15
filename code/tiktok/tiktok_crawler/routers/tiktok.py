@@ -1,7 +1,8 @@
-from fastapi import APIRouter  # type: ignore
 import logging
 import time
 import asyncio
+from datetime import datetime
+from fastapi import APIRouter  # type: ignore
 
 from tools import get_logger
 from services import (
@@ -107,7 +108,12 @@ async def tiktok_business_get(start_date: str, end_date: str):
                 ad_info=ads[0] if ads else {},
             )
 
-            doc_id = generate_doc_id(report)
+            timestamp = int(
+                datetime.strptime(
+                    report["stat_time_day"], "%Y-%m-%d %H:%M:%S"
+                ).timestamp()
+            )
+            doc_id = f"{report['ad_id']}_{timestamp}"
             enriched_report = enrich_report(detailed_report, index_name, doc_id)
             logger.info(enriched_report)
 
