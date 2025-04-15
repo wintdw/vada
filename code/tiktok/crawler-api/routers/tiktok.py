@@ -93,7 +93,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
             logger.debug(report_data)
 
             doc_id = generate_doc_id(report_data)
-            enriched_report = enrich_report(report_data, doc_id, index_name)
+            enriched_report = enrich_report(report_data, index_name, doc_id)
             logger.info(enriched_report)
 
             batch_report.append(enriched_report)
