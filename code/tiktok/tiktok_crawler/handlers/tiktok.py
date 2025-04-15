@@ -1,5 +1,4 @@
 import json
-import hashlib
 
 from typing import Dict
 
@@ -39,11 +38,6 @@ def save_report(data, filename):
     with open(filename, "a", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False)
         f.write("\n")
-
-
-def generate_doc_id(data: Dict) -> str:
-    serialized_data = json.dumps(data, sort_keys=True)
-    return hashlib.sha256(serialized_data.encode("utf-8")).hexdigest()
 
 
 def enrich_report(report: Dict, index_name: str, doc_id: str) -> Dict:

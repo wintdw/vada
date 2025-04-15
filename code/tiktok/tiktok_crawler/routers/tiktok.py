@@ -17,7 +17,6 @@ from services import (
 from handlers import (
     construct_detailed_report,
     save_report,
-    generate_doc_id,
     enrich_report,
     add_insert_metadata,
 )
