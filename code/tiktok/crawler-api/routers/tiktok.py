@@ -33,6 +33,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
     index_name = "a_quang_nguyen_tiktok_ad_report"
     batch_report = []
     batch_size = 5000
+    all_enriched_reports = []
 
     for advertiser in advertisers:
         # Get advertiser info
@@ -50,8 +51,6 @@ async def tiktok_business_get(start_date: str, end_date: str):
         logger.debug(reports)
 
         for report in reports:
-            time.sleep(3)
-
             # Get ad information
             ads = await tiktok_biz_get_ad(
                 advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
@@ -97,6 +96,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
             logger.info(enriched_report)
 
             batch_report.append(enriched_report)
+            all_enriched_reports.append(enriched_report)
             if len(batch_report) == batch_size:
                 insert_json = await insert_post_data(
                     add_insert_metadata(batch_report, index_name)
@@ -112,3 +112,9 @@ async def tiktok_business_get(start_date: str, end_date: str):
             add_insert_metadata(batch_report, index_name)
         )
         logger.info(insert_json)
+
+    return {
+        "status": "success",
+        "data": all_enriched_reports,
+        "total_reports": len(all_enriched_reports),
+    }
