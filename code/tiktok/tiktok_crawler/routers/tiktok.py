@@ -44,9 +44,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
         advertiser_info = await tiktok_biz_info_advertiser(
             [advertiser["advertiser_id"]]
         )
-        logger.info(
-            f"  → Advertiser name: {advertiser_info[0].get('advertiser_name', 'N/A')}"
-        )
+        logger.info(f"  → Advertiser name: {advertiser_info[0].get('name', 'N/A')}")
         logger.debug(advertiser_info)
 
         # Get integrated report
@@ -58,8 +56,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
         logger.debug(reports)
 
         for report in reports:
-            report_id = f"{report.get('ad_id')}_{report.get('stat_time_day')}"
-            logger.info(f"\nProcessing report ID: {report_id}")
+            logger.info(f"\nProcessing report for ad_id: {report.get('ad_id')}")
             logger.info(f"  → Report date: {report.get('stat_time_day')}")
             logger.info(f"  → Report spend: {report.get('spend', '0')}")
 
