@@ -21,7 +21,7 @@ from handlers import (
 )
 
 router = APIRouter()
-logger = get_logger(__name__, logging.DEBUG)
+logger = get_logger(__name__, logging.INFO)
 
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
@@ -38,9 +38,14 @@ async def tiktok_business_get(start_date: str, end_date: str):
     all_enriched_reports = []
 
     for advertiser in advertisers:
+        logger.info(f"Processing advertiser ID: {advertiser['advertiser_id']}")
+
         # Get advertiser info
         advertiser_info = await tiktok_biz_info_advertiser(
             [advertiser["advertiser_id"]]
+        )
+        logger.info(
+            f"  → Advertiser name: {advertiser_info[0].get('advertiser_name', 'N/A')}"
         )
         logger.debug(advertiser_info)
 
@@ -53,33 +58,52 @@ async def tiktok_business_get(start_date: str, end_date: str):
         logger.debug(reports)
 
         for report in reports:
-            # # Skip reports with zero spend
-            # if float(report.get("spend", "0")) == 0:
-            #     continue
+            report_id = f"{report.get('ad_id')}_{report.get('stat_time_day')}"
+            logger.info(f"\nProcessing report ID: {report_id}")
+            logger.info(f"  → Report date: {report.get('stat_time_day')}")
+            logger.info(f"  → Report spend: {report.get('spend', '0')}")
+
+            if float(report.get("spend", "0")) == 0:
+                logger.info("    ✗ Skipping report with zero spend")
+                continue
 
             # Get ad information
+            logger.info(f"  → Getting ad information for ID: {report['ad_id']}")
             ads = await tiktok_biz_get_ad(
                 advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
             )
-            logger.debug(ads)
-
-            if not ads:
+            if ads:
+                logger.info(f"    ✓ Found ad: {ads[0].get('ad_name', 'N/A')}")
+            else:
+                logger.info("    ✗ No ad information found, skipping")
                 continue
 
             # Get campaign information
+            logger.info(
+                f"  → Getting campaign information for ID: {ads[0]['campaign_id']}"
+            )
             campaigns = await tiktok_biz_get_campaign(
                 advertiser_id=advertiser["advertiser_id"],
                 campaign_ids=[ads[0]["campaign_id"]],
             )
-            logger.debug(campaigns)
+            if campaigns:
+                logger.info(
+                    f"    ✓ Found campaign: {campaigns[0].get('campaign_name', 'N/A')}"
+                )
 
             # Get ad group information
+            logger.info(
+                f"  → Getting ad group information for ID: {ads[0]['adgroup_id']}"
+            )
             adgroups = await tiktok_biz_get_adgroup(
                 advertiser_id=advertiser["advertiser_id"],
                 campaign_ids=[ads[0]["campaign_id"]],
                 adgroup_ids=[ads[0]["adgroup_id"]],
             )
-            logger.debug(adgroups)
+            if adgroups:
+                logger.info(
+                    f"    ✓ Found ad group: {adgroups[0].get('adgroup_name', 'N/A')}"
+                )
 
             # Create and process report
             report_data = construct_detailed_report(
