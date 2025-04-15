@@ -3,9 +3,14 @@ import sys
 import json
 from pythonjsonlogger import jsonlogger
 from datetime import datetime, timezone, timedelta
+import contextvars
 
 # Define GMT+7 timezone
 GMT_PLUS_7 = timezone(timedelta(hours=7))
+
+# Create a context variable to store the request ID
+request_id = contextvars.ContextVar("request_id", default=None)
+
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     """Custom JSON formatter to match the required log payload structure."""
@@ -18,13 +23,15 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         log_payload = {
             "timestamp": record.timestamp,
             "level": record.levelname,
-            "message": record.getMessage(),
             "logger_name": record.name,
             "module": record.pathname,
             "line": record.lineno,
+            "message": record.getMessage(),
+            "request_id": request_id.get(),
         }
 
         return json.dumps(log_payload, ensure_ascii=False)
+
 
 def get_logger(name: str, level: int = logging.INFO):
     """Returns a structured JSON logger with GMT+7 timestamps."""

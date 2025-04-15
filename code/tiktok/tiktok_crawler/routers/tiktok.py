@@ -1,10 +1,11 @@
 import logging
 import time
+import uuid
 import asyncio
 from datetime import datetime
 from fastapi import APIRouter  # type: ignore
+from tools import get_logger, request_id
 
-from tools import get_logger
 from services import (
     tiktok_biz_get_advertiser,
     tiktok_biz_info_advertiser,
@@ -27,6 +28,10 @@ logger = get_logger(__name__, logging.INFO)
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
 async def tiktok_business_get(start_date: str, end_date: str):
+    # Generate and set request ID at the start of each request
+    req_id = str(uuid.uuid4())
+    request_id.set(req_id)
+
     start_time = time.time()
 
     # Get all advertisers
