@@ -34,7 +34,7 @@ async def tiktok_business_get(start_date: str, end_date: str):
 
     index_name = "a_quang_nguyen_tiktok_ad_report"
     batch_report = []
-    batch_size = 5000
+    batch_size = 1000
     all_enriched_reports = []
 
     for advertiser in advertisers:
