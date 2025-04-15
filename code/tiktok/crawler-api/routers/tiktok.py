@@ -118,9 +118,12 @@ async def tiktok_business_get(start_date: str, end_date: str):
     end_time = time.time()
     execution_time = round(end_time - start_time, 2)
 
+    # Calculate total spending
+    total_spend = sum(float(report.get("spend", 0)) for report in all_enriched_reports)
+
     return {
         "status": "success",
         "execution_time": execution_time,
         "total_reports": len(all_enriched_reports),
-        "data": all_enriched_reports,
+        "total_spend": round(total_spend, 2),
     }
