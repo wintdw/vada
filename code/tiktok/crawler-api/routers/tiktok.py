@@ -1,169 +1,114 @@
 from fastapi import APIRouter
 import time
-import json
+import logging
 
 from tools import get_logger
 from services import (
-  tiktok_biz_get_advertiser,
-  tiktok_biz_info_advertiser,
-  tiktok_biz_get_report_integrated,
-  tiktok_biz_get_ad,
-  tiktok_biz_get_campaign,
-  tiktok_biz_get_adgroup,
-  insert_post_data
-)
-from models import (
-  AdvertiserResponse,
-  ReportIntegratedResponse,
-  AdResponse,
-  CampaignResponse,
-  AdGroupResponse
+    tiktok_biz_get_advertiser,
+    tiktok_biz_info_advertiser,
+    tiktok_biz_get_report_integrated,
+    tiktok_biz_get_ad,
+    tiktok_biz_get_campaign,
+    tiktok_biz_get_adgroup,
+    insert_post_data,
 )
 from handlers import (
-  create_report,
-  save_report,
-  generate_doc_id,
-  enrich_report,
-  add_insert_metadata
+    construct_detailed_report,
+    save_report,
+    generate_doc_id,
+    enrich_report,
+    add_insert_metadata,
 )
 
 router = APIRouter()
-logger = get_logger(__name__, 20)
+logger = get_logger(__name__, logging.DEBUG)
+
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
 async def tiktok_business_get(start_date: str, end_date: str):
-  advertiser_json = await tiktok_biz_get_advertiser()
-  logger.debug(advertiser_json)
-  advertiser_response = AdvertiserResponse.model_validate(advertiser_json)
-  logger.debug(advertiser_response)
+    # Get all advertisers
+    advertisers = await tiktok_biz_get_advertiser()
+    logger.debug(advertisers)
 
-  index_name = "a_quang_nguyen_tiktok_ad_report"
-  dimensions = ["ad_id", "stat_time_day"]
-  metrics = [
-    "spend",
-    "billed_cost",
-    "cash_spend",
-    "voucher_spend",
-    "cpc",
-    "cpm",
-    "impressions",
-    "gross_impressions",
-    "clicks",
-    "ctr",
-    "reach",
-    "cost_per_1000_reached",
-    "frequency",
-    "conversion",
-    "cost_per_conversion",
-    "conversion_rate",
-    "conversion_rate_v2",
-    "real_time_conversion",
-    "real_time_cost_per_conversion",
-    "real_time_conversion_rate",
-    "real_time_conversion_rate_v2",
-    "result",
-    "cost_per_result",
-    "result_rate",
-    "real_time_result",
-    "real_time_cost_per_result",
-    "real_time_result_rate",
-    "secondary_goal_result",
-    "cost_per_secondary_goal_result",
-    "secondary_goal_result_rate",
-  ]
+    index_name = "a_quang_nguyen_tiktok_ad_report"
+    batch_report = []
+    batch_size = 5000
 
-  batch_report = []
-  batch_size = 5000
-
-  for advertiser in advertiser_response.data.list:
-
-    time.sleep(3)
-  
-    advertiser_info_json = await tiktok_biz_info_advertiser(params={"advertiser_ids": json.dumps([advertiser.advertiser_id])})
-    logger.debug(advertiser_info_json)
-
-    page = 1
-    report_integrated_done = False
-    
-    while report_integrated_done == False:
-      report_integrated_json = await tiktok_biz_get_report_integrated(params={
-        "advertiser_id": advertiser.advertiser_id,
-        "report_type": "BASIC",
-        "dimensions": json.dumps(dimensions),
-        "data_level": "AUCTION_AD",
-        "start_date": start_date,
-        "end_date": end_date,
-        "metrics": json.dumps(metrics),
-        "page": page,
-        "page_size": 100
-      })
-      logger.debug(report_integrated_json)
-      report_integrated_response = ReportIntegratedResponse.model_validate(report_integrated_json)
-      logger.debug(report_integrated_response)
-    
-      if report_integrated_response.data.page_info.total_page > page:
-        page += 1
-      else:
-        report_integrated_done = True
-
-      for report_integrated in report_integrated_response.data.list:
-      
-        time.sleep(3)
-        
-        ad_filtering = {"ad_ids": [report_integrated.dimensions.ad_id]}
-        ad_json = await tiktok_biz_get_ad(params={
-          "advertiser_id": advertiser.advertiser_id,
-          "filtering": json.dumps(ad_filtering)
-        })
-        logger.debug(ad_json)
-        ad_response = AdResponse.model_validate(ad_json)
-        logger.debug(ad_response)
-
-        campaign_filtering = {"campaign_ids": [ad_response.data.list[0].campaign_id]}
-        campaign_json = await tiktok_biz_get_campaign(params={
-          "advertiser_id": advertiser.advertiser_id,
-          "filtering": json.dumps(campaign_filtering)
-        })
-        logger.debug(campaign_json)
-        campaign_response = CampaignResponse.model_validate(campaign_json)
-        logger.debug(campaign_response)
-
-        adgroup_filtering = {"campaign_ids": [ad_response.data.list[0].campaign_id], "adgroup_ids": [ad_response.data.list[0].adgroup_id]}
-        adgroup_json = await tiktok_biz_get_adgroup(params={
-          "advertiser_id": advertiser.advertiser_id,
-          "filtering": json.dumps(adgroup_filtering)
-        })
-        logger.debug(adgroup_json)
-        adgroup_response = AdGroupResponse.model_validate(adgroup_json)
-        logger.debug(adgroup_response)
-
-        report = create_report(
-          advertiser_info=advertiser_info_json,
-          report_integrated=report_integrated_json,
-          ad=ad_json,
-          campaign=campaign_json,
-          adgroup=adgroup_json
+    for advertiser in advertisers:
+        # Get advertiser info
+        advertiser_info = await tiktok_biz_info_advertiser(
+            [advertiser["advertiser_id"]]
         )
-        if not report:
-          continue
+        logger.debug(advertiser_info)
 
-        else:
-          logger.debug(report)
-          
-          doc_id = generate_doc_id(report)
-          logger.debug(doc_id)
+        # Get integrated report
+        reports = await tiktok_biz_get_report_integrated(
+            advertiser_id=advertiser["advertiser_id"],
+            start_date=start_date,
+            end_date=end_date,
+        )
+        logger.debug(reports)
 
-          enriched_report = enrich_report(report, doc_id, index_name)
-          logger.info(enriched_report)
+        for report in reports:
+            time.sleep(3)
 
-          batch_report.append(enriched_report)
-          if len(batch_report) == batch_size:
-            insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
-            logger.info(insert_json)
-            batch_report = []
+            # Get ad information
+            ads = await tiktok_biz_get_ad(
+                advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
+            )
+            logger.debug(ads)
 
-          save_report(enriched_report, "report.jsonl")
+            if not ads:
+                continue
 
-  if len(batch_report):
-    insert_json = await insert_post_data(add_insert_metadata(batch_report, index_name))
-    logger.info(insert_json)
+            # Get campaign information
+            campaigns = await tiktok_biz_get_campaign(
+                advertiser_id=advertiser["advertiser_id"],
+                campaign_ids=[ads[0]["campaign_id"]],
+            )
+            logger.debug(campaigns)
+
+            # Get ad group information
+            adgroups = await tiktok_biz_get_adgroup(
+                advertiser_id=advertiser["advertiser_id"],
+                campaign_ids=[ads[0]["campaign_id"]],
+                adgroup_ids=[ads[0]["adgroup_id"]],
+            )
+            logger.debug(adgroups)
+
+            # Create and process report
+            report_data = construct_detailed_report(
+                report=report,
+                advertiser_info=advertiser_info[0] if advertiser_info else {},
+                campaign_info=campaigns[0] if campaigns else {},
+                adgroup_info=adgroups[0] if adgroups else {},
+                ad_info=ads[0] if ads else {},
+            )
+
+            if not report_data:
+                continue
+
+            logger.debug(report_data)
+
+            doc_id = generate_doc_id(report_data)
+            logger.debug(doc_id)
+
+            enriched_report = enrich_report(report_data, doc_id, index_name)
+            logger.info(enriched_report)
+
+            batch_report.append(enriched_report)
+            if len(batch_report) == batch_size:
+                insert_json = await insert_post_data(
+                    add_insert_metadata(batch_report, index_name)
+                )
+                logger.info(insert_json)
+                batch_report = []
+
+            save_report(enriched_report, "report.jsonl")
+
+    # Insert any remaining reports
+    if batch_report:
+        insert_json = await insert_post_data(
+            add_insert_metadata(batch_report, index_name)
+        )
+        logger.info(insert_json)
