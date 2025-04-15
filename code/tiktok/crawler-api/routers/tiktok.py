@@ -1,6 +1,6 @@
-from fastapi import APIRouter
-import time
+from fastapi import APIRouter  # type: ignore
 import logging
+import time
 
 from tools import get_logger
 from services import (
@@ -26,6 +26,8 @@ logger = get_logger(__name__, logging.DEBUG)
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
 async def tiktok_business_get(start_date: str, end_date: str):
+    start_time = time.time()
+
     # Get all advertisers
     advertisers = await tiktok_biz_get_advertiser()
     logger.debug(advertisers)
@@ -113,8 +115,12 @@ async def tiktok_business_get(start_date: str, end_date: str):
         )
         logger.info(insert_json)
 
+    end_time = time.time()
+    execution_time = round(end_time - start_time, 2)
+
     return {
         "status": "success",
-        "data": all_enriched_reports,
+        "execution_time": execution_time,
         "total_reports": len(all_enriched_reports),
+        "data": all_enriched_reports,
     }
