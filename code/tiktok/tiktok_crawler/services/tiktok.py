@@ -186,7 +186,22 @@ async def tiktok_biz_get_report_integrated(
             "cost_per_total_purchase",
             "value_per_total_purchase",
             "total_purchase_value",
-            "total_active_pay_roas"
+            "total_active_pay_roas",
+            "video_play_actions",
+            "video_watched_2s",
+            "video_watched_6s",
+            "engaged_view",
+            "paid_engaged_view",
+            "paid_engagement_engaged_view",
+            "engaged_view_15s",
+            "paid_engaged_view_15s",
+            "paid_engagement_engaged_view_15s",
+            "average_video_play",
+            "average_video_play_per_user",
+            "live_views",
+            "live_unique_views",
+            "live_effective_views",
+            "live_product_clicks"
         ]
 
     while True:
