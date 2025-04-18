@@ -271,7 +271,13 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary representing the Elasticsearch mappings.
     """
     es_mappings = {
-        "mappings": {"dynamic": True, "properties": {}},
+        "mappings": {
+            "dynamic": True,
+            "dynamic_date_formats": [
+                "strict_date_optional_time||epoch_millis||epoch_second||basic_date||strict_date_optional_time||yyyy/MM/dd HH:mm:ss"
+            ],
+            "properties": {},
+        },
     }
 
     for field, field_type in field_types.items():
