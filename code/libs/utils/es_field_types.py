@@ -193,7 +193,17 @@ def convert_es_field_types(
                         try:
                             int_value = int(value)
                             data[field] = datetime.fromtimestamp(
-                                int_value, timezone.utc
+                                # Convert to seconds if in milliseconds or microseconds
+                                (
+                                    int_value / 1000000
+                                    if int_value > 100000000000000  # microseconds
+                                    else (
+                                        int_value / 1000
+                                        if int_value > 100000000000  # milliseconds
+                                        else int_value
+                                    )
+                                ),  # seconds
+                                timezone.utc,
                             ).isoformat()
                         except (ValueError, TypeError):
                             # If all parsing fails, try dateutil parser
