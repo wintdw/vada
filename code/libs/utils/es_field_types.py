@@ -272,10 +272,9 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     """
     date_formats = [
         "strict_date_optional_time",
-        "epoch_millis",
-        "epoch_second",
         "basic_date",
-        "strict_date_optional_time",
+        "basic_date_time",
+        "basic_date_time_no_millis",
         "yyyy/MM/dd HH:mm:ss",
     ]
 
