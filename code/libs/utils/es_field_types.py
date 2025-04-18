@@ -305,15 +305,7 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
                     },
                 },
             }
-        elif es_field_type in ["nested", "object"]:
-            # For nested and object types, add dynamic mapping and date formats
-            es_mappings["mappings"]["properties"][field] = {
-                "type": es_field_type,
-                "dynamic": True,
-                "dynamic_date_formats": date_formats,
-            }
-        else:
-            # For other non-text fields, keep as is
-            es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
+
+        es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
 
     return es_mappings
