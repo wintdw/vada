@@ -240,20 +240,22 @@ def convert_es_field_types(
     return converted_json_objects
 
 
-def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str, Any]]:
+def determine_and_convert_es_field_types(
+    json_lines: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
     """
-    Determine Elasticsearch field types and convert fields in a list of JSON lines.
+    Determine Elasticsearch field types and convert fields in a list of JSON objects, with nested field support.
 
     Args:
-        json_lines (List[str]): A list of JSON strings, each representing a line of data.
+        json_lines (List[Dict[str, Any]]): A list of JSON objects, each representing a line of data.
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries with fields converted to their determined Elasticsearch types.
-
-    The function first determines the most probable Elasticsearch field types for each field in the JSON lines.
-    It then converts the fields in the JSON lines to these determined types, ensuring compatibility with Elasticsearch.
     """
+    # First determine field types including nested fields
     field_types = determine_es_field_types(json_lines)
+
+    # Then convert all fields according to their determined types
     converted_json_lines = convert_es_field_types(json_lines, field_types)
 
     return converted_json_lines
@@ -261,13 +263,14 @@ def determine_and_convert_es_field_types(json_lines: List[str]) -> List[Dict[str
 
 def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     """
-    Construct Elasticsearch mappings based on field types.
+    Construct Elasticsearch mappings based on field types, with support for nested fields.
 
     Args:
-        field_types (Dict[str, str]): A dictionary where keys are field names and values are the determined Elasticsearch field types.
+        field_types (Dict[str, str]): A dictionary where keys are field names (including nested paths)
+                                     and values are the determined Elasticsearch field types.
 
     Returns:
-        Dict[str, Any]: A dictionary representing the Elasticsearch mappings.
+        Dict[str, Any]: A dictionary representing the Elasticsearch mappings with nested field support.
     """
     date_formats = [
         "strict_date_optional_time",
@@ -282,29 +285,49 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             "dynamic": True,
             "dynamic_date_formats": date_formats,
             "properties": {},
-        },
+        }
     }
 
-    for field, field_type in field_types.items():
-        es_field_type = field_type
-        # for the list of str/int, or "unknown"
-        if field_type == "unknown":
-            es_field_type = "text"
+    def add_nested_field(
+        properties: Dict[str, Any], field_path: str, field_type: str
+    ) -> None:
+        """Helper function to add nested field mappings"""
+        parts = field_path.split(".")
+        current = properties
 
-        # Add field mapping
-        if es_field_type == "text":
-            # Add keyword subfield for text fields
-            es_mappings["mappings"]["properties"][field] = {
+        # Handle all parts except the last one
+        for part in parts[:-1]:
+            if part not in current:
+                current[part] = {"type": "object", "properties": {}}
+            elif "properties" not in current[part]:
+                current[part]["properties"] = {}
+            current = current[part]["properties"]
+
+        # Handle the last part (actual field)
+        last_part = parts[-1]
+
+        if field_type == "text":
+            current[last_part] = {
                 "type": "text",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
                         "ignore_above": 256,
                         "eager_global_ordinals": True,
-                    },
+                    }
                 },
             }
+        elif field_type == "nested":
+            current[last_part] = {"type": "nested", "properties": {}}
+        elif field_type == "object":
+            current[last_part] = {"type": "object", "properties": {}}
+        else:
+            # Handle basic types (long, double, boolean, date, etc.)
+            es_field_type = "text" if field_type == "unknown" else field_type
+            current[last_part] = {"type": es_field_type}
 
-        es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
+    # Process each field and build nested structure
+    for field, field_type in field_types.items():
+        add_nested_field(es_mappings["mappings"]["properties"], field, field_type)
 
     return es_mappings
