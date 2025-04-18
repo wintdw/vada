@@ -270,12 +270,19 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A dictionary representing the Elasticsearch mappings.
     """
+    date_formats = [
+        "strict_date_optional_time",
+        "epoch_millis",
+        "epoch_second",
+        "basic_date",
+        "strict_date_optional_time",
+        "yyyy/MM/dd HH:mm:ss",
+    ]
+
     es_mappings = {
         "mappings": {
             "dynamic": True,
-            "dynamic_date_formats": [
-                "strict_date_optional_time||epoch_millis||epoch_second||basic_date||strict_date_optional_time||yyyy/MM/dd HH:mm:ss"
-            ],
+            "dynamic_date_formats": date_formats,
             "properties": {},
         },
     }
@@ -299,8 +306,15 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
                     },
                 },
             }
+        elif es_field_type in ["nested", "object"]:
+            # For nested and object types, add dynamic mapping and date formats
+            es_mappings["mappings"]["properties"][field] = {
+                "type": es_field_type,
+                "dynamic": True,
+                "dynamic_date_formats": date_formats,
+            }
         else:
-            # For non-text fields, keep as is
+            # For other non-text fields, keep as is
             es_mappings["mappings"]["properties"][field] = {"type": es_field_type}
 
     return es_mappings
