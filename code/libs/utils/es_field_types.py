@@ -117,7 +117,9 @@ def determine_es_field_types(
 
 
 def convert_es_field_types(
-    json_objects: List[Dict[str, Any]], field_types: Dict[str, str]
+    json_objects: List[Dict[str, Any]],
+    field_types: Dict[str, str],
+    nested_path: str = "",
 ) -> List[Dict[str, Any]]:
     """
     Convert field types in a list of JSON objects based on specified field types.
@@ -125,7 +127,7 @@ def convert_es_field_types(
     Args:
         json_objects (List[Dict[str, Any]]): A list of JSON objects, each representing a line of data.
         field_types (Dict[str, str]): A dictionary mapping field names to their desired types.
-            Supported types include "boolean", "long", "double", "date", "nested", and "text".
+        nested_path (str): The current nested path (used internally for recursion).
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries with fields converted to the specified types.
@@ -135,109 +137,105 @@ def convert_es_field_types(
         - "long": Converts strings or floats to integers.
         - "double": Converts strings or integers to floats.
         - "date": Converts strings to ISO format dates if they are not already.
-        - "nested": Leaves nested dictionaries unchanged.
+        - "nested": Processes nested lists of dictionaries recursively.
+        - "object": Processes nested dictionaries recursively.
         - "text": Leaves strings unchanged.
         - For numeric fields ("long", "double"), sets None or empty string values to 0.
         - Skips fields that cannot be converted.
     """
-
     converted_json_objects = []
 
     for data in json_objects:
+        converted_data = data.copy()
         for field, value in data.items():
-            field_type = field_types.get(field)
+            full_field_name = f"{nested_path}.{field}" if nested_path else field
+            field_type = field_types.get(full_field_name)
+
+            # Handle nested dictionary
+            if isinstance(value, dict):
+                converted_data[field] = convert_es_field_types(
+                    [value], field_types, full_field_name
+                )[0]
+                continue
+
+            # Handle nested list of dictionaries
+            if (
+                isinstance(value, list)
+                and value
+                and all(isinstance(item, dict) for item in value)
+            ):
+                converted_data[field] = convert_es_field_types(
+                    value, field_types, full_field_name
+                )
+                continue
 
             if value is None or value == "":
                 if field_type in ["long", "double"]:
-                    # If value is None or an empty string, set to 0 for numeric fields
-                    data[field] = 0
-                if field_type == "date":
-                    # Set default date to 1/1/2000 if the value is empty
-                    data[field] = datetime(2000, 1, 1, tzinfo=timezone.utc).isoformat()
-                continue  # No need for further conversion checks
+                    converted_data[field] = 0
+                elif field_type == "date":
+                    converted_data[field] = datetime(
+                        2000, 1, 1, tzinfo=timezone.utc
+                    ).isoformat()
+                continue
 
+            # Rest of the type conversion logic remains the same
             if field_type == "boolean":
-                # Convert "true"/"false" strings to boolean
                 if isinstance(value, str):
-                    data[field] = value.lower() == "true"
+                    converted_data[field] = value.lower() == "true"
                 elif isinstance(value, bool):
-                    data[field] = value
+                    converted_data[field] = value
 
             elif field_type == "long":
-                # Convert string or float to int
                 if isinstance(value, str):
                     try:
-                        data[field] = int(value)
+                        converted_data[field] = int(value)
                     except ValueError:
-                        continue  # If the string can't be converted, leave it unchanged
+                        continue
                 elif isinstance(value, float):
-                    data[field] = int(value)
+                    converted_data[field] = int(value)
 
             elif field_type == "double":
-                # Convert string or int to float
                 if isinstance(value, str):
                     try:
-                        data[field] = float(value)
+                        converted_data[field] = float(value)
                     except ValueError:
-                        continue  # If the string can't be converted, leave it unchanged
+                        continue
                 elif isinstance(value, int):
-                    data[field] = float(value)
+                    converted_data[field] = float(value)
 
             elif field_type == "date":
-                # Convert string to ISO format date if it's not already
                 if isinstance(value, str):
                     try:
-                        # Attempt to parse string as date and convert to ISO format
-                        data[field] = parser.isoparse(value).isoformat()
+                        converted_data[field] = parser.isoparse(value).isoformat()
                     except (ValueError, TypeError):
-                        # If parsing fails, try to convert string to int and then to date
                         try:
                             int_value = int(value)
-                            data[field] = datetime.fromtimestamp(
-                                # Convert to seconds if in milliseconds or microseconds
+                            converted_data[field] = datetime.fromtimestamp(
                                 (
                                     int_value / 1000000
-                                    if int_value > 100000000000000  # microseconds
+                                    if int_value > 100000000000000
                                     else (
                                         int_value / 1000
-                                        if int_value > 100000000000  # milliseconds
+                                        if int_value > 100000000000
                                         else int_value
                                     )
-                                ),  # seconds
+                                ),
                                 timezone.utc,
                             ).isoformat()
                         except (ValueError, TypeError):
-                            # If all parsing fails, try dateutil parser
                             try:
-                                data[field] = parser.parse(value).isoformat()
+                                converted_data[field] = parser.parse(value).isoformat()
                             except (ValueError, TypeError):
-                                continue  # If conversion fails, leave it unchanged
+                                continue
                 elif isinstance(value, int):
-                    # Convert integer timestamp to ISO format date
                     try:
-                        data[field] = datetime.fromtimestamp(
+                        converted_data[field] = datetime.fromtimestamp(
                             value, timezone.utc
                         ).isoformat()
                     except (ValueError, TypeError):
-                        continue  # If parsing fails, leave it unchanged
+                        continue
 
-            elif field_type == "object" and isinstance(value, dict):
-                # If it's a dictionary, no need to modify
-                pass
-
-            elif field_type == "nested" and isinstance(value, list):
-                # If it's a nested dictionary, no need to modify
-                pass
-
-            elif field_type == "text" and isinstance(value, str):
-                # Text are typically strings and don't require conversion
-                pass
-
-            else:
-                # For other types (or unclassified types), no conversion needed
-                pass
-
-        converted_json_objects.append(data)
+        converted_json_objects.append(converted_data)
 
     return converted_json_objects
 
