@@ -5,26 +5,18 @@ from dateutil import parser  # type: ignore
 from typing import Dict, List, Any
 
 
-def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, str]:
+def determine_es_field_types(
+    json_objects: List[Dict[str, Any]], nested_path: str = ""
+) -> Dict[str, str]:
     """
-    Determines the Elasticsearch field types for a list of JSON objects.
+    Determines the Elasticsearch field types for a list of JSON objects, including nested objects.
 
     Args:
         json_objects (List[Dict[str, Any]]): A list of JSON objects, each representing a line of data.
+        nested_path (str): The current nested path (used internally for recursion).
 
     Returns:
         Dict[str, str]: A dictionary where keys are field names and values are the determined Elasticsearch field types.
-
-    The function analyzes each field in the JSON objects and classifies it into one of the following Elasticsearch types:
-        - "boolean": For boolean values.
-        - "long": For integer values that are not likely timestamps.
-        - "double": For floating-point numbers or strings that can be converted to floats.
-        - "date": For integer values that are likely timestamps or strings that can be parsed as dates.
-        - "text": For strings that are not dates, numbers.
-        - "nested": For lists of dictionaries.
-        - "unknown": For lists that do not fit the above criteria.
-
-    The function uses heuristics to determine the most probable type for each field, prioritizing "double" if any double values are detected.
     """
 
     def is_valid_timestamp(value: int) -> bool:
@@ -44,68 +36,77 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
 
     for data in json_objects:
         for field, value in data.items():
-            # Determine the type of the value based on ES data types
+            full_field_name = f"{nested_path}.{field}" if nested_path else field
+
+            # Handle nested dictionary
+            if isinstance(value, dict):
+                nested_types = determine_es_field_types([value], full_field_name)
+                for nested_field, nested_type in nested_types.items():
+                    field_type_counts[nested_field][nested_type] += 1
+                field_type_counts[full_field_name]["object"] += 1
+                continue
+
+            # Handle nested list of dictionaries
+            if (
+                isinstance(value, list)
+                and value
+                and all(isinstance(item, dict) for item in value)
+            ):
+                nested_types = determine_es_field_types(value, full_field_name)
+                for nested_field, nested_type in nested_types.items():
+                    field_type_counts[nested_field][nested_type] += 1
+                field_type_counts[full_field_name]["nested"] += 1
+                continue
+
+            # Rest of the existing type detection logic
             if isinstance(value, bool):
-                field_type_counts[field]["boolean"] += 1
+                field_type_counts[full_field_name]["boolean"] += 1
             elif isinstance(value, int):
-                # Check if the integer is a likely timestamp
                 if is_valid_timestamp(value):
-                    field_type_counts[field]["date"] += 1
+                    field_type_counts[full_field_name]["date"] += 1
                 else:
-                    field_type_counts[field]["long"] += 1
+                    field_type_counts[full_field_name]["long"] += 1
             elif isinstance(value, float):
-                field_type_counts[field]["double"] += 1
+                field_type_counts[full_field_name]["double"] += 1
             elif isinstance(value, str):
                 if not value:
-                    continue  # Skip empty strings
-                if value.lower() in ["true", "false"]:
-                    field_type_counts[field]["boolean"] += 1
                     continue
-                # Try to convert the string into a number (either int or float)
+                if value.lower() in ["true", "false"]:
+                    field_type_counts[full_field_name]["boolean"] += 1
+                    continue
                 try:
                     int_value = int(value)
-                    # Check if it's timestamp
                     if is_valid_timestamp(int_value):
-                        field_type_counts[field]["date"] += 1
-                    # if it's too long -> keep it text
+                        field_type_counts[full_field_name]["date"] += 1
                     elif len(value) > 13:
-                        field_type_counts[field]["text"] += 1
+                        field_type_counts[full_field_name]["text"] += 1
                     else:
-                        field_type_counts[field]["long"] += 1
+                        field_type_counts[full_field_name]["long"] += 1
                 except (ValueError, OverflowError):
                     try:
                         float(value)
-                        field_type_counts[field]["double"] += 1
+                        field_type_counts[full_field_name]["double"] += 1
                     except ValueError:
-                        # Check if the string is a valid date-time
                         try:
                             parser.parse(value)
-                            field_type_counts[field]["date"] += 1
-                        # Catch all other exception from dateutil.parser
+                            field_type_counts[full_field_name]["date"] += 1
                         except:
-                            # If not a date, classify as text
-                            field_type_counts[field]["text"] += 1
+                            field_type_counts[full_field_name]["text"] += 1
             elif isinstance(value, list):
-                # Handle empty lists
                 if not value:
-                    field_type_counts[field]["unknown"] += 1
-                # If the list contains dictionaries, classify as nested
+                    field_type_counts[full_field_name]["unknown"] += 1
                 elif all(isinstance(item, dict) for item in value):
-                    field_type_counts[field]["nested"] += 1
+                    field_type_counts[full_field_name]["nested"] += 1
                 else:
-                    field_type_counts[field]["unknown"] += 1
-            elif isinstance(value, dict):
-                field_type_counts[field]["object"] += 1
+                    field_type_counts[full_field_name]["unknown"] += 1
 
-    # Determine the most probable type for each field, applying the logic for 'double' when needed
+    # Determine the most probable type for each field
     field_types = {}
     for field, type_counts in field_type_counts.items():
         most_probable_type = max(type_counts, key=type_counts.get)
-        # If there are any text values, set the field type to text
         if "text" in type_counts:
             most_probable_type = "text"
         elif most_probable_type == "long" and "double" in type_counts:
-            # If the most probable type is 'long' but 'double' was also detected, classify as 'double'
             most_probable_type = "double"
 
         field_types[field] = most_probable_type
