@@ -35,7 +35,7 @@ def construct_detailed_report(
 
 
 def save_report(data, filename):
-    with open(filename, "a", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8") as f:  # Changed "a" to "w"
         json.dump(data, f, ensure_ascii=False)
         f.write("\n")
 
