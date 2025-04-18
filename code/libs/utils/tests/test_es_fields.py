@@ -156,8 +156,11 @@ def test_construct_es_mappings():
                 "name": {
                     "type": "text",
                     "fields": {
-                        "keyword": {"type": "keyword", "ignore_above": 256},
-                        "eager_global_ordinals": True,
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256,
+                            "eager_global_ordinals": True,
+                        },
                     },
                 },
                 "age": {"type": "double"},
@@ -165,8 +168,11 @@ def test_construct_es_mappings():
                 "scores": {
                     "type": "text",
                     "fields": {
-                        "keyword": {"type": "keyword", "ignore_above": 256},
-                        "eager_global_ordinals": True,
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256,
+                            "eager_global_ordinals": True,
+                        },
                     },
                 },
                 "address": {"type": "object"},
@@ -174,8 +180,11 @@ def test_construct_es_mappings():
                 "tags": {
                     "type": "text",
                     "fields": {
-                        "keyword": {"type": "keyword", "ignore_above": 256},
-                        "eager_global_ordinals": True,
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256,
+                            "eager_global_ordinals": True,
+                        },
                     },
                 },
                 "contacts": {"type": "nested"},
