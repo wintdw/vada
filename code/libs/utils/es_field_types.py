@@ -32,8 +32,11 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
         # Start of 2000: 946684800
         # End of 2100: 4102444800
         # With milliseconds: Start of 2000: 946684800000, End of 2100: 4102444800000
-        return (946684800 <= value <= 4102444800) or (
-            946684800000 <= value <= 4102444800000
+        # With microseconds: Start of 2000: 946684800000000, End of 2100: 4102444800000000
+        return (
+            (946684800 <= value <= 4102444800)
+            or (946684800000 <= value <= 4102444800000)
+            or (946684800000000 <= value <= 4102444800000000)
         )
 
     # Initialize a dictionary to count the occurrences of each type for each field
@@ -61,12 +64,12 @@ def determine_es_field_types(json_objects: List[Dict[str, Any]]) -> Dict[str, st
                 # Try to convert the string into a number (either int or float)
                 try:
                     int_value = int(value)
-                    # if it's too long -> keep it text
-                    if len(value) > 15:
-                        field_type_counts[field]["text"] += 1
                     # Check if it's timestamp
-                    elif is_valid_timestamp(int_value):
+                    if is_valid_timestamp(int_value):
                         field_type_counts[field]["date"] += 1
+                    # if it's too long -> keep it text
+                    elif len(value) > 13:
+                        field_type_counts[field]["text"] += 1
                     else:
                         field_type_counts[field]["long"] += 1
                 except (ValueError, OverflowError):

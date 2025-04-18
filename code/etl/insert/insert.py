@@ -10,7 +10,7 @@ import asyncio
 from fastapi import FastAPI, Request, HTTPException, status, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
-from pydantic import BaseModel
+from pydantic import BaseModel  # type: ignore
 from typing import List, Dict, Any
 
 from etl.libs.vadadoc import VadaDocument

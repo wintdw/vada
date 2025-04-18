@@ -61,7 +61,7 @@ json_lines = [
     },  # Price as string "123.45" and discount as string "10"
     {"price": ""},  # Empty price to test convert intelligence
     {"price": ""},
-    {"another_date": "2025-01-15T15:46:56"},
+    {"another_date": "2025-01-15 15:46:56"},
 ]
 
 
