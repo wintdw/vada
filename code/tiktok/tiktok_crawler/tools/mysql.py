@@ -3,10 +3,10 @@ from contextlib import asynccontextmanager
 import os
 from .logger import get_logger
 
-MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
-MYSQL_USER = os.getenv("MYSQL_USER", "permission")
-MYSQL_DB = os.getenv("MYSQL_DB", "vadata")
-mysql_passwd_file = os.getenv("MYSQL_PASSWD_FILE", "")
+MYSQL_HOST = os.getenv("MYSQL_HOST")
+MYSQL_USER = os.getenv("MYSQL_USER")
+MYSQL_DB = os.getenv("MYSQL_DB")
+mysql_passwd_file = os.getenv("MYSQL_PASSWD_FILE")
 if mysql_passwd_file and os.path.isfile(mysql_passwd_file):
     with open(mysql_passwd_file, "r") as file:
         MYSQL_PASSWD = file.read().strip()

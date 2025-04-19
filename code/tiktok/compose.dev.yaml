@@ -1,3 +1,7 @@
+secrets:
+  mysql_crawler:
+    file: /var/secret/docker/mysql/crawler
+
 services:
   crawler-api:
     build:
@@ -8,7 +12,13 @@ services:
     restart: always
     ports:
       - "8145:8145"
+    secrets:
+      - mysql_crawler
     environment:
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: crawler
+      MYSQL_DB: crawler_dev
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
       TIKTOK_BIZ_API_URL: https://business-api.tiktok.com/open_api/v1.3
       TIKTOK_BIZ_ACCESS_TOKEN: 7eef26234e84b613f08fe8ddbbe7c22e2fdc28e3
       TIKTOK_BIZ_APP_ID: 7480814660439146497
