@@ -24,11 +24,8 @@ def determine_es_field_types(
         # Start of 2000: 946684800
         # End of 2100: 4102444800
         # With milliseconds: Start of 2000: 946684800000, End of 2100: 4102444800000
-        # With microseconds: Start of 2000: 946684800000000, End of 2100: 4102444800000000
-        return (
-            (946684800 <= value <= 4102444800)
-            or (946684800000 <= value <= 4102444800000)
-            or (946684800000000 <= value <= 4102444800000000)
+        return (946684800 <= value <= 4102444800) or (
+            946684800000 <= value <= 4102444800000
         )
 
     # Initialize a dictionary to count the occurrences of each type for each field

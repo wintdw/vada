@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from libs.utils.es_field_types import (
     construct_es_mappings,
     determine_and_convert_es_field_types,
