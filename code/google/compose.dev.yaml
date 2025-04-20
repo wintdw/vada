@@ -1,3 +1,7 @@
+secrets:
+  google_app_secret:
+    file: /var/secret/docker/google/app_secret
+
 services:
   crawler-api:
     build:
@@ -8,3 +12,7 @@ services:
     restart: always
     ports:
       - "8146:8146"
+    environment:
+      GOOGLE_APP_SECRET_FILE: /run/secrets/google_app_secret
+    secrets:
+      - google_app_secret

@@ -38,13 +38,21 @@ async def get_auth_url(flows: dict = Depends(get_flows)):
     """Generate and return a Google OAuth authorization URL"""
     try:
         scopes = ["https://www.googleapis.com/auth/adwords"]
-        client_secrets_path = "client_secret_960285879954-o9dm5719frfvuqd7j4bbvm962gg1577g.apps.googleusercontent.com.json"
+
+        # Get secret file path from environment variable
+        client_secrets_path = os.getenv("GOOGLE_APP_SECRET_FILE")
+        if not client_secrets_path:
+            raise ValueError("GOOGLE_APP_SECRET_FILE environment variable is not set")
+
+        if not os.path.exists(client_secrets_path):
+            raise FileNotFoundError(f"Secret file not found at: {client_secrets_path}")
+
         redirect_uri = "https://google.vadata.vn/connector/google/auth"
 
         # Generate a secure random state value
         passthrough_val = hashlib.sha256(os.urandom(1024)).hexdigest()
 
-        # Create OAuth flow
+        # Create OAuth flow using the secret file from environment variable
         flow = Flow.from_client_secrets_file(client_secrets_path, scopes=scopes)
         flow.redirect_uri = redirect_uri
 
