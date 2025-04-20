@@ -10,7 +10,7 @@ from routers import (
 app = FastAPI()
 
 @app.on_event("startup")
-@repeat_every(seconds=60)  # Executes every 60 seconds
+@repeat_every(seconds=86400)  # Executes every 1 day
 async def periodic_task() -> None:
     from routers.schedule import post_schedule_auth, post_schedule_crawl
 

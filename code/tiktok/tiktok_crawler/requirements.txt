@@ -6,3 +6,4 @@ python-json-logger
 aiohttp
 pydantic-settings
 fastapi-utils
+typing-inspect
