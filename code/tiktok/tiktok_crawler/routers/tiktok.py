@@ -27,7 +27,7 @@ logger = get_logger(__name__, logging.INFO)
 
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
-async def tiktok_business_get(start_date: str, end_date: str):
+async def tiktok_business_get(index_name: str, access_token: str, start_date: str, end_date: str):
     # Generate and set request ID at the start of each request
     req_id = str(uuid.uuid4())[:8]  # Take first 8 characters
     request_id.set(req_id)
@@ -35,12 +35,11 @@ async def tiktok_business_get(start_date: str, end_date: str):
     start_time = time.time()
 
     # Get all advertisers
-    advertisers = await tiktok_biz_get_advertiser()
+    advertisers = await tiktok_biz_get_advertiser(access_token)
     total_advertisers = len(advertisers)
     logger.info(f"Found {total_advertisers} advertisers to process")
     logger.debug(advertisers)
 
-    index_name = "a_quang_nguyen_tiktok_ad_report"
     batch_size = 1000
     all_enriched_reports = []
 

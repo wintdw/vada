@@ -16,7 +16,7 @@ async def post_schedule_crawl(crawl_id: str = None):
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
         for item in crawl_info:
-            await tiktok_business_get(item.next_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
+            await tiktok_business_get(item.index_name, item.access_token, item.next_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.last_crawl_time + timedelta(minutes=item.crawl_interval)
             await update_crawl_info(item.crawl_id, item)
