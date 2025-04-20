@@ -5,7 +5,12 @@ import logging
 
 from datetime import datetime, timedelta
 from typing import Dict
-from fastapi import APIRouter, HTTPException  # type: ignore
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Depends,
+    Request,
+)  # Add Depends and Request
 
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
@@ -22,8 +27,14 @@ async def root():
     }
 
 
+# Add this dependency function
+async def get_flows(request: Request):
+    return request.app.state.flows
+
+
+# Modify the route to use the dependency
 @router.get("/auth/url")
-async def get_auth_url(flows: dict):
+async def get_auth_url(flows: dict = Depends(get_flows)):
     """Generate and return a Google OAuth authorization URL"""
     try:
         scopes = ["https://www.googleapis.com/auth/adwords"]
@@ -57,8 +68,11 @@ async def get_auth_url(flows: dict):
         )
 
 
+# Also update the callback route
 @router.get("/connector/google/auth")
-async def auth_callback(flows: Dict, code: str = None, state: str = None):
+async def auth_callback(
+    flows: dict = Depends(get_flows), code: str = None, state: str = None
+):
     """Handle the OAuth callback from Google and return comprehensive account information"""
     if not code:
         raise HTTPException(status_code=400, detail="Authorization code is missing")
