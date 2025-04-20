@@ -2,7 +2,6 @@ from pydantic import BaseModel  # type: ignore
 
 
 class GoogleCredentials(BaseModel):
-    state: str
     refresh_token: str
     client_id: str = None
     client_secret: str = None

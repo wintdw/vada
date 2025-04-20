@@ -90,7 +90,6 @@ async def auth_callback(
 
         # Configure Google Ads client credentials
         credentials = {
-            "state": state,
             "refresh_token": refresh_token,
             "client_id": flow.credentials.client_id,
             "client_secret": flow.credentials.client_secret,

@@ -1,7 +1,7 @@
 import logging
 import json
-from typing import Dict
-from fastapi import APIRouter, HTTPException, Depends  # type: ignore
+import os
+from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from datetime import datetime, timedelta
 
@@ -9,34 +9,38 @@ from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from model.google import GoogleCredentials
 from handler.google import get_google_ads_reports, get_customer_list
-from dependencies.common import get_flows
 
 router = APIRouter()
 
 
 @router.post("/google/reports")
-async def get_google_reports(
-    credentials: GoogleCredentials, flows: Dict = Depends(get_flows)
-):
+async def get_google_reports(credentials: GoogleCredentials):
     """Fetch Google Ads reports using provided credentials"""
     try:
-        # Get client credentials from flows if available
+        # Get client credentials from environment file if not provided
         if not credentials.client_id or not credentials.client_secret:
-            if credentials.state and credentials.state in flows:
-                flow = flows[credentials.state]
+            client_secrets_path = os.getenv("GOOGLE_APP_SECRET_FILE")
+            if not client_secrets_path:
+                raise ValueError(
+                    "GOOGLE_APP_SECRET_FILE environment variable is not set"
+                )
+
+            if not os.path.exists(client_secrets_path):
+                raise FileNotFoundError(
+                    f"Secret file not found at: {client_secrets_path}"
+                )
+
+            with open(client_secrets_path, "r") as f:
+                client_config = json.load(f)["web"]
                 credentials.client_id = (
-                    credentials.client_id or flow.credentials.client_id
+                    credentials.client_id or client_config["client_id"]
                 )
                 credentials.client_secret = (
-                    credentials.client_secret or flow.credentials.client_secret
-                )
-            else:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Client credentials not provided and no valid flow found",
+                    credentials.client_secret or client_config["client_secret"]
                 )
 
         # Initialize the Google Ads client
+        logging.info("Initializing Google Ads client with credentials: %s", credentials)
         client = GoogleAdsClient.load_from_dict(credentials.dict())
 
         # Set date range (last 7 days)
