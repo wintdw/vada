@@ -15,7 +15,7 @@ from fastapi import (
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
-from handler import get_google_ads_reports, get_customer_list
+from handler.google import get_google_ads_reports, get_customer_list
 
 router = APIRouter()
 
