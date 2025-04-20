@@ -76,7 +76,7 @@ async def get_crawl_infos():
         data=crawl_infos
     )
 
-@router.put("/v1/crawl/info/{crawl_info_id}", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
+@router.put("/v1/crawl/info/{crawl_info_id}", response_model=CrawlInfoResponse, tags=["Crawl"])
 async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
     from repositories import select_crawl_info, update_crawl_info
 

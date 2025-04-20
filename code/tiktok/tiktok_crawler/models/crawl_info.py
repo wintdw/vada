@@ -8,7 +8,7 @@ class CrawlInfo(BaseModel):
     refresh_token: str = ""
     access_token_updated_at: datetime = datetime.now()
     crawl_interval: int
-    last_crawl_time: datetime
+    last_crawl_time: datetime | None = None
     next_crawl_time: datetime = datetime.now()
 
 class CrawlInfoResponse(BaseModel):

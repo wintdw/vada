@@ -59,10 +59,10 @@ async def get_crawl_history(crawl_id: str):
 
 @router.get("/v1/crawls/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
 async def get_crawl_historys():
-    from repositories import select_crawl_historys
+    from repositories import select_crawl_histories
 
     try:
-        crawl_historys = await select_crawl_historys()
+        crawl_historys = await select_crawl_histories()
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -76,7 +76,7 @@ async def get_crawl_historys():
         data=crawl_historys
     )
 
-@router.put("/v1/crawl/history/{crawl_history_id}", response_model=CrawlHistoryResponse, tags=["CrawlHistory"])
+@router.put("/v1/crawl/history/{crawl_history_id}", response_model=CrawlHistoryResponse, tags=["Crawl"])
 async def put_crawl_history(crawl_id: str, crawl_history: CrawlHistory):
     from repositories import select_crawl_history, update_crawl_history
 
