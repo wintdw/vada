@@ -12,7 +12,7 @@ async def insert_crawl_history(crawl_history: CrawlHistory) -> CrawlHistory:
             await connection.commit()
             return crawl_history
 
-async def select_crawl_history(crawl_id: str) -> CrawlHistory | None:
+async def select_crawl_history_by_crawl_id(crawl_id: str) -> CrawlHistory | None:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
@@ -24,7 +24,7 @@ async def select_crawl_history(crawl_id: str) -> CrawlHistory | None:
             else:
                 return CrawlHistory.model_validate(result)
 
-async def select_crawl_histories() -> list[CrawlHistory]:
+async def select_crawl_history() -> list[CrawlHistory]:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(

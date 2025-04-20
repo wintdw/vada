@@ -32,12 +32,12 @@ async def post_crawl_info(crawl_info: CrawlInfo):
         data=crawl_info
     )
 
-@router.get("/v1/crawl/info/{crawl_id}", response_model=CrawlInfoResponse, tags=["Crawl"])
+@router.get("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["Crawl"])
 async def get_crawl_info(crawl_id: str):
-    from repositories import select_crawl_info
+    from repositories import select_crawl_info_by_crawl_id
 
     try:
-        crawl_info = await select_crawl_info(crawl_id)
+        crawl_info = await select_crawl_info_by_crawl_id(crawl_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -57,31 +57,31 @@ async def get_crawl_info(crawl_id: str):
             data=crawl_info
         )
 
-@router.get("/v1/crawls/info", response_model=CrawlInfoResponse, tags=["Crawl"])
-async def get_crawl_infos():
-    from repositories import select_crawl_infos
+@router.get("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["Crawl"])
+async def get_crawl_info():
+    from repositories import select_crawl_info
 
     try:
-        crawl_infos = await select_crawl_infos()
+        crawl_info = await select_crawl_info()
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
             status_code=500,
             detail="Internal Server Error"
         )
-    logger.info(crawl_infos)
+    logger.info(crawl_info)
     return CrawlInfoResponse(
         status=200,
         message="Success",
-        data=crawl_infos
+        data=crawl_info
     )
 
-@router.put("/v1/crawl/info/{crawl_info_id}", response_model=CrawlInfoResponse, tags=["Crawl"])
+@router.put("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["Crawl"])
 async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
-    from repositories import select_crawl_info, update_crawl_info
+    from repositories import select_crawl_info_by_crawl_id, update_crawl_info
 
     try:
-        crawl_info_selected = await select_crawl_info(crawl_id)
+        crawl_info_selected = await select_crawl_info_by_crawl_id(crawl_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -109,7 +109,7 @@ async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
             data=crawl_info
         )
 
-@router.delete("/v1/crawl/info/{crawl_id}", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["Crawl"])
+@router.delete("/v1/crawl/{crawl_info}/info", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["Crawl"])
 async def delete_crawl_info(crawl_id: str):
     from repositories import remove_crawl_info
 

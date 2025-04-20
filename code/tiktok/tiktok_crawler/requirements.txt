@@ -5,3 +5,4 @@ cryptography
 python-json-logger
 aiohttp
 pydantic-settings
+fastapi-utils

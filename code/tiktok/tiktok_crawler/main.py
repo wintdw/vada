@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi_utils.tasks import repeat_every
 from fastapi.responses import JSONResponse
 from routers import (
     tiktok,
@@ -7,6 +8,14 @@ from routers import (
 )
 
 app = FastAPI()
+
+@app.on_event("startup")
+@repeat_every(seconds=60)  # Executes every 60 seconds
+async def periodic_task() -> None:
+    from routers.schedule import post_schedule_auth, post_schedule_crawl
+
+    await post_schedule_auth()
+    await post_schedule_crawl()
 
 @app.get("/health")
 async def check_health():

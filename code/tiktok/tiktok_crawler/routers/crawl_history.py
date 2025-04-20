@@ -32,12 +32,12 @@ async def post_crawl_history(crawl_history: CrawlHistory):
         data=crawl_history
     )
 
-@router.get("/v1/crawl/history/{crawl_id}", response_model=CrawlHistoryResponse, tags=["Crawl"])
-async def get_crawl_history(crawl_id: str):
-    from repositories import select_crawl_history
+@router.get("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
+async def get_crawl_history_by_crawl_id(crawl_id: str):
+    from repositories import select_crawl_history_by_crawl_id
 
     try:
-        crawl_history = await select_crawl_history(crawl_id)
+        crawl_history = await select_crawl_history_by_crawl_id(crawl_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -57,31 +57,31 @@ async def get_crawl_history(crawl_id: str):
             data=crawl_history
         )
 
-@router.get("/v1/crawls/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
-async def get_crawl_historys():
-    from repositories import select_crawl_histories
+@router.get("/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
+async def get_crawl_history():
+    from repositories import select_crawl_history
 
     try:
-        crawl_historys = await select_crawl_histories()
+        crawl_history = await select_crawl_history()
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
             status_code=500,
             detail="Internal Server Error"
         )
-    logger.info(crawl_historys)
+    logger.info(crawl_history)
     return CrawlHistoryResponse(
         status=200,
         message="Success",
-        data=crawl_historys
+        data=crawl_history
     )
 
-@router.put("/v1/crawl/history/{crawl_history_id}", response_model=CrawlHistoryResponse, tags=["Crawl"])
+@router.put("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
 async def put_crawl_history(crawl_id: str, crawl_history: CrawlHistory):
-    from repositories import select_crawl_history, update_crawl_history
+    from repositories import select_crawl_history_by_crawl_id, update_crawl_history
 
     try:
-        crawl_history_selected = await select_crawl_history(crawl_id)
+        crawl_history_selected = await select_crawl_history_by_crawl_id(crawl_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -109,7 +109,7 @@ async def put_crawl_history(crawl_id: str, crawl_history: CrawlHistory):
             data=crawl_history
         )
 
-@router.delete("/v1/crawl/history/{crawl_id}", response_model=CrawlHistoryResponse, response_model_exclude_none=True, tags=["Crawl"])
+@router.delete("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, response_model_exclude_none=True, tags=["Crawl"])
 async def delete_crawl_history(crawl_id: str):
     from repositories import remove_crawl_history
 

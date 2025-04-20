@@ -13,7 +13,7 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
             await connection.commit()
             return crawl_info
 
-async def select_crawl_info(crawl_id: str) -> CrawlInfo | None:
+async def select_crawl_info_by_crawl_id(crawl_id: str) -> CrawlInfo | None:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
@@ -24,8 +24,17 @@ async def select_crawl_info(crawl_id: str) -> CrawlInfo | None:
                 return None
             else:
                 return CrawlInfo.model_validate(result)
+            
+async def select_crawl_info_by_next_crawl_time() -> list[CrawlInfo]:
+    async with get_mysql_connection() as connection:
+        async with get_mysql_cursor(connection) as cursor:
+            await cursor.execute(
+                "SELECT crawl_id, index_name, access_token, refresh_token, access_token_updated_at, crawl_interval, last_crawl_time, next_crawl_time FROM `CrawlInfo` WHERE next_crawl_time < NOW()"
+            )
+            results = await cursor.fetchall()
+            return [CrawlInfo.model_validate(result) for result in results]
 
-async def select_crawl_infos() -> list[CrawlInfo]:
+async def select_crawl_info() -> list[CrawlInfo]:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
