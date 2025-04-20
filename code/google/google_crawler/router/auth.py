@@ -2,11 +2,12 @@ import os
 import hashlib
 import logging
 from typing import Dict
-from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 
+from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
-from dependencies.common import get_flows
+
+from dependencies.common import get_flows, get_app_secret_file
 
 
 router = APIRouter()
@@ -21,25 +22,19 @@ async def root():
 
 # Modify the route to use the dependency
 @router.get("/auth/url")
-async def get_auth_url(flows: Dict = Depends(get_flows)):
+async def get_auth_url(
+    flows: Dict = Depends(get_flows),
+    client_secrets_path: str = Depends(get_app_secret_file),
+):
     """Generate and return a Google OAuth authorization URL"""
     try:
         scopes = ["https://www.googleapis.com/auth/adwords"]
-
-        # Get secret file path from environment variable
-        client_secrets_path = os.getenv("GOOGLE_APP_SECRET_FILE")
-        if not client_secrets_path:
-            raise ValueError("GOOGLE_APP_SECRET_FILE environment variable is not set")
-
-        if not os.path.exists(client_secrets_path):
-            raise FileNotFoundError(f"Secret file not found at: {client_secrets_path}")
-
         redirect_uri = "https://google.vadata.vn/connector/google/auth"
 
         # Generate a secure random state value
         passthrough_val = hashlib.sha256(os.urandom(1024)).hexdigest()
 
-        # Create OAuth flow using the secret file from environment variable
+        # Create OAuth flow using the secret file from dependency
         flow = Flow.from_client_secrets_file(client_secrets_path, scopes=scopes)
         flow.redirect_uri = redirect_uri
 
@@ -97,6 +92,7 @@ async def auth_callback(
             "use_proto_plus": True,
         }
 
+        logging.info("OAuth flow completed successfully. Credentials: %s", credentials)
         return JSONResponse(status_code=200, content=credentials)
 
     except Exception as e:

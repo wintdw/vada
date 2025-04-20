@@ -1,7 +1,7 @@
 import logging
 import json
 import os
-from fastapi import APIRouter, HTTPException  # type: ignore
+from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from datetime import datetime, timedelta
 
@@ -9,27 +9,20 @@ from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from model.google import GoogleCredentials
 from handler.google import get_google_ads_reports, get_customer_list
+from dependencies.common import get_app_secret_file
 
 router = APIRouter()
 
 
 @router.post("/google/reports")
-async def get_google_reports(credentials: GoogleCredentials):
+async def get_google_reports(
+    credentials: GoogleCredentials,
+    client_secrets_path: str = Depends(get_app_secret_file),
+):
     """Fetch Google Ads reports using provided credentials"""
     try:
         # Get client credentials from environment file if not provided
         if not credentials.client_id or not credentials.client_secret:
-            client_secrets_path = os.getenv("GOOGLE_APP_SECRET_FILE")
-            if not client_secrets_path:
-                raise ValueError(
-                    "GOOGLE_APP_SECRET_FILE environment variable is not set"
-                )
-
-            if not os.path.exists(client_secrets_path):
-                raise FileNotFoundError(
-                    f"Secret file not found at: {client_secrets_path}"
-                )
-
             with open(client_secrets_path, "r") as f:
                 client_config = json.load(f)["web"]
                 credentials.client_id = (
