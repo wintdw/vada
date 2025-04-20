@@ -25,7 +25,7 @@ async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
     return []
 
 
-async def tiktok_biz_info_advertiser(advertiser_ids: List[str]) -> List[Dict]:
+async def tiktok_biz_info_advertiser(access_token: str, advertiser_ids: List[str]) -> List[Dict]:
     """
     Fetch detailed advertiser information.
 
@@ -38,7 +38,7 @@ async def tiktok_biz_info_advertiser(advertiser_ids: List[str]) -> List[Dict]:
     params = {"advertiser_ids": json.dumps(advertiser_ids)}
     request_json = await get(
         url=f"{settings.TIKTOK_BIZ_API_URL}/advertiser/info/",
-        access_token=settings.TIKTOK_BIZ_ACCESS_TOKEN,
+        access_token=access_token,
         params=params,
     )
 
@@ -48,7 +48,7 @@ async def tiktok_biz_info_advertiser(advertiser_ids: List[str]) -> List[Dict]:
 
 
 async def tiktok_biz_get_campaign(
-    advertiser_id: str, campaign_ids: Optional[List[str]] = None
+    access_token: str, advertiser_id: str, campaign_ids: Optional[List[str]] = None
 ) -> List[Dict]:
     """
     Fetch all campaign information with pagination.
@@ -71,7 +71,7 @@ async def tiktok_biz_get_campaign(
 
         request_json = await get(
             url=f"{settings.TIKTOK_BIZ_API_URL}/campaign/get/",
-            access_token=settings.TIKTOK_BIZ_ACCESS_TOKEN,
+            access_token=access_token,
             params=params,
         )
 
@@ -89,6 +89,7 @@ async def tiktok_biz_get_campaign(
 
 
 async def tiktok_biz_get_report_integrated(
+    access_token: str,
     advertiser_id: str,
     start_date: str,
     end_date: str,
@@ -220,7 +221,7 @@ async def tiktok_biz_get_report_integrated(
 
         request_json = await get(
             url=f"{settings.TIKTOK_BIZ_API_URL}/report/integrated/get/",
-            access_token=settings.TIKTOK_BIZ_ACCESS_TOKEN,
+            access_token=access_token,
             params=params,
         )
 
@@ -245,6 +246,7 @@ async def tiktok_biz_get_report_integrated(
 
 
 async def tiktok_biz_get_ad(
+    access_token: str,
     advertiser_id: str,
     campaign_ids: Optional[List[str]] = None,
     adgroup_ids: Optional[List[str]] = None,
@@ -281,7 +283,7 @@ async def tiktok_biz_get_ad(
 
         request_json = await get(
             url=f"{settings.TIKTOK_BIZ_API_URL}/ad/get/",
-            access_token=settings.TIKTOK_BIZ_ACCESS_TOKEN,
+            access_token=access_token,
             params=params,
         )
 
@@ -299,6 +301,7 @@ async def tiktok_biz_get_ad(
 
 
 async def tiktok_biz_get_adgroup(
+    access_token: str,
     advertiser_id: str,
     campaign_ids: Optional[List[str]] = None,
     adgroup_ids: Optional[List[str]] = None,
@@ -331,7 +334,7 @@ async def tiktok_biz_get_adgroup(
 
         request_json = await get(
             url=f"{settings.TIKTOK_BIZ_API_URL}/adgroup/get/",
-            access_token=settings.TIKTOK_BIZ_ACCESS_TOKEN,
+            access_token=access_token,
             params=params,
         )
 

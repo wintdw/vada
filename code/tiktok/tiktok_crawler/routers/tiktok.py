@@ -50,6 +50,7 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
 
         # Get advertiser info
         advertiser_info = await tiktok_biz_info_advertiser(
+            access_token,
             [advertiser["advertiser_id"]]
         )
         logger.info(f"  → Advertiser name: {advertiser_info[0].get('name', 'N/A')}")
@@ -57,6 +58,7 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
 
         # Get integrated report
         reports = await tiktok_biz_get_report_integrated(
+            access_token=access_token,
             advertiser_id=advertiser["advertiser_id"],
             start_date=start_date,
             end_date=end_date,
@@ -80,12 +82,14 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
                 f"  → Getting campaign / adgroup / ad information for Ad ID: {report['ad_id']}"
             )
             ads = await tiktok_biz_get_ad(
+                access_token=access_token,
                 advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
             )
 
             # Create tasks for campaign and adgroup in parallel
             campaign_task = asyncio.create_task(
                 tiktok_biz_get_campaign(
+                    access_token=access_token,
                     advertiser_id=advertiser["advertiser_id"],
                     campaign_ids=[ads[0]["campaign_id"]],
                 )
@@ -93,6 +97,7 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
 
             adgroup_task = asyncio.create_task(
                 tiktok_biz_get_adgroup(
+                    access_token=access_token,
                     advertiser_id=advertiser["advertiser_id"],
                     campaign_ids=[ads[0]["campaign_id"]],
                     adgroup_ids=[ads[0]["adgroup_id"]],
