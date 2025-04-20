@@ -1,21 +1,13 @@
 import os
-import json
 import hashlib
 import logging
-
-from datetime import datetime, timedelta
 from typing import Dict
-from fastapi import (
-    APIRouter,
-    HTTPException,
-    Depends,
-    Request,
-)  # Add Depends and Request
+from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 
 from google_auth_oauthlib.flow import Flow  # type: ignore
-from google.ads.googleads.client import GoogleAdsClient  # type: ignore
+from fastapi.responses import JSONResponse  # type: ignore
+from dependencies.common import get_flows
 
-from handler.google import get_google_ads_reports, get_customer_list
 
 router = APIRouter()
 
@@ -27,14 +19,9 @@ async def root():
     }
 
 
-# Add this dependency function
-async def get_flows(request: Request):
-    return request.app.state.flows
-
-
 # Modify the route to use the dependency
 @router.get("/auth/url")
-async def get_auth_url(flows: dict = Depends(get_flows)):
+async def get_auth_url(flows: Dict = Depends(get_flows)):
     """Generate and return a Google OAuth authorization URL"""
     try:
         scopes = ["https://www.googleapis.com/auth/adwords"]
@@ -79,7 +66,7 @@ async def get_auth_url(flows: dict = Depends(get_flows)):
 # Also update the callback route
 @router.get("/connector/google/auth")
 async def auth_callback(
-    flows: dict = Depends(get_flows), code: str = None, state: str = None
+    flows: Dict = Depends(get_flows), code: str = None, state: str = None
 ):
     """Handle the OAuth callback from Google and return comprehensive account information"""
     if not code:
@@ -103,6 +90,7 @@ async def auth_callback(
 
         # Configure Google Ads client credentials
         credentials = {
+            "state": state,
             "refresh_token": refresh_token,
             "client_id": flow.credentials.client_id,
             "client_secret": flow.credentials.client_secret,
@@ -110,49 +98,7 @@ async def auth_callback(
             "use_proto_plus": True,
         }
 
-        # Initialize the Google Ads client
-        client = GoogleAdsClient.load_from_dict(credentials)
-
-        # Set date range (last 30 days)
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=30)
-
-        # Get both reports and customer list
-        customers = await get_customer_list(client)
-        campaign_reports = await get_google_ads_reports(client, start_date, end_date)
-
-        auth_info = {
-            "refresh_token": refresh_token,
-            "access_token": flow.credentials.token,
-            "token_expiry": (
-                flow.credentials.expiry.isoformat() if flow.credentials.expiry else None
-            ),  # Convert datetime to ISO format
-            "token_uri": flow.credentials.token_uri,
-            "client_id": flow.credentials.client_id,
-            "client_secret": flow.credentials.client_secret,
-            "scopes": list(flow.credentials.scopes),  # Convert set to list
-        }
-
-        response_data = {
-            "auth_info": auth_info,
-            "customers": {
-                "total_customers": len(customers),
-                "customer_list": customers,
-            },
-            "reports": {
-                "date_range": {
-                    "from": start_date.strftime("%Y-%m-%d"),
-                    "to": end_date.strftime("%Y-%m-%d"),
-                },
-                "campaigns": campaign_reports,
-            },
-        }
-
-        # Log auth info and response data
-        logging.info("Auth Info: %s", json.dumps(auth_info, indent=2))
-        logging.info("Response Data: %s", json.dumps(response_data, indent=2))
-
-        return response_data
+        return JSONResponse(status_code=200, content=credentials)
 
     except Exception as e:
         logging.error("Error in auth_callback: %s", str(e), exc_info=True)

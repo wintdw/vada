@@ -1,7 +1,7 @@
 import os
 import logging
 from fastapi import FastAPI  # type: ignore
-from router.auth import router as router
+from router import auth
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
@@ -15,7 +15,7 @@ app = FastAPI(title="Google OAuth API")
 flows = {}
 
 # Include the auth router
-app.include_router(router, tags=["auth"])
+app.include_router(auth.router, tags=["auth"])
 
 # Pass the flows dictionary to router endpoints that need it
 app.state.flows = flows
