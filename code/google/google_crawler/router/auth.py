@@ -5,7 +5,7 @@ from typing import Dict
 
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from google_auth_oauthlib.flow import Flow  # type: ignore
-from fastapi.responses import JSONResponse  # type: ignore
+from fastapi.responses import JSONResponse, RedirectResponse  # type: ignore
 
 from dependencies.common import get_flows, get_app_secret_file
 
@@ -49,7 +49,8 @@ async def get_auth_url(
         # Store the flow object using the state as a key
         flows[state] = flow
 
-        return {"authorization_url": authorization_url, "state": state}
+        # Redirect to authorization URL
+        return RedirectResponse(url=authorization_url, status_code=302)
 
     except Exception as e:
         logging.error(f"Error generating authorization URL: {str(e)}")
