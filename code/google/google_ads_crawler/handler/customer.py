@@ -68,7 +68,6 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
             logging.error(
                 f"Error processing manager account {customer_id}: {str(e)}",
                 exc_info=True,
-                stack_info=True,
             )
 
     return manager_accounts
@@ -146,7 +145,6 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
             logging.error(
                 f"Error processing client account {customer_id}: {str(e)}",
                 exc_info=True,
-                stack_info=True,
             )
 
     return client_accounts
@@ -174,13 +172,7 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
         manager_id: The manager account ID to get children for
 
     Returns:
-        List of child account information including:
-        - id: Account ID
-        - name: Account descriptive name
-        - applied_labels: List of labels applied to account
-        - client_customer: Client customer ID
-        - level: Account level in hierarchy
-        - is_manager: Whether account is also a manager
+        List of child account information
     """
     try:
         query = """
@@ -196,26 +188,62 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
         """
 
         ga_service = ga_client.get_service("GoogleAdsService")
-        search_request = SearchGoogleAdsRequest(
-            customer_id=manager_id,
-            query=query,
-        )
-        response = ga_service.search(request=search_request)
+
+        # Ensure manager_id is a string and create request with proper structure
+        request = {"customer_id": str(manager_id), "query": query}
+
+        response = ga_service.search(request=request)
 
         child_accounts = []
         for row in response:
-            child_accounts.append(
-                {
-                    "id": row.customer_client.id,
-                    "name": row.customer_client.descriptive_name,
-                    "applied_labels": [
-                        label for label in row.customer_client.applied_labels
-                    ],
-                    "client_customer": row.customer_client.client_customer,
-                    "level": row.customer_client.level,
-                    "is_manager": row.customer_client.manager,
+            try:
+                # Safely handle potentially null fields
+                account_data = {
+                    "id": str(row.customer_client.id) if row.customer_client.id else "",
+                    "name": (
+                        str(row.customer_client.descriptive_name)
+                        if row.customer_client.descriptive_name
+                        else ""
+                    ),
+                    "applied_labels": [],  # Initialize empty list
+                    "client_customer": (
+                        str(row.customer_client.client_customer)
+                        if row.customer_client.client_customer
+                        else ""
+                    ),
+                    "level": (
+                        int(row.customer_client.level)
+                        if row.customer_client.level
+                        else 0
+                    ),
+                    "is_manager": (
+                        bool(row.customer_client.manager)
+                        if row.customer_client.manager
+                        else False
+                    ),
                 }
-            )
+
+                # Safely process labels if they exist
+                if hasattr(row.customer_client, "applied_labels"):
+                    try:
+                        account_data["applied_labels"] = [
+                            str(label)
+                            for label in row.customer_client.applied_labels
+                            if label is not None
+                        ]
+                    except (TypeError, AttributeError) as label_error:
+                        logging.warning(
+                            f"Error processing labels for account {account_data['id']}: {str(label_error)}"
+                        )
+
+                child_accounts.append(account_data)
+
+            except Exception as row_error:
+                logging.error(
+                    f"Error processing child account row: {str(row_error)}",
+                    exc_info=True,
+                )
+                continue
 
         logging.info(
             f"Found {len(child_accounts)} child accounts for manager {manager_id}"
@@ -224,7 +252,7 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
 
     except Exception as e:
         logging.error(
-            f"Error getting child accounts for {manager_id}: {str(e)}",
+            f"Error getting child accounts for manager {manager_id}: {str(e)}",
             exc_info=True,
             stack_info=True,
         )
