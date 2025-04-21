@@ -65,7 +65,11 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
                 manager_accounts.append(manager_data)
 
         except Exception as e:
-            logging.warning(f"Error processing manager account {customer_id}: {str(e)}")
+            logging.error(
+                f"Error processing manager account {customer_id}: {str(e)}",
+                exc_info=True,
+                stack_info=True,
+            )
 
     return manager_accounts
 
@@ -139,7 +143,11 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
                 client_accounts.append(client_data)
 
         except Exception as e:
-            logging.warning(f"Error processing client account {customer_id}: {str(e)}")
+            logging.error(
+                f"Error processing client account {customer_id}: {str(e)}",
+                exc_info=True,
+                stack_info=True,
+            )
 
     return client_accounts
 
@@ -185,12 +193,11 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 customer_client.manager
             FROM customer_client
             WHERE customer_client.status = 'ENABLED'
-            AND customer_client.manager_link_status = 'ACTIVE'
         """
 
         ga_service = ga_client.get_service("GoogleAdsService")
         search_request = SearchGoogleAdsRequest(
-            customer_id=manager_id,  # This is the manager account ID
+            customer_id=manager_id,
             query=query,
         )
         response = ga_service.search(request=search_request)
@@ -216,5 +223,9 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
         return child_accounts
 
     except Exception as e:
-        logging.warning(f"Error getting child accounts for {manager_id}: {str(e)}")
+        logging.error(
+            f"Error getting child accounts for {manager_id}: {str(e)}",
+            exc_info=True,
+            stack_info=True,
+        )
         return []
