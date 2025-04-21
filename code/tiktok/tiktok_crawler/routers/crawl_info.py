@@ -12,7 +12,7 @@ async def post_crawl_info(crawl_info: CrawlInfo):
     from repositories import insert_crawl_info
 
     try:
-        await insert_crawl_info(crawl_info)
+        crawl_info = await insert_crawl_info(crawl_info)
     except IntegrityError as e:
         logger.exception(e)
         raise HTTPException(

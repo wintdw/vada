@@ -12,7 +12,7 @@ async def post_crawl_history(crawl_history: CrawlHistory):
     from repositories import insert_crawl_history
 
     try:
-        await insert_crawl_history(crawl_history)
+        crawl_history = await insert_crawl_history(crawl_history)
     except IntegrityError as e:
         logger.exception(e)
         raise HTTPException(
