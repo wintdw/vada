@@ -156,18 +156,10 @@ async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
 
 
 async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> List:
-    """
-    Get all child accounts under a specific manager account with their metrics
-
-    Args:
-        ga_client: Google Ads API client
-        manager_id: The manager account ID to get children for
-
-    Returns:
-        List of child account information including metrics for non-manager accounts
-    """
+    """Get all child accounts under a specific manager account"""
     try:
-        query = """
+        # First get basic account information
+        base_query = """
             SELECT
                 customer_client.id,
                 customer_client.descriptive_name,
@@ -176,12 +168,7 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 customer_client.level,
                 customer_client.manager,
                 customer_client.currency_code,
-                customer_client.time_zone,
-                metrics.cost_micros,
-                metrics.impressions,
-                metrics.clicks,
-                metrics.conversions,
-                metrics.average_cpc
+                customer_client.time_zone
             FROM customer_client
             WHERE customer_client.status = 'ENABLED'
             AND customer_client.id != {manager_id}
@@ -191,7 +178,7 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
 
         ga_service = ga_client.get_service("GoogleAdsService")
         response = ga_service.search(
-            request={"customer_id": str(manager_id), "query": query}
+            request={"customer_id": str(manager_id), "query": base_query}
         )
 
         child_accounts = []
@@ -209,25 +196,58 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 "timezone": str(getattr(row.customer_client, "time_zone", "")),
             }
 
-            # Add metrics if account is not a manager
-            if not account_data["is_manager"]:
-                account_data["metrics"] = {
-                    "cost": getattr(row.metrics, "cost_micros", 0) / 1_000_000,
-                    "impressions": getattr(row.metrics, "impressions", 0),
-                    "clicks": getattr(row.metrics, "clicks", 0),
-                    "conversions": getattr(row.metrics, "conversions", 0),
-                    "average_cpc": (
-                        getattr(row.metrics, "average_cpc", 0) / 1_000_000
-                        if getattr(row.metrics, "average_cpc", 0)
-                        else 0
-                    ),
-                }
-
             # Process labels if available
             if labels := getattr(row.customer_client, "applied_labels", None):
                 account_data["applied_labels"] = [
                     str(label) for label in labels if label
                 ]
+
+            # Get metrics for non-manager accounts in a separate query
+            if not account_data["is_manager"]:
+                try:
+                    metrics_query = """
+                        SELECT
+                            metrics.cost_micros,
+                            metrics.impressions,
+                            metrics.clicks,
+                            metrics.conversions,
+                            metrics.average_cpc
+                        FROM customer
+                        WHERE customer.id = '{account_id}'
+                    """.format(
+                        account_id=account_data["id"]
+                    )
+
+                    metrics_response = ga_service.search(
+                        request={
+                            "customer_id": account_data["id"],
+                            "query": metrics_query,
+                        }
+                    )
+
+                    for metrics_row in metrics_response:
+                        account_data["metrics"] = {
+                            "cost": getattr(metrics_row.metrics, "cost_micros", 0)
+                            / 1_000_000,
+                            "impressions": getattr(
+                                metrics_row.metrics, "impressions", 0
+                            ),
+                            "clicks": getattr(metrics_row.metrics, "clicks", 0),
+                            "conversions": getattr(
+                                metrics_row.metrics, "conversions", 0
+                            ),
+                            "average_cpc": (
+                                getattr(metrics_row.metrics, "average_cpc", 0)
+                                / 1_000_000
+                                if getattr(metrics_row.metrics, "average_cpc", 0)
+                                else 0
+                            ),
+                        }
+                except Exception as metrics_error:
+                    logging.warning(
+                        f"Error getting metrics for child account {account_data['id']}: {str(metrics_error)}"
+                    )
+                    account_data["metrics"] = None
 
             child_accounts.append(account_data)
 
