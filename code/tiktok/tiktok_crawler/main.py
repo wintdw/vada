@@ -4,7 +4,8 @@ from fastapi.responses import JSONResponse
 from routers import (
     tiktok,
     crawl_history,
-    crawl_info
+    crawl_info,
+    connector
 )
 
 app = FastAPI()
@@ -33,3 +34,4 @@ async def check_health():
 app.include_router(tiktok.router)
 app.include_router(crawl_history.router)
 app.include_router(crawl_info.router)
+app.include_router(connector.router)
