@@ -65,6 +65,53 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
     return manager_accounts
 
 
+async def get_metrics_for_account(ga_service, customer_id: str) -> dict:
+    """Helper function to get metrics for an account"""
+    try:
+        metrics_query = """
+            SELECT
+                metrics.cost_micros,
+                metrics.impressions,
+                metrics.clicks,
+                metrics.conversions,
+                metrics.average_cpc
+            FROM customer
+            WHERE customer.id = '{customer_id}'
+        """.format(
+            customer_id=customer_id
+        )
+
+        # Create proper request structure
+        request = {
+            "customer_id": str(customer_id),  # Ensure customer_id is string
+            "query": metrics_query,
+        }
+
+        metrics_response = ga_service.search(request=request)
+
+        for metrics_row in metrics_response:
+            return {
+                "cost": float(getattr(metrics_row.metrics, "cost_micros", 0))
+                / 1_000_000,
+                "impressions": int(getattr(metrics_row.metrics, "impressions", 0)),
+                "clicks": int(getattr(metrics_row.metrics, "clicks", 0)),
+                "conversions": float(getattr(metrics_row.metrics, "conversions", 0)),
+                "average_cpc": float(getattr(metrics_row.metrics, "average_cpc", 0))
+                / 1_000_000,
+            }
+    except Exception as e:
+        logging.warning(
+            f"Error getting metrics for account {customer_id}: {str(e)}", exc_info=True
+        )
+        return {
+            "cost": 0,
+            "impressions": 0,
+            "clicks": 0,
+            "conversions": 0,
+            "average_cpc": 0,
+        }
+
+
 async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
     """Fetch list of non-manager accounts with metrics"""
     customer_service = ga_client.get_service("CustomerService")
@@ -115,56 +162,10 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
                     ],
                 }
 
-                # Get metrics in a separate query
-                try:
-                    metrics_query = """
-                        SELECT
-                            metrics.cost_micros,
-                            metrics.impressions,
-                            metrics.clicks,
-                            metrics.conversions,
-                            metrics.average_cpc
-                        FROM customer
-                        WHERE customer.id = '{customer_id}'
-                    """.format(
-                        customer_id=row.customer.id
-                    )
-
-                    metrics_response = ga_service.search(
-                        request={"customer_id": row.customer.id, "query": metrics_query}
-                    )
-
-                    for metrics_row in metrics_response:
-                        # Use getattr with default values to handle missing or invalid metrics
-                        cost_micros = getattr(metrics_row.metrics, "cost_micros", 0)
-                        impressions = getattr(metrics_row.metrics, "impressions", 0)
-                        clicks = getattr(metrics_row.metrics, "clicks", 0)
-                        conversions = getattr(metrics_row.metrics, "conversions", 0)
-                        average_cpc = getattr(metrics_row.metrics, "average_cpc", 0)
-
-                        client_data["metrics"] = {
-                            "cost": (
-                                float(cost_micros) / 1_000_000 if cost_micros else 0
-                            ),
-                            "impressions": int(impressions) if impressions else 0,
-                            "clicks": int(clicks) if clicks else 0,
-                            "conversions": float(conversions) if conversions else 0,
-                            "average_cpc": (
-                                float(average_cpc) / 1_000_000 if average_cpc else 0
-                            ),
-                        }
-                except Exception as metrics_error:
-                    logging.warning(
-                        f"Error getting metrics for account {row.customer.id}: {str(metrics_error)}",
-                        exc_info=True,
-                    )
-                    client_data["metrics"] = {
-                        "cost": 0,
-                        "impressions": 0,
-                        "clicks": 0,
-                        "conversions": 0,
-                        "average_cpc": 0,
-                    }
+                # Get metrics using helper function
+                client_data["metrics"] = await get_metrics_for_account(
+                    ga_service, str(row.customer.id)
+                )
 
                 client_accounts.append(client_data)
 
@@ -237,52 +238,11 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                     str(label) for label in labels if label
                 ]
 
-            # Get metrics for non-manager accounts in a separate query
+            # Get metrics for non-manager accounts using helper function
             if not account_data["is_manager"]:
-                try:
-                    metrics_query = """
-                        SELECT
-                            metrics.cost_micros,
-                            metrics.impressions,
-                            metrics.clicks,
-                            metrics.conversions,
-                            metrics.average_cpc
-                        FROM customer
-                        WHERE customer.id = '{account_id}'
-                    """.format(
-                        account_id=account_data["id"]
-                    )
-
-                    metrics_response = ga_service.search(
-                        request={
-                            "customer_id": account_data["id"],
-                            "query": metrics_query,
-                        }
-                    )
-
-                    for metrics_row in metrics_response:
-                        account_data["metrics"] = {
-                            "cost": getattr(metrics_row.metrics, "cost_micros", 0)
-                            / 1_000_000,
-                            "impressions": getattr(
-                                metrics_row.metrics, "impressions", 0
-                            ),
-                            "clicks": getattr(metrics_row.metrics, "clicks", 0),
-                            "conversions": getattr(
-                                metrics_row.metrics, "conversions", 0
-                            ),
-                            "average_cpc": (
-                                getattr(metrics_row.metrics, "average_cpc", 0)
-                                / 1_000_000
-                                if getattr(metrics_row.metrics, "average_cpc", 0)
-                                else 0
-                            ),
-                        }
-                except Exception as metrics_error:
-                    logging.warning(
-                        f"Error getting metrics for child account {account_data['id']}: {str(metrics_error)}"
-                    )
-                    account_data["metrics"] = None
+                account_data["metrics"] = await get_metrics_for_account(
+                    ga_service, account_data["id"]
+                )
 
             child_accounts.append(account_data)
 
