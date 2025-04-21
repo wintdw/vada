@@ -135,22 +135,36 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
                     )
 
                     for metrics_row in metrics_response:
+                        # Use getattr with default values to handle missing or invalid metrics
+                        cost_micros = getattr(metrics_row.metrics, "cost_micros", 0)
+                        impressions = getattr(metrics_row.metrics, "impressions", 0)
+                        clicks = getattr(metrics_row.metrics, "clicks", 0)
+                        conversions = getattr(metrics_row.metrics, "conversions", 0)
+                        average_cpc = getattr(metrics_row.metrics, "average_cpc", 0)
+
                         client_data["metrics"] = {
-                            "cost": metrics_row.metrics.cost_micros / 1_000_000,
-                            "impressions": metrics_row.metrics.impressions,
-                            "clicks": metrics_row.metrics.clicks,
-                            "conversions": metrics_row.metrics.conversions,
+                            "cost": (
+                                float(cost_micros) / 1_000_000 if cost_micros else 0
+                            ),
+                            "impressions": int(impressions) if impressions else 0,
+                            "clicks": int(clicks) if clicks else 0,
+                            "conversions": float(conversions) if conversions else 0,
                             "average_cpc": (
-                                metrics_row.metrics.average_cpc / 1_000_000
-                                if metrics_row.metrics.average_cpc
-                                else 0
+                                float(average_cpc) / 1_000_000 if average_cpc else 0
                             ),
                         }
                 except Exception as metrics_error:
                     logging.warning(
-                        f"Error getting metrics for account {row.customer.id}: {str(metrics_error)}"
+                        f"Error getting metrics for account {row.customer.id}: {str(metrics_error)}",
+                        exc_info=True,
                     )
-                    client_data["metrics"] = None
+                    client_data["metrics"] = {
+                        "cost": 0,
+                        "impressions": 0,
+                        "clicks": 0,
+                        "conversions": 0,
+                        "average_cpc": 0,
+                    }
 
                 client_accounts.append(client_data)
 
