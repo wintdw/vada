@@ -20,7 +20,7 @@ router = APIRouter()
 async def get_customers(
     credentials: GoogleAdsCredentials,
     account_type: Optional[str] = None,
-    include_children: bool = False,
+    include_children: bool = True,
 ):
     """
     Get Google Ads accounts
