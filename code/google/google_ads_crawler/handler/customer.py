@@ -157,14 +157,14 @@ async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
 
 async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> List:
     """
-    Get all child accounts under a specific manager account
+    Get all child accounts under a specific manager account with their metrics
 
     Args:
         ga_client: Google Ads API client
         manager_id: The manager account ID to get children for
 
     Returns:
-        List of child account information
+        List of child account information including metrics for non-manager accounts
     """
     try:
         query = """
@@ -174,7 +174,14 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 customer_client.applied_labels,
                 customer_client.client_customer,
                 customer_client.level,
-                customer_client.manager
+                customer_client.manager,
+                customer_client.currency_code,
+                customer_client.time_zone,
+                metrics.cost_micros,
+                metrics.impressions,
+                metrics.clicks,
+                metrics.conversions,
+                metrics.average_cpc
             FROM customer_client
             WHERE customer_client.status = 'ENABLED'
             AND customer_client.id != {manager_id}
@@ -198,7 +205,23 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 ),
                 "level": int(getattr(row.customer_client, "level", 0)),
                 "is_manager": bool(getattr(row.customer_client, "manager", False)),
+                "currency": str(getattr(row.customer_client, "currency_code", "")),
+                "timezone": str(getattr(row.customer_client, "time_zone", "")),
             }
+
+            # Add metrics if account is not a manager
+            if not account_data["is_manager"]:
+                account_data["metrics"] = {
+                    "cost": getattr(row.metrics, "cost_micros", 0) / 1_000_000,
+                    "impressions": getattr(row.metrics, "impressions", 0),
+                    "clicks": getattr(row.metrics, "clicks", 0),
+                    "conversions": getattr(row.metrics, "conversions", 0),
+                    "average_cpc": (
+                        getattr(row.metrics, "average_cpc", 0) / 1_000_000
+                        if getattr(row.metrics, "average_cpc", 0)
+                        else 0
+                    ),
+                }
 
             # Process labels if available
             if labels := getattr(row.customer_client, "applied_labels", None):
