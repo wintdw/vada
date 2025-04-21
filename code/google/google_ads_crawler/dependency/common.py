@@ -1,5 +1,11 @@
 import os
+import json
+import logging
 from fastapi import Request, HTTPException  # type: ignore
+
+from google.ads.googleads.client import GoogleAdsClient  # type: ignore
+
+from model.google import GoogleAdsCredentials
 
 
 async def get_flows(request: Request):
@@ -22,3 +28,23 @@ async def get_app_secret_file() -> str:
         )
 
     return secret_path
+
+
+async def get_google_ads_client(
+    credentials: GoogleAdsCredentials,
+    client_secrets_path: str = get_app_secret_file(),
+) -> GoogleAdsClient:
+    # Get client credentials from environment file if not provided
+    if not credentials.client_id or not credentials.client_secret:
+        with open(client_secrets_path, "r") as f:
+            client_config = json.load(f)["web"]
+            credentials.client_id = credentials.client_id or client_config["client_id"]
+            credentials.client_secret = (
+                credentials.client_secret or client_config["client_secret"]
+            )
+
+    # Initialize the Google Ads client
+    logging.info("Initializing Google Ads client with credentials: %s", credentials)
+    ga_client = GoogleAdsClient.load_from_dict(credentials.dict())
+
+    return ga_client
