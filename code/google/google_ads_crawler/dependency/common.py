@@ -30,10 +30,8 @@ async def get_app_secret_file() -> str:
     return secret_path
 
 
-async def get_google_ads_client(
-    credentials: GoogleAdsCredentials,
-    client_secrets_path: str = get_app_secret_file(),
-) -> GoogleAdsClient:
+async def get_google_ads_client(credentials: GoogleAdsCredentials) -> GoogleAdsClient:
+    client_secrets_path = await get_app_secret_file()
     # Get client credentials from environment file if not provided
     if not credentials.client_id or not credentials.client_secret:
         with open(client_secrets_path, "r") as f:
