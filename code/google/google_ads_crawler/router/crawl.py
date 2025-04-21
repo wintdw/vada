@@ -5,7 +5,8 @@ from fastapi.responses import JSONResponse  # type: ignore
 from datetime import datetime, timedelta
 
 from model.google import GoogleAdsCredentials
-from handler.google import get_google_ads_reports, get_customer_list
+from handler.google import get_google_ads_reports
+from handler.customer import get_all_accounts
 from dependency.common import get_google_ads_client
 
 router = APIRouter()
@@ -20,7 +21,7 @@ async def get_google_reports(credentials: GoogleAdsCredentials):
         start_date = end_date - timedelta(days=7)
 
         # Get both reports and customer list
-        customers = await get_customer_list(ga_client)
+        customers = await get_all_accounts(ga_client)
         campaign_reports = await get_google_ads_reports(ga_client, start_date, end_date)
 
         response_data = {

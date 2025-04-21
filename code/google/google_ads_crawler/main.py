@@ -15,7 +15,7 @@ app = FastAPI(title="Google OAuth API")
 flows = {}
 
 app.include_router(auth.router, tags=["auth"])
-app.include_router(crawl.router, tags=["auth"])
+# app.include_router(crawl.router, tags=["auth"])
 app.include_router(customer.router, tags=["customer"])
 
 # Pass the flows dictionary to router endpoints that need it
