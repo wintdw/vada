@@ -7,7 +7,10 @@ from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from fastapi.responses import JSONResponse, RedirectResponse  # type: ignore
 
-from dependency.common import get_flows, get_app_secret_file
+from dependency.google import (
+    get_flows,
+    get_app_secret_file,
+)
 
 
 router = APIRouter()

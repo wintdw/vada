@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from model.google import GoogleAdsCredentials
 from handler.google import get_google_ads_reports
 from handler.customer import get_all_accounts
-from dependency.common import get_google_ads_client
+from dependency.google import get_google_ads_client
 
 router = APIRouter()
 

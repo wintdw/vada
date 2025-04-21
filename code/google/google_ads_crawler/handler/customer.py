@@ -1,23 +1,9 @@
 import logging
 from typing import Dict, List
-from functools import wraps
-from time import time
 
 from google.ads.google_ads.client import GoogleAdsClient  # type: ignore
 
-
-def log_execution_time(func):
-    """Decorator to log function execution time"""
-
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        start_time = time()
-        result = await func(*args, **kwargs)
-        execution_time = time() - start_time
-        logging.info(f"{func.__name__} executed in {execution_time:.2f} seconds")
-        return result
-
-    return wrapper
+from dependency.profile import log_execution_time
 
 
 @log_execution_time
