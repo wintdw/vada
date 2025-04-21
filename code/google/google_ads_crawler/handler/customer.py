@@ -174,10 +174,15 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 customer_client.applied_labels,
                 customer_client.client_customer,
                 customer_client.level,
-                customer_client.manager
+                customer_client.manager,
+                customer_client_link.status
             FROM customer_client
             WHERE customer_client.status = 'ENABLED'
-        """
+            AND customer_client.id != {manager_id}
+            AND customer_client_link.status = 'ACTIVE'
+        """.format(
+            manager_id=manager_id
+        )
 
         ga_service = ga_client.get_service("GoogleAdsService")
         response = ga_service.search(
