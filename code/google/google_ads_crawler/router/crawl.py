@@ -15,7 +15,7 @@ router = APIRouter()
 async def get_google_reports(credentials: GoogleAdsCredentials):
     """Fetch Google Ads reports using provided credentials"""
     try:
-        ga_client = get_google_ads_client(credentials)
+        ga_client = await get_google_ads_client(credentials)
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=7)
 

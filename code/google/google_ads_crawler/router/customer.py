@@ -31,7 +31,7 @@ async def get_customers(
         include_children: Whether to include child accounts for manager accounts
     """
     try:
-        ga_client = get_google_ads_client(credentials)
+        ga_client = await get_google_ads_client(credentials)
 
         if account_type == "manager":
             accounts = await get_manager_accounts(ga_client)
