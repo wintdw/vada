@@ -157,8 +157,23 @@ async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
     }
 
 
-async def get_child_accounts(ga_client: GoogleAdsClient, customer_id: str) -> List:
-    """Get all child accounts for a manager account"""
+async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> List:
+    """
+    Get all child accounts under a specific manager account
+
+    Args:
+        ga_client: Google Ads API client
+        manager_id: The manager account ID to get children for
+
+    Returns:
+        List of child account information including:
+        - id: Account ID
+        - name: Account descriptive name
+        - applied_labels: List of labels applied to account
+        - client_customer: Client customer ID
+        - level: Account level in hierarchy
+        - is_manager: Whether account is also a manager
+    """
     try:
         query = """
             SELECT
@@ -170,11 +185,12 @@ async def get_child_accounts(ga_client: GoogleAdsClient, customer_id: str) -> Li
                 customer_client.manager
             FROM customer_client
             WHERE customer_client.status = 'ENABLED'
+            AND customer_client.manager_link_status = 'ACTIVE'
         """
 
         ga_service = ga_client.get_service("GoogleAdsService")
         search_request = SearchGoogleAdsRequest(
-            customer_id=customer_id,
+            customer_id=manager_id,  # This is the manager account ID
             query=query,
         )
         response = ga_service.search(request=search_request)
@@ -194,7 +210,11 @@ async def get_child_accounts(ga_client: GoogleAdsClient, customer_id: str) -> Li
                 }
             )
 
+        logging.info(
+            f"Found {len(child_accounts)} child accounts for manager {manager_id}"
+        )
         return child_accounts
+
     except Exception as e:
-        logging.warning(f"Error getting child accounts for {customer_id}: {str(e)}")
+        logging.warning(f"Error getting child accounts for {manager_id}: {str(e)}")
         return []
