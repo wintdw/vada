@@ -1,9 +1,13 @@
 import logging
+from typing import Dict, List
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
+from google.ads.googleads.v19.services.types.google_ads_service import (  # type: ignore
+    SearchGoogleAdsRequest,
+)
 
 
-async def get_manager_accounts(ga_client: GoogleAdsClient) -> list:
+async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
     """Fetch list of manager accounts with their child accounts"""
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
@@ -66,7 +70,7 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> list:
     return manager_accounts
 
 
-async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> list:
+async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
     """Fetch list of non-manager accounts with metrics"""
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
@@ -141,7 +145,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> list:
 
 
 # Helper function to combine both results if needed
-async def get_all_accounts(ga_client: GoogleAdsClient) -> dict:
+async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
     """Get both manager and non-manager accounts"""
     manager_accounts = await get_manager_accounts(ga_client)
     client_accounts = await get_non_manager_accounts(ga_client)
@@ -151,3 +155,46 @@ async def get_all_accounts(ga_client: GoogleAdsClient) -> dict:
         "client_accounts": client_accounts,
         "total_accounts": len(manager_accounts) + len(client_accounts),
     }
+
+
+async def get_child_accounts(ga_client: GoogleAdsClient, customer_id: str) -> List:
+    """Get all child accounts for a manager account"""
+    try:
+        query = """
+            SELECT
+                customer_client.id,
+                customer_client.descriptive_name,
+                customer_client.applied_labels,
+                customer_client.client_customer,
+                customer_client.level,
+                customer_client.manager
+            FROM customer_client
+            WHERE customer_client.status = 'ENABLED'
+        """
+
+        ga_service = ga_client.get_service("GoogleAdsService")
+        search_request = SearchGoogleAdsRequest(
+            customer_id=customer_id,
+            query=query,
+        )
+        response = ga_service.search(request=search_request)
+
+        child_accounts = []
+        for row in response:
+            child_accounts.append(
+                {
+                    "id": row.customer_client.id,
+                    "name": row.customer_client.descriptive_name,
+                    "applied_labels": [
+                        label for label in row.customer_client.applied_labels
+                    ],
+                    "client_customer": row.customer_client.client_customer,
+                    "level": row.customer_client.level,
+                    "is_manager": row.customer_client.manager,
+                }
+            )
+
+        return child_accounts
+    except Exception as e:
+        logging.warning(f"Error getting child accounts for {customer_id}: {str(e)}")
+        return []
