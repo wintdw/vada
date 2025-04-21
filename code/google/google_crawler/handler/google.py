@@ -1,26 +1,27 @@
 import logging
 
+from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 from google.ads.googleads.v19.services.types.google_ads_service import (  # type: ignore
     SearchGoogleAdsRequest,
 )
 
 
-async def get_child_accounts(client, customer_id):
+async def get_child_accounts(ga_client: GoogleAdsClient, customer_id: str):
     """Get all child accounts for a manager account"""
     try:
         query = """
             SELECT
+                customer_client.id,
+                customer_client.descriptive_name,
+                customer_client.applied_labels,
                 customer_client.client_customer,
                 customer_client.level,
-                customer_client.manager,
-                customer_client.descriptive_name,
-                customer_client.currency_code,
-                customer_client.time_zone
+                customer_client.manager
             FROM customer_client
             WHERE customer_client.status = 'ENABLED'
         """
 
-        ga_service = client.get_service("GoogleAdsService")
+        ga_service = ga_client.get_service("GoogleAdsService")
         search_request = SearchGoogleAdsRequest(
             customer_id=customer_id,
             query=query,
@@ -31,12 +32,14 @@ async def get_child_accounts(client, customer_id):
         for row in response:
             child_accounts.append(
                 {
-                    "customer_id": row.customer_client.client_customer.split("/")[1],
+                    "id": row.customer_client.id,
                     "name": row.customer_client.descriptive_name,
-                    "currency": row.customer_client.currency_code,
-                    "timezone": row.customer_client.time_zone,
-                    "is_manager": row.customer_client.manager,
+                    "applied_labels": [
+                        label for label in row.customer_client.applied_labels
+                    ],
+                    "client_customer": row.customer_client.client_customer,
                     "level": row.customer_client.level,
+                    "is_manager": row.customer_client.manager,
                 }
             )
 
@@ -46,7 +49,127 @@ async def get_child_accounts(client, customer_id):
         return []
 
 
-async def get_google_ads_reports(client, start_date, end_date):
+async def get_customer_list(ga_client: GoogleAdsClient):
+    """Fetch list of accessible customers with details"""
+    customer_service = ga_client.get_service("CustomerService")
+    accessible_customers = customer_service.list_accessible_customers()
+
+    customers = []
+    for resource_name in accessible_customers.resource_names:
+        customer_id = resource_name.split("/")[-1]
+
+        # Query without metrics for manager accounts
+        base_query = """
+            SELECT 
+                customer.id,
+                customer.descriptive_name,
+                customer.currency_code,
+                customer.time_zone,
+                customer.auto_tagging_enabled,
+                customer.status,
+                customer.manager,
+                customer.test_account,
+                customer.pay_per_conversion_eligibility_failure_reasons
+            FROM customer 
+            WHERE customer.id = '{customer_id}'
+        """.format(
+            customer_id=customer_id
+        )
+
+        # Query with metrics for non-manager accounts
+        metrics_query = """
+            SELECT 
+                customer.id,
+                customer.descriptive_name,
+                customer.currency_code,
+                customer.time_zone,
+                customer.auto_tagging_enabled,
+                customer.status,
+                customer.manager,
+                customer.test_account,
+                customer.pay_per_conversion_eligibility_failure_reasons,
+                metrics.cost_micros,
+                metrics.impressions,
+                metrics.clicks,
+                metrics.conversions,
+                metrics.average_cpc
+            FROM customer 
+            WHERE customer.id = '{customer_id}'
+        """.format(
+            customer_id=customer_id
+        )
+
+        ga_service = ga_client.get_service("GoogleAdsService")
+        try:
+            # First try with base query (no metrics)
+            response = ga_service.search(
+                request={"customer_id": customer_id, "query": base_query}
+            )
+
+            for row in response:
+                customer_data = {
+                    "customer_id": row.customer.id,
+                    "name": row.customer.descriptive_name,
+                    "currency": row.customer.currency_code,
+                    "timezone": row.customer.time_zone,
+                    "resource_name": resource_name,
+                    "auto_tagging": row.customer.auto_tagging_enabled,
+                    "status": row.customer.status.name,
+                    "is_manager": row.customer.manager,
+                    "is_test_account": row.customer.test_account,
+                    "pay_per_conversion_issues": [
+                        reason.name
+                        for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
+                    ],
+                }
+
+                # If not a manager account, try to get metrics
+                if not row.customer.manager:
+                    try:
+                        metrics_response = ga_service.search(
+                            request={
+                                "customer_id": customer_id,
+                                "query": metrics_query,
+                            }
+                        )
+                        for metrics_row in metrics_response:
+                            customer_data["metrics"] = {
+                                "cost": metrics_row.metrics.cost_micros / 1_000_000,
+                                "impressions": metrics_row.metrics.impressions,
+                                "clicks": metrics_row.metrics.clicks,
+                                "conversions": metrics_row.metrics.conversions,
+                                "average_cpc": (
+                                    metrics_row.metrics.average_cpc / 1_000_000
+                                    if metrics_row.metrics.average_cpc
+                                    else 0
+                                ),
+                            }
+                    except Exception as metrics_error:
+                        logging.warning(
+                            f"Could not fetch metrics for {customer_id}: {str(metrics_error)}"
+                        )
+
+                # Get child accounts if this is a manager account
+                if row.customer.manager:
+                    child_accounts = await get_child_accounts(ga_client, customer_id)
+                    customer_data["child_accounts"] = child_accounts
+
+                customers.append(customer_data)
+
+        except Exception as e:
+            logging.warning(f"Error processing customer {customer_id}: {str(e)}")
+            customers.append(
+                {
+                    "customer_id": customer_id,
+                    "resource_name": resource_name,
+                    "error": str(e),
+                }
+            )
+
+    return customers
+
+
+async def get_google_ads_reports(client: GoogleAdsClient, start_date, end_date):
     """Fetch Google Ads reports for all accessible customers"""
     query = """
         SELECT
@@ -156,123 +279,3 @@ async def get_google_ads_reports(client, start_date, end_date):
             continue
 
     return results
-
-
-async def get_customer_list(client):
-    """Fetch list of accessible customers with details"""
-    customer_service = client.get_service("CustomerService")
-    accessible_customers = customer_service.list_accessible_customers()
-
-    customers = []
-    for resource_name in accessible_customers.resource_names:
-        customer_id = resource_name.split("/")[-1]
-
-        # Query without metrics for manager accounts
-        base_query = """
-            SELECT 
-                customer.id,
-                customer.descriptive_name,
-                customer.currency_code,
-                customer.time_zone,
-                customer.auto_tagging_enabled,
-                customer.status,
-                customer.manager,
-                customer.test_account,
-                customer.pay_per_conversion_eligibility_failure_reasons
-            FROM customer 
-            WHERE customer.id = '{customer_id}'
-        """.format(
-            customer_id=customer_id
-        )
-
-        # Query with metrics for non-manager accounts
-        metrics_query = """
-            SELECT 
-                customer.id,
-                customer.descriptive_name,
-                customer.currency_code,
-                customer.time_zone,
-                customer.auto_tagging_enabled,
-                customer.status,
-                customer.manager,
-                customer.test_account,
-                customer.pay_per_conversion_eligibility_failure_reasons,
-                metrics.cost_micros,
-                metrics.impressions,
-                metrics.clicks,
-                metrics.conversions,
-                metrics.average_cpc
-            FROM customer 
-            WHERE customer.id = '{customer_id}'
-        """.format(
-            customer_id=customer_id
-        )
-
-        ga_service = client.get_service("GoogleAdsService")
-        try:
-            # First try with base query (no metrics)
-            response = ga_service.search(
-                request={"customer_id": customer_id, "query": base_query}
-            )
-
-            for row in response:
-                customer_data = {
-                    "customer_id": row.customer.id,
-                    "name": row.customer.descriptive_name,
-                    "currency": row.customer.currency_code,
-                    "timezone": row.customer.time_zone,
-                    "resource_name": resource_name,
-                    "auto_tagging": row.customer.auto_tagging_enabled,
-                    "status": row.customer.status.name,
-                    "is_manager": row.customer.manager,
-                    "is_test_account": row.customer.test_account,
-                    "pay_per_conversion_issues": [
-                        reason.name
-                        for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
-                    ],
-                }
-
-                # If not a manager account, try to get metrics
-                if not row.customer.manager:
-                    try:
-                        metrics_response = ga_service.search(
-                            request={
-                                "customer_id": customer_id,
-                                "query": metrics_query,
-                            }
-                        )
-                        for metrics_row in metrics_response:
-                            customer_data["metrics"] = {
-                                "cost": metrics_row.metrics.cost_micros / 1_000_000,
-                                "impressions": metrics_row.metrics.impressions,
-                                "clicks": metrics_row.metrics.clicks,
-                                "conversions": metrics_row.metrics.conversions,
-                                "average_cpc": (
-                                    metrics_row.metrics.average_cpc / 1_000_000
-                                    if metrics_row.metrics.average_cpc
-                                    else 0
-                                ),
-                            }
-                    except Exception as metrics_error:
-                        logging.warning(
-                            f"Could not fetch metrics for {customer_id}: {str(metrics_error)}"
-                        )
-
-                # Get child accounts if this is a manager account
-                if row.customer.manager:
-                    child_accounts = await get_child_accounts(client, customer_id)
-                    customer_data["child_accounts"] = child_accounts
-
-                customers.append(customer_data)
-
-        except Exception as e:
-            logging.warning(f"Error processing customer {customer_id}: {str(e)}")
-            customers.append(
-                {
-                    "customer_id": customer_id,
-                    "resource_name": resource_name,
-                    "error": str(e),
-                }
-            )
-
-    return customers

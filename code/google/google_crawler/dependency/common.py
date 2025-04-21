@@ -7,7 +7,7 @@ async def get_flows(request: Request):
     return request.app.state.flows
 
 
-async def get_app_secret_file():
+async def get_app_secret_file() -> str:
     """Get Google app secret file path from environment variable"""
     secret_path = os.getenv("GOOGLE_APP_SECRET_FILE")
     if not secret_path:

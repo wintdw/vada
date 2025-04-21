@@ -1,6 +1,5 @@
 import logging
 import json
-import os
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from datetime import datetime, timedelta

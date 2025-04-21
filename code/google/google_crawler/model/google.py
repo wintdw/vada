@@ -1,7 +1,7 @@
 from pydantic import BaseModel  # type: ignore
 
 
-class GoogleCredentials(BaseModel):
+class GoogleAdsCredentials(BaseModel):
     refresh_token: str
     client_id: str = None
     client_secret: str = None
