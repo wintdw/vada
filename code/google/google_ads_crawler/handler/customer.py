@@ -69,13 +69,13 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
     """Fetch list of non-manager accounts with metrics"""
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
-
     client_accounts = []
 
+    # First, get basic account info without metrics
     for resource_name in accessible_customers.resource_names:
         customer_id = resource_name.split("/")[-1]
 
-        query = """
+        base_query = """
             SELECT 
                 customer.id,
                 customer.descriptive_name,
@@ -85,12 +85,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
                 customer.status,
                 customer.manager,
                 customer.test_account,
-                customer.pay_per_conversion_eligibility_failure_reasons,
-                metrics.cost_micros,
-                metrics.impressions,
-                metrics.clicks,
-                metrics.conversions,
-                metrics.average_cpc
+                customer.pay_per_conversion_eligibility_failure_reasons
             FROM customer 
             WHERE customer.id = '{customer_id}'
             AND customer.manager = FALSE
@@ -101,7 +96,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
         ga_service = ga_client.get_service("GoogleAdsService")
         try:
             response = ga_service.search(
-                request={"customer_id": customer_id, "query": query}
+                request={"customer_id": customer_id, "query": base_query}
             )
 
             for row in response:
@@ -118,18 +113,44 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
                         reason.name
                         for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
                     ],
-                    "metrics": {
-                        "cost": row.metrics.cost_micros / 1_000_000,
-                        "impressions": row.metrics.impressions,
-                        "clicks": row.metrics.clicks,
-                        "conversions": row.metrics.conversions,
-                        "average_cpc": (
-                            row.metrics.average_cpc / 1_000_000
-                            if row.metrics.average_cpc
-                            else 0
-                        ),
-                    },
                 }
+
+                # Get metrics in a separate query
+                try:
+                    metrics_query = """
+                        SELECT
+                            metrics.cost_micros,
+                            metrics.impressions,
+                            metrics.clicks,
+                            metrics.conversions,
+                            metrics.average_cpc
+                        FROM customer
+                        WHERE customer.id = '{customer_id}'
+                    """.format(
+                        customer_id=row.customer.id
+                    )
+
+                    metrics_response = ga_service.search(
+                        request={"customer_id": row.customer.id, "query": metrics_query}
+                    )
+
+                    for metrics_row in metrics_response:
+                        client_data["metrics"] = {
+                            "cost": metrics_row.metrics.cost_micros / 1_000_000,
+                            "impressions": metrics_row.metrics.impressions,
+                            "clicks": metrics_row.metrics.clicks,
+                            "conversions": metrics_row.metrics.conversions,
+                            "average_cpc": (
+                                metrics_row.metrics.average_cpc / 1_000_000
+                                if metrics_row.metrics.average_cpc
+                                else 0
+                            ),
+                        }
+                except Exception as metrics_error:
+                    logging.warning(
+                        f"Error getting metrics for account {row.customer.id}: {str(metrics_error)}"
+                    )
+                    client_data["metrics"] = None
 
                 client_accounts.append(client_data)
 
