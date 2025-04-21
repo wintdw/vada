@@ -2,9 +2,6 @@ import logging
 from typing import Dict, List
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
-from google.ads.googleads.v19.services.types.google_ads_service import (  # type: ignore
-    SearchGoogleAdsRequest,
-)
 
 
 async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
@@ -56,10 +53,6 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
                         for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
                     ],
                 }
-
-                # Get child accounts
-                child_accounts = await get_child_accounts(ga_client, customer_id)
-                manager_data["child_accounts"] = child_accounts
 
                 manager_accounts.append(manager_data)
 
