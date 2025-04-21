@@ -15,12 +15,27 @@ async def post_schedule_crawl(crawl_id: str = None):
 
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
+        crawl_id = None
         for item in crawl_info:
-            await tiktok_business_get(item.index_name, item.access_token, item.next_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
+            crawl_id = item.crawl_id
+            await insert_crawl_history(CrawlHistory(crawl_id=crawl_id))
+
+            crawl_response = await tiktok_business_get(item.index_name, item.access_token, item.next_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
+
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.last_crawl_time + timedelta(minutes=item.crawl_interval)
-            await update_crawl_info(item.crawl_id, item)
+            await update_crawl_info(crawl_id, item)
+            await update_crawl_history(crawl_id, CrawlHistory(
+                crawl_status="success",
+                crawl_duration=crawl_response.get("execution_time"),
+                crawl_data_number=crawl_response.get("total_reports")
+            )
+
     except Exception as e:
+        await update_crawl_history(crawl_id, CrawlHistory(
+            crawl_status="failed",
+            crawl_error=e
+        )
         logger.exception(e)
         raise HTTPException(
             status_code=500,

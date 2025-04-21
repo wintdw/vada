@@ -7,7 +7,7 @@ async def insert_crawl_history(crawl_history: CrawlHistory) -> CrawlHistory:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
-                "INSERT INTO `CrawlHistory` (crawl_id, crawl_time) VALUES (%s, %s)", (crawl_history.crawl_id, crawl_history.crawl_time)
+                "INSERT INTO `CrawlHistory` (crawl_id, crawl_status, crawl_error, crawl_duration, crawl_data_number) VALUES (%s)", (crawl_history.crawl_id, crawl_history.crawl_status, crawl_history.crawl_error, crawl_history.crawl_duration, crawl_history.crawl_data_number)
             )
             await connection.commit()
             return crawl_history

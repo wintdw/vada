@@ -3,11 +3,11 @@ from datetime import datetime
 
 class CrawlHistory(BaseModel):
     crawl_id: str | None = None
-    crawl_time: datetime = datetime.now()
-    crawl_status: str
-    crawl_error: str
-    crawl_duration: int
-    crawl_data_number: int
+    crawl_time: datetime | None = None
+    crawl_status: str = "in_progress"
+    crawl_error: str = ""
+    crawl_duration: int = 0
+    crawl_data_number: int = 0
 
 class CrawlHistoryResponse(BaseModel):
     status: int

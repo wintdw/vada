@@ -8,7 +8,7 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
         async with get_mysql_cursor(connection) as cursor:
             crawl_info.crawl_id = str(uuid4())
             await cursor.execute(
-                "INSERT INTO `CrawlInfo` (crawl_id, index_name, access_token, refresh_token, crawl_interval, next_crawl_time) VALUES (%s, %s, %s, %s, %s, %s)", (crawl_info.crawl_id, crawl_info.index_name, crawl_info.access_token, crawl_info.refresh_token, crawl_info.crawl_interval, crawl_info.next_crawl_time)
+                "INSERT INTO `CrawlInfo` (crawl_id, index_name, access_token, refresh_token, crawl_interval) VALUES (%s, %s, %s, %s, %s, %s)", (crawl_info.crawl_id, crawl_info.index_name, crawl_info.access_token, crawl_info.refresh_token, crawl_info.crawl_interval)
             )
             await connection.commit()
             return crawl_info
