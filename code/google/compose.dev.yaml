@@ -3,12 +3,12 @@ secrets:
     file: /var/secret/docker/google/app_secret
 
 services:
-  crawler-api:
+  google_ads_crawler:
     build:
-      context: ./google_crawler
+      context: ./google_ads_crawler
       dockerfile: Dockerfile
-    image: google_crawler:latest
-    container_name: google_crawler
+    image: google_ads_crawler:latest
+    container_name: google_ads_crawler
     restart: always
     ports:
       - "8146:8146"
