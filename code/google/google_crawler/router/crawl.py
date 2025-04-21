@@ -9,7 +9,7 @@ from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from model.google import GoogleCredentials
 from handler.google import get_google_ads_reports, get_customer_list
-from dependencies.common import get_app_secret_file
+from dependency.common import get_app_secret_file
 
 router = APIRouter()
 
