@@ -26,16 +26,18 @@ async def post_schedule_crawl(crawl_id: str = None):
             item.next_crawl_time = item.last_crawl_time + timedelta(minutes=item.crawl_interval)
             await update_crawl_info(crawl_id, item)
             await update_crawl_history(crawl_id, CrawlHistory(
+                crawl_id=crawl_id,
                 crawl_status="success",
                 crawl_duration=crawl_response.get("execution_time"),
                 crawl_data_number=crawl_response.get("total_reports")
-            )
+            ))
 
     except Exception as e:
         await update_crawl_history(crawl_id, CrawlHistory(
+            crawl_id=crawl_id,
             crawl_status="failed",
             crawl_error=e
-        )
+        ))
         logger.exception(e)
         raise HTTPException(
             status_code=500,
