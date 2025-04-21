@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List
 
-from google.ads.google_ads.client import GoogleAdsClient  # type: ignore
+from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
 
