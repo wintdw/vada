@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
-from model.google import GoogleCredentials
+from model.google import GoogleAdsCredentials
 from handler.google import get_google_ads_reports, get_customer_list
 from dependency.common import get_app_secret_file
 
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/google/reports")
 async def get_google_reports(
-    credentials: GoogleCredentials,
+    credentials: GoogleAdsCredentials,
     client_secrets_path: str = Depends(get_app_secret_file),
 ):
     """Fetch Google Ads reports using provided credentials"""
