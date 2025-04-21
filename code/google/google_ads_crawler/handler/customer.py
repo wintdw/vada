@@ -60,7 +60,6 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
                 # Get child accounts
                 child_accounts = await get_child_accounts(ga_client, customer_id)
                 manager_data["child_accounts"] = child_accounts
-                manager_data["child_accounts_count"] = len(child_accounts)
 
                 manager_accounts.append(manager_data)
 
@@ -188,62 +187,30 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
         """
 
         ga_service = ga_client.get_service("GoogleAdsService")
-
-        # Ensure manager_id is a string and create request with proper structure
-        request = {"customer_id": str(manager_id), "query": query}
-
-        response = ga_service.search(request=request)
+        response = ga_service.search(
+            request={"customer_id": str(manager_id), "query": query}
+        )
 
         child_accounts = []
         for row in response:
-            try:
-                # Safely handle potentially null fields
-                account_data = {
-                    "id": str(row.customer_client.id) if row.customer_client.id else "",
-                    "name": (
-                        str(row.customer_client.descriptive_name)
-                        if row.customer_client.descriptive_name
-                        else ""
-                    ),
-                    "applied_labels": [],  # Initialize empty list
-                    "client_customer": (
-                        str(row.customer_client.client_customer)
-                        if row.customer_client.client_customer
-                        else ""
-                    ),
-                    "level": (
-                        int(row.customer_client.level)
-                        if row.customer_client.level
-                        else 0
-                    ),
-                    "is_manager": (
-                        bool(row.customer_client.manager)
-                        if row.customer_client.manager
-                        else False
-                    ),
-                }
+            account_data = {
+                "id": str(getattr(row.customer_client, "id", "")),
+                "name": str(getattr(row.customer_client, "descriptive_name", "")),
+                "applied_labels": [],
+                "client_customer": str(
+                    getattr(row.customer_client, "client_customer", "")
+                ),
+                "level": int(getattr(row.customer_client, "level", 0)),
+                "is_manager": bool(getattr(row.customer_client, "manager", False)),
+            }
 
-                # Safely process labels if they exist
-                if hasattr(row.customer_client, "applied_labels"):
-                    try:
-                        account_data["applied_labels"] = [
-                            str(label)
-                            for label in row.customer_client.applied_labels
-                            if label is not None
-                        ]
-                    except (TypeError, AttributeError) as label_error:
-                        logging.warning(
-                            f"Error processing labels for account {account_data['id']}: {str(label_error)}"
-                        )
+            # Process labels if available
+            if labels := getattr(row.customer_client, "applied_labels", None):
+                account_data["applied_labels"] = [
+                    str(label) for label in labels if label
+                ]
 
-                child_accounts.append(account_data)
-
-            except Exception as row_error:
-                logging.error(
-                    f"Error processing child account row: {str(row_error)}",
-                    exc_info=True,
-                )
-                continue
+            child_accounts.append(account_data)
 
         logging.info(
             f"Found {len(child_accounts)} child accounts for manager {manager_id}"
@@ -254,6 +221,5 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
         logging.error(
             f"Error getting child accounts for manager {manager_id}: {str(e)}",
             exc_info=True,
-            stack_info=True,
         )
         return []
