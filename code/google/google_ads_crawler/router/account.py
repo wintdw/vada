@@ -16,7 +16,7 @@ from dependency.google import get_google_ads_client
 router = APIRouter()
 
 
-@router.get("/google/customers")
+@router.get("/google/accounts")
 async def get_customers(
     credentials: GoogleAdsCredentials,
     account_type: Optional[str] = None,
