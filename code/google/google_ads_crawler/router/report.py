@@ -14,7 +14,9 @@ router = APIRouter()
 
 
 @router.post("/google/reports")
-async def get_reports(credentials: GoogleAdsCredentials, days: Optional[int] = 7):
+async def fetch_google_reports(
+    credentials: GoogleAdsCredentials, days: Optional[int] = 7
+):
     """Fetch Google Ads reports using provided credentials
 
     Args:

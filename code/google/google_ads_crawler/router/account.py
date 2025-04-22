@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/google/accounts")
-async def get_customers(
+async def fetch_google_accounts(
     credentials: GoogleAdsCredentials,
     account_type: Optional[str] = None,
 ):
