@@ -29,7 +29,6 @@ METRIC_FIELDS = {
     "engagement_rate": {"field": "engagement_rate", "type": "rate"},
     "interaction_rate": {"field": "interaction_rate", "type": "rate"},
     "interactions": {"field": "interactions", "type": "integer"},
-    "interaction_event_types": {"field": "interaction_event_types", "type": "string"},
     # Conversion metrics
     "conversions": {"field": "conversions", "type": "float"},
     "conversions_value": {"field": "conversions_value", "type": "float"},
@@ -217,11 +216,6 @@ def get_metrics_from_row(metrics_obj) -> dict:
 
         if not value:
             metrics[metric_name] = 0
-            continue
-
-        # Handle RepeatedComposite type (like interaction_event_types)
-        if field_type == "string" and hasattr(value, "value"):
-            metrics[metric_name] = [item.value for item in value]
             continue
 
         # Handle numeric types
