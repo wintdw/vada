@@ -118,11 +118,16 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
     logging.info("Getting non-manager accounts...")
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
+    total_accounts = len(accessible_customers.resource_names)
     client_accounts = []
+    processed = 0
+
+    logging.info(f"├── Found {total_accounts} accessible accounts to process")
 
     # First, get basic account info without metrics
-    for resource_name in accessible_customers.resource_names:
+    for idx, resource_name in enumerate(accessible_customers.resource_names, 1):
         customer_id = resource_name.split("/")[-1]
+        logging.info(f"├── [{idx}/{total_accounts}] Processing account: {customer_id}")
 
         base_query = """
             SELECT 
@@ -149,6 +154,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
             )
 
             for row in response:
+                processed += 1
                 client_data = {
                     "customer_id": row.customer.id,
                     "name": row.customer.descriptive_name,
@@ -164,19 +170,33 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
                     ],
                 }
 
+                logging.info(f"│   ├── Found client account: {client_data['name']}")
+                logging.info(f"│   ├── Status: {client_data['status']}")
+
                 # Get metrics using helper function
+                logging.info(f"│   └── Fetching metrics...")
                 client_data["metrics"] = await get_metrics_for_account(
                     ga_service, str(row.customer.id)
                 )
+
+                if client_data["metrics"].get("cost", 0) > 0:
+                    logging.info(
+                        f"│       └── Active account with spend: {client_data['metrics']['cost']:.2f} "
+                        f"({client_data['metrics']['clicks']} clicks)"
+                    )
 
                 client_accounts.append(client_data)
 
         except Exception as e:
             logging.error(
-                f"Error processing client account {customer_id}: {str(e)}",
+                f"│   ⚠️  Error processing client account {customer_id}: {str(e)}",
                 exc_info=True,
             )
 
+    logging.info(
+        f"└── Completed processing {processed} client accounts "
+        f"(found {len(client_accounts)} active accounts)"
+    )
     return client_accounts
 
 
