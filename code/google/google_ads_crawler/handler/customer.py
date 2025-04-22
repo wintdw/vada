@@ -95,14 +95,7 @@ async def get_metrics_for_account(
             return metrics
 
     except Exception as e:
-        if "CUSTOMER_NOT_ENABLED" in str(e):
-            logging.warning(
-                f"    ⚠️  Account {customer_id} is not enabled or no permission"
-            )
-        elif "PERMISSION_DENIED" in str(e):
-            logging.warning(f"    ⚠️  No permission to access account {customer_id}")
-        else:
-            logging.error(f"    ⚠️  Error getting metrics: {str(e)}", exc_info=True)
+        logging.error(f"    ⚠️  Error getting metrics: {str(e)}", exc_info=True)
 
         return {
             "cost": 0,
@@ -110,12 +103,6 @@ async def get_metrics_for_account(
             "clicks": 0,
             "conversions": 0,
             "average_cpc": 0,
-            "status": "error",
-            "error_type": (
-                "CUSTOMER_NOT_ENABLED"
-                if "CUSTOMER_NOT_ENABLED" in str(e)
-                else "PERMISSION_DENIED" if "PERMISSION_DENIED" in str(e) else "UNKNOWN"
-            ),
         }
 
 
@@ -173,30 +160,53 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                 logging.info(f"│   ├── Status: {manager_data['status']}")
                 logging.info(f"│   └── Getting child accounts...")
 
-                # Get child accounts
-                children = await get_child_accounts(
-                    ga_client, manager_data["customer_id"]
-                )
-                manager_data["child_accounts"] = children
-                manager_data["child_count"] = len(children)
-
-                # Log child account summary
-                active_children = sum(
-                    1 for c in children if c.get("metrics", {}).get("cost", 0) > 0
-                )
-                if children:
-                    logging.info(
-                        f"│       └── Found {len(children)} child accounts "
-                        f"({active_children} active with spend)"
+                try:
+                    # Get child accounts
+                    children = await get_child_accounts(
+                        ga_client, manager_data["customer_id"]
                     )
+                    manager_data["child_accounts"] = children
+                    manager_data["child_count"] = len(children)
+
+                    # Log child account summary
+                    active_children = sum(
+                        1 for c in children if c.get("metrics", {}).get("cost", 0) > 0
+                    )
+                    if children:
+                        logging.info(
+                            f"│       └── Found {len(children)} child accounts "
+                            f"({active_children} active with spend)"
+                        )
+                except Exception as child_error:
+                    if "CUSTOMER_NOT_ENABLED" in str(child_error):
+                        logging.warning(
+                            f"│   ⚠️  Manager account {customer_id} is not enabled"
+                        )
+                    elif "PERMISSION_DENIED" in str(child_error):
+                        logging.warning(
+                            f"│   ⚠️  No permission to access manager {customer_id}"
+                        )
+                    else:
+                        logging.error(
+                            f"│   ⚠️  Error getting child accounts for {customer_id}: {str(child_error)}"
+                        )
+                    manager_data["child_accounts"] = []
+                    manager_data["child_count"] = 0
+                    manager_data["error"] = str(child_error)
 
                 manager_accounts.append(manager_data)
 
         except Exception as e:
-            logging.error(
-                f"│   ⚠️  Error processing manager {customer_id}: {str(e)}",
-                exc_info=True,
-            )
+            if "CUSTOMER_NOT_ENABLED" in str(e):
+                logging.warning(f"│   ⚠️  Account {customer_id} is not enabled")
+            elif "PERMISSION_DENIED" in str(e):
+                logging.warning(f"│   ⚠️  No permission to access account {customer_id}")
+            else:
+                logging.error(
+                    f"│   ⚠️  Error processing manager {customer_id}: {str(e)}",
+                    exc_info=True,
+                )
+            continue
 
     logging.info(
         f"└── Completed processing {processed} manager accounts "
