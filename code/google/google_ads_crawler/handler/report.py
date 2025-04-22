@@ -307,6 +307,8 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                     request={"customer_id": child["id"], "query": query}
                 )
 
+                child_results = []  # Track results for this child only
+
                 for row in response:
                     # Get metrics dynamically
                     metrics = get_metrics_from_row(row.metrics)
@@ -332,7 +334,7 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                         "status": row.ad_group_ad.status.name,
                     }
 
-                    results.append(
+                    child_results.append(
                         {
                             # Account info
                             "customer_id": child["id"],
@@ -350,8 +352,9 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                         }
                     )
 
-                if results:
-                    logging.info(f"│   │   └── Found {len(results)} records")
+                results.extend(child_results)  # Add child results to main results
+                if child_results:
+                    logging.info(f"│   │   └── Found {len(child_results)} records")
 
             except Exception as e:
                 logging.error(
