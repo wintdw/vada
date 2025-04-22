@@ -95,13 +95,27 @@ async def get_metrics_for_account(
             return metrics
 
     except Exception as e:
-        logging.error(f"    ⚠️  Error getting metrics: {str(e)}", exc_info=True)
+        if "CUSTOMER_NOT_ENABLED" in str(e):
+            logging.warning(
+                f"    ⚠️  Account {customer_id} is not enabled or no permission"
+            )
+        elif "PERMISSION_DENIED" in str(e):
+            logging.warning(f"    ⚠️  No permission to access account {customer_id}")
+        else:
+            logging.error(f"    ⚠️  Error getting metrics: {str(e)}", exc_info=True)
+
         return {
             "cost": 0,
             "impressions": 0,
             "clicks": 0,
             "conversions": 0,
             "average_cpc": 0,
+            "status": "error",
+            "error_type": (
+                "CUSTOMER_NOT_ENABLED"
+                if "CUSTOMER_NOT_ENABLED" in str(e)
+                else "PERMISSION_DENIED" if "PERMISSION_DENIED" in str(e) else "UNKNOWN"
+            ),
         }
 
 
