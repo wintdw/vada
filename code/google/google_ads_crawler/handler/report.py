@@ -10,6 +10,7 @@ def build_report_query(start_date: str, end_date: str) -> str:
     """Build query for campaign and ad group performance data"""
     return """
         SELECT
+            segments.date,
             customer.id,
             customer.descriptive_name,
             campaign.id,
@@ -22,7 +23,7 @@ def build_report_query(start_date: str, end_date: str) -> str:
             ad_group.status,
             metrics.cost_micros,
             metrics.conversions,
-            metrics.conversions_value,
+            metrics.conversion_value,
             metrics.impressions,
             metrics.clicks,
             metrics.ctr,
@@ -30,7 +31,18 @@ def build_report_query(start_date: str, end_date: str) -> str:
             metrics.search_impression_share,
             metrics.search_rank_lost_impression_share,
             metrics.bounce_rate,
-            metrics.average_time_on_site
+            metrics.average_time_on_site,
+            metrics.all_conversions,
+            metrics.all_conversion_value,
+            metrics.conversions_from_interactions_rate,
+            metrics.all_conversions_from_interactions_rate,
+            metrics.cost_per_conversion,
+            metrics.value_per_conversion,
+            metrics.conversion_value_per_cost,
+            metrics.engagements,
+            metrics.engagement_rate,
+            metrics.video_view_rate,
+            metrics.view_through_conversions
         FROM ad_group
         WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
         AND campaign.status != 'REMOVED'
