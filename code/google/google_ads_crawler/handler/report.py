@@ -47,10 +47,6 @@ METRIC_FIELDS = {
         "field": "conversions_value_by_conversion_date",
         "type": "float",
     },
-    "conversions_from_interactions_value_per_interaction": {
-        "field": "conversions_from_interactions_value_per_interaction",
-        "type": "float",
-    },
     # All conversion metrics
     "all_conversions": {"field": "all_conversions", "type": "float"},
     "all_conversions_value": {"field": "all_conversions_value", "type": "float"},
