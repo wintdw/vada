@@ -219,14 +219,21 @@ def get_metrics_from_row(metrics_obj) -> dict:
             metrics[metric_name] = 0
             continue
 
+        # Handle RepeatedComposite type (like interaction_event_types)
+        if field_type == "string" and hasattr(value, "value"):
+            metrics[metric_name] = [item.value for item in value]
+            continue
+
+        # Handle numeric types
         if field_type == "money":
             metrics[metric_name] = float(value) / 1_000_000
         elif field_type == "integer":
             metrics[metric_name] = int(value)
-        elif field_type in ["rate", "share"]:
+        elif field_type in ["rate", "share", "float"]:
             metrics[metric_name] = float(value)
         else:
-            metrics[metric_name] = float(value)
+            # Default case
+            metrics[metric_name] = value
 
     return metrics
 
