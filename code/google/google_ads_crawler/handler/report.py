@@ -288,8 +288,6 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                         "id": row.campaign.id,
                         "name": row.campaign.name,
                         "status": row.campaign.status.name,
-                        "channel": row.campaign.advertising_channel_type.name,
-                        "bidding": row.campaign.bidding_strategy_type.name,
                     }
 
                     ad_group_data = {

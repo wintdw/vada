@@ -55,6 +55,45 @@ def summarize_report_data(data: Dict) -> None:
         logger.info(f"    Conversions: {sample.get('conversions', 0):.2f}")
 
 
+def process_json_to_jsonl(input_file: str, index_name: str) -> None:
+    """Process JSON file to JSONL with VADA ingest configuration"""
+    # Get base filename without extension for output
+    base_name = input_file.rsplit(".", 1)[0]
+    output_file = f"{base_name}.jsonl"
+
+    logger.info(f"Processing {input_file} to {output_file}")
+
+    with open(input_file, "r") as f:
+        data = json.load(f)
+
+    # Process each report record
+    records = data.get("reports", {}).get("data", [])
+    with open(output_file, "w") as f:
+        for record in records:
+            # Generate doc_id from ad, adgroup, campaign IDs and date
+            ad_id = record.get("ad", {}).get("id", "")
+            adgroup_id = record.get("ad_group", {}).get("id", "")
+            campaign_id = record.get("campaign", {}).get("id", "")
+            date = record.get("date", "")
+
+            doc_id = f"{ad_id}.{adgroup_id}.{campaign_id}_{date}"
+
+            # Add VADA configuration
+            record["_vada"] = {
+                "ingest": {
+                    "destination": {"type": "elasticsearch", "index": index_name},
+                    "vada_client_id": "a_quang_nguyen",
+                    "doc_id": doc_id,
+                }
+            }
+
+            # Write each record as a single line
+            f.write(json.dumps(record) + "\n")
+
+    logger.info(f"Created JSONL file: {output_file}")
+    logger.info(f"Processed {len(records)} records")
+
+
 async def test_reports_endpoint():
     """Test different date ranges for the reports endpoint with multiple tokens"""
 
@@ -93,6 +132,10 @@ async def test_reports_endpoint():
                 with open(output_file, "w") as f:
                     json.dump(data, f, indent=2)
                 logger.info(f"\nFull response saved to: {output_file}")
+
+                # Process JSON to JSONL with VADA configuration
+                index_name = f"a_quang_nguyen_google_ad_report"
+                process_json_to_jsonl(output_file, index_name)
 
             except requests.RequestException as e:
                 logger.error(f"Error with token #{token_index}: {str(e)}")
