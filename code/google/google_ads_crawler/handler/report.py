@@ -33,7 +33,6 @@ def build_report_query(start_date: str, end_date: str) -> str:
             metrics.average_time_on_site,
             metrics.all_conversions,
             metrics.all_conversions_value,
-            metrics.all_conversions_value_per_cost,
             metrics.conversions_from_interactions_rate,
             metrics.all_conversions_from_interactions_rate,
             metrics.cost_per_conversion,
@@ -155,6 +154,8 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                             "customer_name": child["name"],
                             "manager_id": manager["customer_id"],
                             "manager_name": manager["name"],
+                            # Date info
+                            "date": row.segments.date,
                             # Structured data
                             "campaign": campaign_data,
                             "ad_group": ad_group_data,
