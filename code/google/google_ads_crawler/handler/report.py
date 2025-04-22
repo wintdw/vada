@@ -47,10 +47,6 @@ METRIC_FIELDS = {
         "field": "conversions_value_by_conversion_date",
         "type": "float",
     },
-    "conversions_value_per_cost": {
-        "field": "conversions_value_per_cost",
-        "type": "float",
-    },
     "conversions_from_interactions_value_per_interaction": {
         "field": "conversions_from_interactions_value_per_interaction",
         "type": "float",
@@ -71,17 +67,9 @@ METRIC_FIELDS = {
         "field": "all_conversions_value_by_conversion_date",
         "type": "float",
     },
-    "all_conversions_value_per_cost": {
-        "field": "all_conversions_value_per_cost",
-        "type": "float",
-    },
     "all_conversions_from_interactions_rate": {
         "field": "all_conversions_from_interactions_rate",
         "type": "rate",
-    },
-    "all_conversions_from_interactions_value_per_interaction": {
-        "field": "all_conversions_from_interactions_value_per_interaction",
-        "type": "float",
     },
     # Cross-device metrics
     "cross_device_conversions": {"field": "cross_device_conversions", "type": "float"},
@@ -104,18 +92,6 @@ METRIC_FIELDS = {
     },
     "value_per_current_model_attributed_conversion": {
         "field": "value_per_current_model_attributed_conversion",
-        "type": "float",
-    },
-    "current_model_attributed_conversions_from_interactions_rate": {
-        "field": "current_model_attributed_conversions_from_interactions_rate",
-        "type": "rate",
-    },
-    "current_model_attributed_conversions_from_interactions_value_per_interaction": {
-        "field": "current_model_attributed_conversions_from_interactions_value_per_interaction",
-        "type": "float",
-    },
-    "current_model_attributed_conversions_value_per_cost": {
-        "field": "current_model_attributed_conversions_value_per_cost",
         "type": "float",
     },
     # Video metrics
@@ -143,10 +119,6 @@ METRIC_FIELDS = {
     "gmail_forwards": {"field": "gmail_forwards", "type": "integer"},
     "gmail_saves": {"field": "gmail_saves", "type": "integer"},
     "gmail_secondary_clicks": {"field": "gmail_secondary_clicks", "type": "integer"},
-    # Phone metrics
-    "phone_calls": {"field": "phone_calls", "type": "integer"},
-    "phone_impressions": {"field": "phone_impressions", "type": "integer"},
-    "phone_through_rate": {"field": "phone_through_rate", "type": "rate"},
     # Website metrics
     "bounce_rate": {"field": "bounce_rate", "type": "rate"},
     "average_page_views": {"field": "average_page_views", "type": "float"},
@@ -287,6 +259,7 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
     manager_accounts = await get_manager_accounts(client)
 
     for manager in manager_accounts:
+        manager_total = 0  # Track total records for this manager
         logging.info(
             f"├── Processing manager: {manager['name']} ({manager['customer_id']})"
         )
@@ -354,7 +327,9 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
 
                 results.extend(child_results)  # Add child results to main results
                 if child_results:
-                    logging.info(f"│   │   └── Found {len(child_results)} records")
+                    child_count = len(child_results)
+                    manager_total += child_count
+                    logging.info(f"│   │   └── Found {child_count} records")
 
             except Exception as e:
                 logging.error(
@@ -362,6 +337,8 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                     exc_info=True,
                 )
                 continue
+
+        logging.info(f"│   └── Total records for {manager['name']}: {manager_total}")
 
     logging.info(f"└── Completed processing with {len(results)} total records")
     logging.info("=== Completed Performance Reports ===")
