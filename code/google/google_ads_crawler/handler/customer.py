@@ -62,11 +62,13 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
 
     manager_accounts = []
     total_accounts = len(accessible_customers.resource_names)
-    logging.info(f"├── Found {total_accounts} accessible accounts")
+    processed = 0
+
+    logging.info(f"├── Found {total_accounts} accessible accounts to process")
 
     for idx, resource_name in enumerate(accessible_customers.resource_names, 1):
         customer_id = resource_name.split("/")[-1]
-        logging.info(f"├── Processing account {idx}/{total_accounts}: {customer_id}")
+        logging.info(f"├── [{idx}/{total_accounts}] Processing account: {customer_id}")
 
         try:
             response = ga_client.get_service("GoogleAdsService").search(
@@ -74,7 +76,10 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
                     "customer_id": customer_id,
                     "query": """
                     SELECT customer.id, customer.descriptive_name, 
-                           customer.currency_code, customer.time_zone
+                           customer.currency_code, customer.time_zone,
+                           customer.auto_tagging_enabled, customer.status,
+                           customer.test_account,
+                           customer.pay_per_conversion_eligibility_failure_reasons
                     FROM customer 
                     WHERE customer.id = '{customer_id}'
                     AND customer.manager = TRUE
@@ -85,6 +90,7 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
             )
 
             for row in response:
+                processed += 1
                 manager_data = {
                     "customer_id": row.customer.id,
                     "name": row.customer.descriptive_name,
@@ -99,7 +105,28 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
                         for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
                     ],
                 }
-                logging.info(f"│   └── Found manager account: {manager_data['name']}")
+
+                logging.info(f"│   ├── Found manager account: {manager_data['name']}")
+                logging.info(f"│   ├── Status: {manager_data['status']}")
+                logging.info(f"│   └── Getting child accounts...")
+
+                # Get child accounts
+                children = await get_child_accounts(
+                    ga_client, manager_data["customer_id"]
+                )
+                manager_data["child_accounts"] = children
+                manager_data["child_count"] = len(children)
+
+                # Log child account summary
+                active_children = sum(
+                    1 for c in children if c.get("metrics", {}).get("cost", 0) > 0
+                )
+                if children:
+                    logging.info(
+                        f"│       └── Found {len(children)} child accounts "
+                        f"({active_children} active with spend)"
+                    )
+
                 manager_accounts.append(manager_data)
 
         except Exception as e:
@@ -108,7 +135,10 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
                 exc_info=True,
             )
 
-    logging.info(f"└── Completed processing {len(manager_accounts)} manager accounts")
+    logging.info(
+        f"└── Completed processing {processed} manager accounts "
+        f"(found {len(manager_accounts)} with {sum(m['child_count'] for m in manager_accounts)} total children)"
+    )
     return manager_accounts
 
 
@@ -200,7 +230,6 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
     return client_accounts
 
 
-# Helper function to combine both results if needed
 async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
     """Get both manager and non-manager accounts"""
     manager_accounts = await get_manager_accounts(ga_client)
