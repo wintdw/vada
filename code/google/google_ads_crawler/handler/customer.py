@@ -1,14 +1,66 @@
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
 
+# Common keys for account data
+ACCOUNT_FIELDS = {
+    "id": "customer_id",  # Standardize ID field name
+    "name": "name",
+    "currency": "currency",
+    "timezone": "timezone",
+    "status": "status",
+    "resource_name": "resource_name",
+    "auto_tagging": "auto_tagging",
+    "is_test_account": "is_test_account",
+    "pay_per_conversion_issues": "pay_per_conversion_issues",
+    "metrics": "metrics",
+}
+
+
+def build_account_query(customer_id: str, is_manager: bool = False) -> str:
+    """Build standardized account query.
+
+    Args:
+        customer_id: Account ID to query
+        is_manager: Whether to query manager accounts
+
+    Returns:
+        SQL query string
+    """
+    return """
+        SELECT 
+            customer.id,
+            customer.descriptive_name,
+            customer.currency_code,
+            customer.time_zone,
+            customer.auto_tagging_enabled,
+            customer.status,
+            customer.test_account,
+            customer.pay_per_conversion_eligibility_failure_reasons
+        FROM customer 
+        WHERE customer.id = '{customer_id}'
+        AND customer.manager = {is_manager}
+    """.format(
+        customer_id=customer_id, is_manager=str(is_manager).upper()
+    )
+
 
 @log_execution_time
-async def get_metrics_for_account(ga_service, customer_id: str) -> dict:
-    """Helper function to get metrics for an account"""
+async def get_metrics_for_account(
+    ga_service: GoogleAdsClient, customer_id: str
+) -> Dict[str, float]:
+    """Get metrics for a specific account.
+
+    Args:
+        ga_service: Google Ads service client
+        customer_id: Account ID to get metrics for
+
+    Returns:
+        Dict containing account metrics (cost, impressions, clicks, etc.)
+    """
     logging.info(f"└── Getting metrics for account {customer_id}")
     try:
         metrics_response = ga_service.search(
@@ -54,8 +106,16 @@ async def get_metrics_for_account(ga_service, customer_id: str) -> dict:
 
 
 @log_execution_time
-async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
-    """Fetch list of manager accounts with their child accounts"""
+async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
+    """Get all manager accounts with their child accounts.
+
+    Args:
+        ga_client: Google Ads API client
+
+    Returns:
+        List of manager accounts with their child accounts and metrics
+    """
+    logging.info("=== Getting Manager Accounts ===")
     logging.info("Getting manager accounts...")
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
@@ -74,33 +134,22 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
             response = ga_client.get_service("GoogleAdsService").search(
                 request={
                     "customer_id": customer_id,
-                    "query": """
-                    SELECT customer.id, customer.descriptive_name, 
-                           customer.currency_code, customer.time_zone,
-                           customer.auto_tagging_enabled, customer.status,
-                           customer.test_account,
-                           customer.pay_per_conversion_eligibility_failure_reasons
-                    FROM customer 
-                    WHERE customer.id = '{customer_id}'
-                    AND customer.manager = TRUE
-                """.format(
-                        customer_id=customer_id
-                    ),
+                    "query": build_account_query(customer_id, is_manager=True),
                 }
             )
 
             for row in response:
                 processed += 1
                 manager_data = {
-                    "customer_id": row.customer.id,
-                    "name": row.customer.descriptive_name,
-                    "currency": row.customer.currency_code,
-                    "timezone": row.customer.time_zone,
-                    "resource_name": resource_name,
-                    "auto_tagging": row.customer.auto_tagging_enabled,
-                    "status": row.customer.status.name,
-                    "is_test_account": row.customer.test_account,
-                    "pay_per_conversion_issues": [
+                    ACCOUNT_FIELDS["id"]: row.customer.id,
+                    ACCOUNT_FIELDS["name"]: row.customer.descriptive_name,
+                    ACCOUNT_FIELDS["currency"]: row.customer.currency_code,
+                    ACCOUNT_FIELDS["timezone"]: row.customer.time_zone,
+                    ACCOUNT_FIELDS["resource_name"]: resource_name,
+                    ACCOUNT_FIELDS["auto_tagging"]: row.customer.auto_tagging_enabled,
+                    ACCOUNT_FIELDS["status"]: row.customer.status.name,
+                    ACCOUNT_FIELDS["is_test_account"]: row.customer.test_account,
+                    ACCOUNT_FIELDS["pay_per_conversion_issues"]: [
                         reason.name
                         for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
                     ],
@@ -139,12 +188,21 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List:
         f"└── Completed processing {processed} manager accounts "
         f"(found {len(manager_accounts)} with {sum(m['child_count'] for m in manager_accounts)} total children)"
     )
+    logging.info("=== Completed Manager Accounts ===")
     return manager_accounts
 
 
 @log_execution_time
-async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
-    """Fetch list of non-manager accounts with metrics"""
+async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
+    """Get all non-manager accounts with their metrics.
+
+    Args:
+        ga_client: Google Ads API client
+
+    Returns:
+        List of non-manager accounts with their metrics
+    """
+    logging.info("=== Getting Non-Manager Accounts ===")
     logging.info("Getting non-manager accounts...")
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
@@ -159,23 +217,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
         customer_id = resource_name.split("/")[-1]
         logging.info(f"├── [{idx}/{total_accounts}] Processing account: {customer_id}")
 
-        base_query = """
-            SELECT 
-                customer.id,
-                customer.descriptive_name,
-                customer.currency_code,
-                customer.time_zone,
-                customer.auto_tagging_enabled,
-                customer.status,
-                customer.manager,
-                customer.test_account,
-                customer.pay_per_conversion_eligibility_failure_reasons
-            FROM customer 
-            WHERE customer.id = '{customer_id}'
-            AND customer.manager = FALSE
-        """.format(
-            customer_id=customer_id
-        )
+        base_query = build_account_query(customer_id, is_manager=False)
 
         ga_service = ga_client.get_service("GoogleAdsService")
         try:
@@ -186,15 +228,15 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
             for row in response:
                 processed += 1
                 client_data = {
-                    "customer_id": row.customer.id,
-                    "name": row.customer.descriptive_name,
-                    "currency": row.customer.currency_code,
-                    "timezone": row.customer.time_zone,
-                    "resource_name": resource_name,
-                    "auto_tagging": row.customer.auto_tagging_enabled,
-                    "status": row.customer.status.name,
-                    "is_test_account": row.customer.test_account,
-                    "pay_per_conversion_issues": [
+                    ACCOUNT_FIELDS["id"]: row.customer.id,
+                    ACCOUNT_FIELDS["name"]: row.customer.descriptive_name,
+                    ACCOUNT_FIELDS["currency"]: row.customer.currency_code,
+                    ACCOUNT_FIELDS["timezone"]: row.customer.time_zone,
+                    ACCOUNT_FIELDS["resource_name"]: resource_name,
+                    ACCOUNT_FIELDS["auto_tagging"]: row.customer.auto_tagging_enabled,
+                    ACCOUNT_FIELDS["status"]: row.customer.status.name,
+                    ACCOUNT_FIELDS["is_test_account"]: row.customer.test_account,
+                    ACCOUNT_FIELDS["pay_per_conversion_issues"]: [
                         reason.name
                         for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
                     ],
@@ -227,6 +269,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List:
         f"└── Completed processing {processed} client accounts "
         f"(found {len(client_accounts)} active accounts)"
     )
+    logging.info("=== Completed Non-Manager Accounts ===")
     return client_accounts
 
 
