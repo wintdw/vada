@@ -1,13 +1,100 @@
 import logging
+from typing import Dict, List
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
 from .customer import get_manager_accounts
 
+# Define all metric fields used in reports
+METRIC_FIELDS = {
+    # Cost metrics
+    "cost": {
+        "field": "cost_micros",
+        "type": "money",
+    },
+    "average_cpc": {
+        "field": "average_cpc",
+        "type": "money",
+    },
+    "cost_per_conversion": {
+        "field": "cost_per_conversion",
+        "type": "money",
+    },
+    # Count metrics
+    "impressions": {
+        "field": "impressions",
+        "type": "integer",
+    },
+    "clicks": {
+        "field": "clicks",
+        "type": "integer",
+    },
+    "engagements": {
+        "field": "engagements",
+        "type": "integer",
+    },
+    # Rate metrics
+    "ctr": {
+        "field": "ctr",
+        "type": "rate",
+    },
+    "bounce_rate": {
+        "field": "bounce_rate",
+        "type": "rate",
+    },
+    "engagement_rate": {
+        "field": "engagement_rate",
+        "type": "rate",
+    },
+    "video_view_rate": {
+        "field": "video_view_rate",
+        "type": "rate",
+    },
+    # Share metrics
+    "search_impression_share": {
+        "field": "search_impression_share",
+        "type": "share",
+    },
+    "search_rank_lost_impression_share": {
+        "field": "search_rank_lost_impression_share",
+        "type": "share",
+    },
+    # Conversion metrics
+    "conversions": {
+        "field": "conversions",
+        "type": "float",
+    },
+    "all_conversions": {
+        "field": "all_conversions",
+        "type": "float",
+    },
+    "conversions_from_interactions_rate": {
+        "field": "conversions_from_interactions_rate",
+        "type": "rate",
+    },
+    "value_per_conversion": {
+        "field": "value_per_conversion",
+        "type": "float",
+    },
+    "view_through_conversions": {
+        "field": "view_through_conversions",
+        "type": "float",
+    },
+    # Time metrics
+    "average_time_on_site": {
+        "field": "average_time_on_site",
+        "type": "float",
+    },
+}
+
 
 def build_report_query(start_date: str, end_date: str) -> str:
     """Build query for campaign and ad group performance data"""
+    metric_fields = [
+        f"metrics.{field_info['field']}" for field_info in METRIC_FIELDS.values()
+    ]
+
     return """
         SELECT
             segments.date,
@@ -21,65 +108,40 @@ def build_report_query(start_date: str, end_date: str) -> str:
             ad_group.id,
             ad_group.name,
             ad_group.status,
-            metrics.cost_micros,
-            metrics.conversions,
-            metrics.impressions,
-            metrics.clicks,
-            metrics.ctr,
-            metrics.average_cpc,
-            metrics.search_impression_share,
-            metrics.search_rank_lost_impression_share,
-            metrics.bounce_rate,
-            metrics.average_time_on_site,
-            metrics.all_conversions,
-            metrics.all_conversions_value,
-            metrics.conversions_from_interactions_rate,
-            metrics.all_conversions_from_interactions_rate,
-            metrics.cost_per_conversion,
-            metrics.value_per_conversion,
-            metrics.engagements,
-            metrics.engagement_rate,
-            metrics.video_view_rate,
-            metrics.view_through_conversions
+            {metrics}
         FROM ad_group
         WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
         AND campaign.status != 'REMOVED'
         AND ad_group.status != 'REMOVED'
         ORDER BY metrics.cost_micros DESC
     """.format(
-        start_date=start_date, end_date=end_date
+        start_date=start_date,
+        end_date=end_date,
+        metrics=",\n            ".join(metric_fields),
     )
 
 
 def get_metrics_from_row(metrics_obj) -> dict:
-    """Extract all metrics from a Google Ads metrics object dynamically.
-
-    Args:
-        metrics_obj: Google Ads metrics object from row
-
-    Returns:
-        Dict containing all available metrics with proper value conversion
-    """
+    """Extract metrics from a Google Ads metrics object using global field definitions"""
     metrics = {}
 
-    # Get all available fields from metrics object
-    for field in metrics_obj.DESCRIPTOR.fields:
-        field_name = field.name
+    for metric_name, field_info in METRIC_FIELDS.items():
+        field_name = field_info["field"]
+        field_type = field_info["type"]
         value = getattr(metrics_obj, field_name, 0)
 
-        # Convert monetary values (ending with _micros)
-        if field_name.endswith("_micros"):
-            base_name = field_name.replace("_micros", "")
-            metrics[base_name] = float(value) / 1_000_000 if value else 0
-        # Handle percentage values (rates)
-        elif any(field_name.endswith(suffix) for suffix in ["_rate", "_share"]):
-            metrics[field_name] = float(value) if value else 0
-        # Handle integer metrics
-        elif field_name in ["impressions", "clicks", "engagements"]:
-            metrics[field_name] = int(value) if value else 0
-        # All other metrics as float
+        if not value:
+            metrics[metric_name] = 0
+            continue
+
+        if field_type == "money":
+            metrics[metric_name] = float(value) / 1_000_000
+        elif field_type == "integer":
+            metrics[metric_name] = int(value)
+        elif field_type in ["rate", "share"]:
+            metrics[metric_name] = float(value)
         else:
-            metrics[field_name] = float(value) if value else 0
+            metrics[metric_name] = float(value)
 
     return metrics
 
