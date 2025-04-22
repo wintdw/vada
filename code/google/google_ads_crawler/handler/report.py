@@ -53,6 +53,39 @@ def build_report_query(start_date: str, end_date: str) -> str:
     )
 
 
+def get_metrics_from_row(metrics_obj) -> dict:
+    """Extract all metrics from a Google Ads metrics object dynamically.
+
+    Args:
+        metrics_obj: Google Ads metrics object from row
+
+    Returns:
+        Dict containing all available metrics with proper value conversion
+    """
+    metrics = {}
+
+    # Get all available fields from metrics object
+    for field in metrics_obj.DESCRIPTOR.fields:
+        field_name = field.name
+        value = getattr(metrics_obj, field_name, 0)
+
+        # Convert monetary values (ending with _micros)
+        if field_name.endswith("_micros"):
+            base_name = field_name.replace("_micros", "")
+            metrics[base_name] = float(value) / 1_000_000 if value else 0
+        # Handle percentage values (rates)
+        elif any(field_name.endswith(suffix) for suffix in ["_rate", "_share"]):
+            metrics[field_name] = float(value) if value else 0
+        # Handle integer metrics
+        elif field_name in ["impressions", "clicks", "engagements"]:
+            metrics[field_name] = int(value) if value else 0
+        # All other metrics as float
+        else:
+            metrics[field_name] = float(value) if value else 0
+
+    return metrics
+
+
 @log_execution_time
 async def get_reports(client: GoogleAdsClient, start_date, end_date):
     """Fetch Google Ads reports for all non-manager accounts through hierarchy.
@@ -98,20 +131,8 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
                 )
 
                 for row in response:
-                    # Flat metrics
-                    metrics = {
-                        "cost": row.metrics.cost_micros / 1_000_000,
-                        "conversions": row.metrics.conversions,
-                        "conversions_value": row.metrics.conversions_value,
-                        "impressions": row.metrics.impressions,
-                        "clicks": row.metrics.clicks,
-                        "ctr": row.metrics.ctr,
-                        "average_cpc": row.metrics.average_cpc / 1_000_000,
-                        "search_impression_share": row.metrics.search_impression_share,
-                        "search_rank_lost_share": row.metrics.search_rank_lost_impression_share,
-                        "bounce_rate": row.metrics.bounce_rate,
-                        "avg_time_on_site": row.metrics.average_time_on_site,
-                    }
+                    # Get metrics dynamically
+                    metrics = get_metrics_from_row(row.metrics)
 
                     # Structured campaign and ad group data
                     campaign_data = {
