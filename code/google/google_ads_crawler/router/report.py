@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, HTTPException  # type: ignore
+from fastapi import APIRouter, HTTPException, Query  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from datetime import datetime, timedelta
 from typing import Optional
@@ -15,15 +15,21 @@ router = APIRouter()
 @router.post("/google/reports")
 async def fetch_google_reports(
     credentials: GoogleAdsCredentials,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    start_date: Optional[str] = Query(
+        None, description="Start date in YYYY-MM-DD format"
+    ),
+    end_date: Optional[str] = Query(None, description="End date in YYYY-MM-DD format"),
 ):
     """Fetch Google Ads reports using provided credentials
 
     Args:
-        credentials: Google Ads API credentials
-        start_date: Start date in YYYY-MM-DD format (default: 7 days ago)
-        end_date: End date in YYYY-MM-DD format (default: today)
+        credentials: Google Ads API credentials in request body
+        start_date: Start date in YYYY-MM-DD format as query param (default: 7 days ago)
+        end_date: End date in YYYY-MM-DD format as query param (default: today)
+
+    Example:
+        POST /google/reports?start_date=2025-04-16&end_date=2025-04-23
+        Body: {"refresh_token": "..."}
 
     Raises:
         HTTPException: If dates are invalid or API errors occur
