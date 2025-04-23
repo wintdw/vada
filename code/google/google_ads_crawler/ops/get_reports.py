@@ -96,8 +96,7 @@ def process_json_to_jsonl(input_file: str, index_name: str) -> None:
 
 async def test_reports_endpoint():
     """Test different date ranges for the reports endpoint with multiple tokens"""
-
-    base_url = "http://localhost:8146/google/reports"
+    base_url = "http://insert-dev.internal.vadata.vn/google/reports"
     headers = {"Content-Type": "application/json"}
 
     for token_index, refresh_token in enumerate(get_refresh_tokens(), 1):
@@ -111,12 +110,10 @@ async def test_reports_endpoint():
             try:
                 logger.info(f"\nTesting: {test_case['desc']}")
 
-                response = requests.post(
-                    base_url,
-                    headers=headers,
-                    params=test_case["params"],
-                    json=credentials,
-                )
+                # Merge credentials with params for the request body
+                request_data = {**credentials, **test_case["params"]}
+
+                response = requests.post(base_url, headers=headers, json=request_data)
 
                 response.raise_for_status()
 
@@ -127,14 +124,21 @@ async def test_reports_endpoint():
                 # Log summary of the response
                 summarize_report_data(data)
 
-                # Save detailed response to file
-                output_file = f"report_response_token{token_index}_{test_case['params']['days']}days.json"
+                # Get start and end dates from response data
+                start_date = data["date_range"]["start_date"]
+                end_date = data["date_range"]["end_date"]
+
+                # Create filename using date range
+                output_file = (
+                    f"googleads_token{token_index}_{start_date}_{end_date}.json"
+                )
+
                 with open(output_file, "w") as f:
                     json.dump(data, f, indent=2)
                 logger.info(f"\nFull response saved to: {output_file}")
 
                 # Process JSON to JSONL with VADA configuration
-                index_name = f"a_quang_nguyen_google_ad_report"
+                index_name = "a_quang_nguyen_google_ad_report"
                 process_json_to_jsonl(output_file, index_name)
 
             except requests.RequestException as e:
