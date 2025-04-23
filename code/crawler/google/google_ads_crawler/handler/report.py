@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
-from .customer import get_manager_accounts
+from .account import get_manager_accounts
 
 # Define all metric fields used in reports
 METRIC_FIELDS = {

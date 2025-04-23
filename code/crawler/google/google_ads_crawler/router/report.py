@@ -6,7 +6,9 @@ from typing import Optional
 
 from model.google import GoogleAdsCredentials
 from handler.report import get_reports
-from handler.customer import get_manager_accounts
+from vada.code.crawler.google.google_ads_crawler.handler.account import (
+    get_manager_accounts,
+)
 from dependency.google import get_google_ads_client
 
 router = APIRouter()

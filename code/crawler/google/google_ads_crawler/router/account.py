@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from handler.customer import (
+from vada.code.crawler.google.google_ads_crawler.handler.account import (
     get_manager_accounts,
     get_non_manager_accounts,
     get_all_accounts,
