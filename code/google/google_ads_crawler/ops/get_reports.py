@@ -22,20 +22,6 @@ def get_test_cases() -> List[Dict]:
     return [
         {
             "params": {
-                "start_date": (today - timedelta(days=1)).isoformat(),
-                "end_date": today.isoformat(),
-            },
-            "desc": "Last 1 day reports",
-        },
-        {
-            "params": {
-                "start_date": (today - timedelta(days=3)).isoformat(),
-                "end_date": today.isoformat(),
-            },
-            "desc": "Last 3 days reports",
-        },
-        {
-            "params": {
                 "start_date": (today - timedelta(days=7)).isoformat(),
                 "end_date": today.isoformat(),
             },
@@ -129,7 +115,7 @@ def process_json_to_jsonl(input_file: str, index_name: str) -> None:
 
 async def test_reports_endpoint():
     """Test different date ranges for the reports endpoint with multiple tokens"""
-    base_url = "http://insert-dev.internal.vadata.vn/google/reports"
+    base_url = "http://localhost:8146/google/reports"
     headers = {"Content-Type": "application/json"}
 
     tokens = get_refresh_tokens()

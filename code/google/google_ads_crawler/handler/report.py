@@ -205,7 +205,7 @@ def build_report_query(start_date: str, end_date: str) -> str:
     )
 
 
-def get_metrics_from_row(metrics_obj) -> dict:
+def get_metrics_from_row(metrics_obj) -> Dict:
     """Extract metrics from a Google Ads metrics object using global field definitions"""
     metrics = {}
 
@@ -233,7 +233,9 @@ def get_metrics_from_row(metrics_obj) -> dict:
 
 
 @log_execution_time
-async def get_reports(client: GoogleAdsClient, start_date, end_date):
+async def get_reports(
+    client: GoogleAdsClient, start_date: str, end_date: str
+) -> List[Dict]:
     """Fetch Google Ads reports for all non-manager accounts through hierarchy.
 
     Args:
@@ -245,9 +247,7 @@ async def get_reports(client: GoogleAdsClient, start_date, end_date):
         List of campaign/ad group performance data with metrics
     """
     logging.info("=== Getting Performance Reports ===")
-    query = build_report_query(
-        start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
-    )
+    query = build_report_query(start_date, end_date)
 
     ga_service = client.get_service("GoogleAdsService")
     results = []
