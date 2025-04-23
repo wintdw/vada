@@ -107,14 +107,17 @@ async def get_metrics_for_account(
 
 
 @log_execution_time
-async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
+async def get_manager_accounts(
+    ga_client: GoogleAdsClient, get_metrics: bool = False
+) -> List[Dict]:
     """Get all manager accounts with their child accounts.
 
     Args:
         ga_client: Google Ads API client
+        get_metrics: Whether to fetch metrics for child accounts (default: False)
 
     Returns:
-        List of manager accounts with their child accounts and metrics
+        List of manager accounts with their child accounts
     """
     logging.info("=== Getting Manager Accounts ===")
     logging.info("Getting manager accounts...")
@@ -169,14 +172,22 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                     manager_data["child_count"] = len(children)
 
                     # Log child account summary
-                    active_children = sum(
-                        1 for c in children if c.get("metrics", {}).get("cost", 0) > 0
-                    )
                     if children:
-                        logging.info(
-                            f"│       └── Found {len(children)} child accounts "
-                            f"({active_children} active with spend)"
-                        )
+                        if get_metrics:
+                            active_children = sum(
+                                1
+                                for c in children
+                                if c.get("metrics", {}).get("cost", 0) > 0
+                            )
+                            logging.info(
+                                f"│       └── Found {len(children)} child accounts "
+                                f"({active_children} active with spend)"
+                            )
+                        else:
+                            logging.info(
+                                f"│       └── Found {len(children)} child accounts"
+                            )
+
                 except Exception as child_error:
                     if "CUSTOMER_NOT_ENABLED" in str(child_error):
                         logging.warning(
@@ -217,14 +228,17 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
 
 
 @log_execution_time
-async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
-    """Get all non-manager accounts with their metrics.
+async def get_non_manager_accounts(
+    ga_client: GoogleAdsClient, get_metrics: bool = False
+) -> List[Dict]:
+    """Get all non-manager accounts.
 
     Args:
         ga_client: Google Ads API client
+        get_metrics: Whether to fetch metrics for accounts (default: False)
 
     Returns:
-        List of non-manager accounts with their metrics
+        List of non-manager accounts
     """
     logging.info("=== Getting Non-Manager Accounts ===")
     logging.info("Getting non-manager accounts...")
@@ -269,17 +283,20 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                 logging.info(f"│   ├── Found client account: {client_data['name']}")
                 logging.info(f"│   ├── Status: {client_data['status']}")
 
-                # Get metrics using helper function
-                logging.info(f"│   └── Fetching metrics...")
-                client_data["metrics"] = await get_metrics_for_account(
-                    ga_service, str(row.customer.id)
-                )
-
-                if client_data["metrics"].get("cost", 0) > 0:
-                    logging.info(
-                        f"│       └── Active account with spend: {client_data['metrics']['cost']:.2f} "
-                        f"({client_data['metrics']['clicks']} clicks)"
+                if get_metrics:
+                    # Get metrics using helper function
+                    logging.info(f"│   └── Fetching metrics...")
+                    client_data["metrics"] = await get_metrics_for_account(
+                        ga_service, str(row.customer.id)
                     )
+
+                    if client_data["metrics"].get("cost", 0) > 0:
+                        logging.info(
+                            f"│       └── Active account with spend: {client_data['metrics']['cost']:.2f} "
+                            f"({client_data['metrics']['clicks']} clicks)"
+                        )
+                else:
+                    client_data["metrics"] = {}
 
                 client_accounts.append(client_data)
 
@@ -297,10 +314,10 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
     return client_accounts
 
 
-async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
+async def get_all_accounts(ga_client: GoogleAdsClient, get_metrics: False) -> Dict:
     """Get both manager and non-manager accounts"""
-    manager_accounts = await get_manager_accounts(ga_client)
-    client_accounts = await get_non_manager_accounts(ga_client)
+    manager_accounts = await get_manager_accounts(ga_client, get_metrics)
+    client_accounts = await get_non_manager_accounts(ga_client, get_metrics)
 
     return {
         "manager_accounts": manager_accounts,
@@ -310,8 +327,19 @@ async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
 
 
 @log_execution_time
-async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> List:
-    """Get all child accounts under a specific manager account"""
+async def get_child_accounts(
+    ga_client: GoogleAdsClient, manager_id: str, get_metrics: bool = False
+) -> List:
+    """Get all child accounts under a specific manager account.
+
+    Args:
+        ga_client: Google Ads API client
+        manager_id: ID of the manager account
+        get_metrics: Whether to fetch metrics for non-manager accounts (default: False)
+
+    Returns:
+        List of child accounts
+    """
     logging.info(f"Getting child accounts for manager {manager_id}...")
     try:
         # First get basic account information
@@ -359,10 +387,12 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
                 ]
 
             # Get metrics for non-manager accounts using helper function
-            if not account_data["is_manager"]:
+            if get_metrics and not account_data["is_manager"]:
                 account_data["metrics"] = await get_metrics_for_account(
                     ga_service, account_data["id"]
                 )
+            else:
+                account_data["metrics"] = {}
 
             child_accounts.append(account_data)
 
