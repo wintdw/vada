@@ -40,7 +40,7 @@ async def fetch_google_reports(
         start_date = (
             start_date
             if start_date
-            else (datetime.now().date() - timedelta(days=7)).isoformat()
+            else (datetime.now().date() - timedelta(days=30)).isoformat()
         )
 
         # Validate date formats
@@ -62,7 +62,9 @@ async def fetch_google_reports(
 
         # Get data
         manager_accounts = await get_manager_accounts(ga_client)
-        campaign_reports = await get_reports(ga_client, start_date, end_date)
+        ad_reports = await get_reports(
+            ga_client, start_date, end_date, manager_accounts
+        )
 
         # Build response with hierarchy information
         response_data = {
@@ -79,19 +81,15 @@ async def fetch_google_reports(
                 "hierarchy": manager_accounts,
             },
             "reports": {
-                "total_campaigns": len(
-                    set(r["campaign"]["id"] for r in campaign_reports)
-                ),
-                "total_ad_groups": len(
-                    set(r["ad_group"]["id"] for r in campaign_reports)
-                ),
-                "total_reports": len(campaign_reports),
-                "data": campaign_reports,
+                "total_campaigns": len(set(r["campaign"]["id"] for r in ad_reports)),
+                "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
+                "total_reports": len(ad_reports),
+                "data": ad_reports,
             },
         }
 
         logging.info(
-            f"Returning {len(campaign_reports)} reports from "
+            f"Returning {len(ad_reports)} reports from "
             f"{response_data['accounts']['total_clients']} client accounts"
         )
 

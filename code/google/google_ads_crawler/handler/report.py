@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
@@ -234,14 +234,18 @@ def get_metrics_from_row(metrics_obj) -> Dict:
 
 @log_execution_time
 async def get_reports(
-    client: GoogleAdsClient, start_date: str, end_date: str
+    ga_client: GoogleAdsClient,
+    start_date: str,
+    end_date: str,
+    manager_accounts: Optional[List[Dict]] = None,
 ) -> List[Dict]:
     """Fetch Google Ads reports for all non-manager accounts through hierarchy.
 
     Args:
-        client: Google Ads API client
+        ga_client: Google Ads API client
         start_date: Start date for report data
         end_date: End date for report data
+        manager_accounts: Optional list of manager accounts with their children (for caching)
 
     Returns:
         List of campaign/ad group performance data with metrics
@@ -249,11 +253,12 @@ async def get_reports(
     logging.info("=== Getting Performance Reports ===")
     query = build_report_query(start_date, end_date)
 
-    ga_service = client.get_service("GoogleAdsService")
+    ga_service = ga_client.get_service("GoogleAdsService")
     results = []
 
-    # Get manager accounts with their children
-    manager_accounts = await get_manager_accounts(client)
+    # Get manager accounts if not provided
+    if manager_accounts is None:
+        manager_accounts = await get_manager_accounts(ga_client)
 
     for manager in manager_accounts:
         manager_total = 0  # Track total records for this manager
