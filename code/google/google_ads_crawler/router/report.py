@@ -1,5 +1,4 @@
 import logging
-import json
 from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from datetime import datetime, timedelta
@@ -15,24 +14,29 @@ router = APIRouter()
 
 @router.post("/google/reports")
 async def fetch_google_reports(
-    credentials: GoogleAdsCredentials, days: Optional[int] = 7
+    credentials: GoogleAdsCredentials,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
 ):
     """Fetch Google Ads reports using provided credentials
 
     Args:
         credentials: Google Ads API credentials
-        days: Number of days to look back (default: 7)
+        start_date: Start date in YYYY-MM-DD format (default: 7 days ago)
+        end_date: End date in YYYY-MM-DD format (default: today)
     """
     try:
         # Initialize client and date range
         ga_client = await get_google_ads_client(credentials)
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
 
-        logging.info(
-            f"Fetching reports from {start_date.strftime('%Y-%m-%d')} "
-            f"to {end_date.strftime('%Y-%m-%d')}"
+        end_date = end_date if end_date else datetime.now().date().isoformat()
+        start_date = (
+            start_date
+            if start_date
+            else (datetime.now().date() - timedelta(days=7)).isoformat()
         )
+
+        logging.info(f"Fetching reports from {start_date} " f"to {end_date}")
 
         # Get manager accounts with hierarchy
         manager_accounts = await get_manager_accounts(ga_client)
@@ -43,8 +47,8 @@ async def fetch_google_reports(
         # Build response with hierarchy information
         response_data = {
             "date_range": {
-                "start_date": start_date.strftime("%Y-%m-%d"),
-                "end_date": end_date.strftime("%Y-%m-%d"),
+                "start_date": start_date,
+                "end_date": end_date,
             },
             "accounts": {
                 "manager_accounts": len(manager_accounts),
