@@ -4,13 +4,13 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from vada.code.crawler.google.google_ads_crawler.handler.account import (
+from handler.account import (
     get_manager_accounts,
     get_non_manager_accounts,
     get_all_accounts,
     get_child_accounts,
 )
-from model.google import GoogleAdsCredentials
+from model.ga_client import GoogleAdsCredentials
 from dependency.google import get_google_ads_client
 
 router = APIRouter()

@@ -5,7 +5,7 @@ from fastapi import Request, HTTPException  # type: ignore
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
-from model.google import GoogleAdsCredentials
+from model.ga_client import GoogleAdsCredentials
 
 
 async def get_flows(request: Request):
