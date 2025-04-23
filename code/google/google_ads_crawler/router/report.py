@@ -24,11 +24,12 @@ async def fetch_google_reports(
         credentials: Google Ads API credentials
         start_date: Start date in YYYY-MM-DD format (default: 7 days ago)
         end_date: End date in YYYY-MM-DD format (default: today)
+
+    Raises:
+        HTTPException: If dates are invalid or API errors occur
     """
     try:
-        # Initialize client and date range
-        ga_client = await get_google_ads_client(credentials)
-
+        # Validate and parse dates
         end_date = end_date if end_date else datetime.now().date().isoformat()
         start_date = (
             start_date
@@ -36,12 +37,25 @@ async def fetch_google_reports(
             else (datetime.now().date() - timedelta(days=7)).isoformat()
         )
 
-        logging.info(f"Fetching reports from {start_date} " f"to {end_date}")
+        # Validate date formats
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
+            if start_dt > end_dt:
+                raise HTTPException(
+                    status_code=400, detail="start_date cannot be later than end_date"
+                )
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+            )
 
-        # Get manager accounts with hierarchy
+        # Initialize client
+        ga_client = await get_google_ads_client(credentials)
+        logging.info(f"Fetching reports from {start_date} to {end_date}")
+
+        # Get data
         manager_accounts = await get_manager_accounts(ga_client)
-
-        # Get campaign reports through hierarchy
         campaign_reports = await get_reports(ga_client, start_date, end_date)
 
         # Build response with hierarchy information
@@ -65,18 +79,20 @@ async def fetch_google_reports(
                 "total_ad_groups": len(
                     set(r["ad_group"]["id"] for r in campaign_reports)
                 ),
-                "total_records": len(campaign_reports),
+                "total_reports": len(campaign_reports),
                 "data": campaign_reports,
             },
         }
 
         logging.info(
-            f"Returning {len(campaign_reports)} records from "
+            f"Returning {len(campaign_reports)} reports from "
             f"{response_data['accounts']['total_clients']} client accounts"
         )
 
         return JSONResponse(content=response_data, status_code=200)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching Google Ads reports: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
