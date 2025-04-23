@@ -3,12 +3,12 @@ secrets:
     file: /var/secret/docker/mysql/crawler
 
 services:
-  crawler-api:
+  tiktok_ads_crawler:
     build:
-      context: ./tiktok_crawler
+      context: ./tiktok_ads_crawler
       dockerfile: Dockerfile
-    image: tiktok_crawler:latest
-    container_name: tiktok_crawler
+    image: tiktok_ads_crawler:latest
+    container_name: tiktok_ads_crawler
     restart: always
     ports:
       - "8145:8145"
