@@ -11,20 +11,24 @@ async def update_metrics():
     from repositories import select_crawl_history_by_crawl_status
     from prometheus_client import Gauge
 
-    crawl_info = await select_crawl_history_by_crawl_status()
-    for item in crawl_info:
-        crawl_gauge = Gauge(
-            f"tiktok_crawler_{item.index_name}_gauge",
-            "Crawl Info",
-            ["crawl_id", "index_name", "access_token", "last_crawl_time", "next_crawl_time"]
-        )
-        crawl_gauge.labels(
-            crawl_id=item.crawl_id,
-            index_name=item.index_name,
-            access_token=item.access_token,
-            last_crawl_time=item.last_crawl_time.strftime('%Y-%m-%d'),
-            next_crawl_time=item.next_crawl_time.strftime('%Y-%m-%d')
-        ).set(item.crawl_interval)
+    try:
+        crawl_history = await select_crawl_history_by_crawl_status()
+        for item in crawl_history:
+            crawl_gauge = Gauge(
+                f"tiktok_crawl_{item.crawl_id}",
+                "Crawl status",
+                ["crawl_id", "crawl_status", "crawl_error", "crawl_duration", "crawl_data_number"],
+            )
+            crawl_gauge.labels(
+                crawl_id=item.crawl_id,
+                crawl_status=item.crawl_status,
+                crawl_error=item.crawl_error,
+                crawl_duration=item.crawl_duration,
+                crawl_data_number=item.crawl_data_number
+            ).set(1)
+            logger.info(f"Metrics updated for crawl_id: {item.crawl_id}")
+    except Exception as e:
+        logger.error(f"Error updating metrics: {e}")
 
 @router.post("/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_crawl(crawl_id: str = None):
@@ -46,11 +50,11 @@ async def post_schedule_crawl(crawl_id: str = None):
 
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.last_crawl_time + timedelta(minutes=item.crawl_interval)
-            crawl_info = await update_crawl_info(crawl_id, item)
+            crawl_info = await update_crawl_info(item.crawl_id, item)
             logger.info(crawl_info)
             
             crawl_history = await update_crawl_history(history_id, CrawlHistory(
-                crawl_id=crawl_id,
+                crawl_id=item.crawl_id,
                 crawl_status="success",
                 crawl_duration=int(crawl_response.get("execution_time")),
                 crawl_data_number=crawl_response.get("total_reports")
