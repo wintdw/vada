@@ -38,7 +38,7 @@ async def update_crawl_history(history_id: str, crawl_history: CrawlHistory) -> 
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
-                "UPDATE `CrawlHistory` SET crawl_status = %s, crawl_error = %s, crawl_duration = %s, crawl_data_number = %s WHERE crawl_id = %s", (crawl_history.crawl_status, crawl_history.crawl_error, crawl_history.crawl_duration, crawl_history.crawl_data_number, history_id)
+                "UPDATE `CrawlHistory` SET crawl_status = %s, crawl_error = %s, crawl_duration = %s, crawl_data_number = %s WHERE history_id = %s", (crawl_history.crawl_status, crawl_history.crawl_error, crawl_history.crawl_duration, crawl_history.crawl_data_number, history_id)
             )
             await connection.commit()
             crawl_history.history_id = history_id
