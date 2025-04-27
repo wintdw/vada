@@ -7,26 +7,19 @@ from models import CrawlHistory, CrawlInfo, CrawlInfoResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
+@router.get("/v1/schedule")
 async def update_metrics():
     from repositories import select_crawl_history_by_crawl_status
     from prometheus_client import Gauge
 
     try:
         crawl_history = await select_crawl_history_by_crawl_status()
-        for item in crawl_history:
-            crawl_gauge = Gauge(
-                f"tiktok_crawl_{item.crawl_id}",
-                "Crawl status",
-                ["crawl_id", "crawl_status", "crawl_error", "crawl_duration", "crawl_data_number"],
-            )
-            crawl_gauge.labels(
-                crawl_id=item.crawl_id,
-                crawl_status=item.crawl_status,
-                crawl_error=item.crawl_error,
-                crawl_duration=item.crawl_duration,
-                crawl_data_number=item.crawl_data_number
-            ).set(1)
-            logger.info(f"Metrics updated for crawl_id: {item.crawl_id}")
+        crawl_gauge = Gauge(
+            "active_crawl_jobs",
+            "Number of active jobs"
+        )
+        crawl_gauge.set(len(crawl_history))
+        logger.info(f"Metrics updated")
     except Exception as e:
         logger.error(f"Error updating metrics: {e}")
 
