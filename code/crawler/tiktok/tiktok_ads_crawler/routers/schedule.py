@@ -7,6 +7,25 @@ from models import CrawlHistory, CrawlInfo, CrawlInfoResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
+async def update_metrics():
+    from repositories import select_crawl_history_by_crawl_status
+    from prometheus_client import Gauge
+
+    crawl_info = await select_crawl_history_by_crawl_status()
+    for item in crawl_info:
+        crawl_gauge = Gauge(
+            f"tiktok_crawler_{item.index_name}_gauge",
+            "Crawl Info",
+            ["crawl_id", "index_name", "access_token", "last_crawl_time", "next_crawl_time"]
+        )
+        crawl_gauge.labels(
+            crawl_id=item.crawl_id,
+            index_name=item.index_name,
+            access_token=item.access_token,
+            last_crawl_time=item.last_crawl_time.strftime('%Y-%m-%d'),
+            next_crawl_time=item.next_crawl_time.strftime('%Y-%m-%d')
+        ).set(item.crawl_interval)
+
 @router.post("/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_crawl(crawl_id: str = None):
     from repositories import select_crawl_info_by_next_crawl_time, update_crawl_info, insert_crawl_history, update_crawl_history

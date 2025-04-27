@@ -13,17 +13,23 @@ async def insert_crawl_history(crawl_history: CrawlHistory) -> CrawlHistory:
             await connection.commit()
             return crawl_history
 
-async def select_crawl_history_by_crawl_id(crawl_id: str) -> CrawlHistory | None:
+async def select_crawl_history_by_crawl_id(crawl_id: str) -> list[CrawlHistory]:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 "SELECT history_id, crawl_id, crawl_time, crawl_status, crawl_error, crawl_duration, crawl_data_number, crawl_from_date, crawl_to_date FROM `CrawlHistory` WHERE crawl_id = %s", (crawl_id)
             )
-            result = await cursor.fetchone()
-            if result is None:
-                return None
-            else:
-                return CrawlHistory.model_validate(result)
+            results = await cursor.fetchall()
+            return [CrawlHistory.model_validate(result) for result in results]
+
+async def select_crawl_history_by_crawl_status() -> list[CrawlHistory]:
+    async with get_mysql_connection() as connection:
+        async with get_mysql_cursor(connection) as cursor:
+            await cursor.execute(
+                "SELECT history_id, crawl_id, crawl_time, crawl_status, crawl_error, crawl_duration, crawl_data_number, crawl_from_date, crawl_to_date FROM `CrawlHistory` WHERE crawl_status = %s", ("in_progress",)
+            )
+            results = await cursor.fetchall()
+            return [CrawlHistory.model_validate(result) for result in results]
 
 async def select_crawl_history() -> list[CrawlHistory]:
     async with get_mysql_connection() as connection:
@@ -48,7 +54,7 @@ async def remove_crawl_history(history_id: str) -> int:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
-                "DELETE FROM `CrawlHistory` WHERE crawl_id = %s", (history_id)
+                "DELETE FROM `CrawlHistory` WHERE history_id = %s", (history_id)
             )
             await connection.commit()
             return cursor.rowcount

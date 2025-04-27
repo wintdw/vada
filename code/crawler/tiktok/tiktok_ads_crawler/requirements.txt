@@ -7,3 +7,4 @@ aiohttp
 pydantic-settings
 fastapi-utils
 typing-inspect
+prometheus-client
