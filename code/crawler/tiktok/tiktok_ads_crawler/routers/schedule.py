@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException
-from aiomysql import IntegrityError
+from fastapi import APIRouter
 from datetime import timedelta
 
 from tools import get_logger
@@ -32,7 +31,7 @@ async def post_schedule_crawl(crawl_id: str = None):
             crawl_history = await update_crawl_history(crawl_id, CrawlHistory(
                 crawl_id=crawl_id,
                 crawl_status="success",
-                crawl_duration=crawl_response.get("execution_time"),
+                crawl_duration=int(crawl_response.get("execution_time")),
                 crawl_data_number=crawl_response.get("total_reports")
             ))
             logger.info(crawl_history)
@@ -41,18 +40,15 @@ async def post_schedule_crawl(crawl_id: str = None):
         crawl_history = await update_crawl_history(crawl_id, CrawlHistory(
             crawl_id=crawl_id,
             crawl_status="failed",
-            crawl_error=e
+            crawl_error=str(e)
         ))
         logger.info(crawl_history)
-        raise HTTPException(
-            status_code=500,
-            detail="Internal Server Error"
+
+    finally:
+        return CrawlInfoResponse(
+            status=200,
+            message="Success"
         )
-    logger.info(crawl_info)
-    return CrawlInfoResponse(
-        status=200,
-        message="Success"
-    )
 
 @router.post("/v1/schedule/{crawl_id}/auth", response_model=CrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_auth(crawl_id: str = None):

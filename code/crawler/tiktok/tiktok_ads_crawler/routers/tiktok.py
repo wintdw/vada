@@ -3,7 +3,7 @@ import time
 import uuid
 import asyncio
 from datetime import datetime
-from fastapi import APIRouter  # type: ignore
+from fastapi import APIRouter, HTTPException  # type: ignore
 from tools import get_logger, request_id
 
 from services import (
@@ -158,14 +158,10 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
         total_spend = sum(float(report.get("spend", 0)) for report in all_enriched_reports)
     except Exception as e:
         logger.error(f"Error occurred: {e}")
-        return {
-            "status": "failed",
-            "execution_time": None,
-            "total_reports": 0,
-            "total_spend": 0,
-            "date_start": start_date,
-            "date_end": end_date,
-        }
+        raise HTTPException(
+            status_code=500,
+            detail="Internal Server Error",
+        )
     
     return {
         "status": "success",
