@@ -23,7 +23,7 @@ from handlers import (
 )
 
 router = APIRouter()
-logger = get_logger(__name__, logging.INFO)
+logger = get_logger(__name__, logging.DEBUG)
 
 @router.get("/v1/tiktok_business/get/", tags=["Tiktok"])
 async def tiktok_business_get(index_name: str, access_token: str, start_date: str, end_date: str):
