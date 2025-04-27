@@ -75,7 +75,7 @@ async def fetch_google_reports(
             "accounts": {
                 "manager_accounts": len(manager_accounts),
                 "total_clients": sum(
-                    len([c for c in m["child_accounts"] if not c["is_manager"]])
+                    len([c for c in m["child_accounts"] if not c["manager"]])
                     for m in manager_accounts
                 ),
                 "hierarchy": manager_accounts,
