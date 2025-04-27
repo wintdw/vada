@@ -17,7 +17,7 @@ async def post_schedule_crawl(crawl_id: str = None):
         history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=crawl_id, crawl_from_date=item.last_crawl_time, crawl_to_date=item.next_crawl_time))
+            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=item.crawl_id, crawl_from_date=item.last_crawl_time, crawl_to_date=item.next_crawl_time))
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
@@ -44,7 +44,7 @@ async def post_schedule_crawl(crawl_id: str = None):
             crawl_status="failed",
             crawl_error=str(e)
         ))
-        logger.info(crawl_history)
+        logger.error(crawl_history)
 
     finally:
         return CrawlInfoResponse(
