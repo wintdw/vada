@@ -3,7 +3,6 @@ import json
 import asyncio
 import logging
 from typing import List, Dict
-from datetime import datetime, timedelta
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -11,7 +10,7 @@ logging.basicConfig(
 
 
 def get_refresh_tokens() -> List[str]:
-    return ["token1", "token2"]
+    return ["token1"]
 
 
 def summarize_report_data(data: Dict) -> None:
@@ -91,9 +90,8 @@ async def fetch_reports():
     logging.info("Starting tests with %d refresh tokens", len(tokens))
 
     # Use specific date range for production
-    today = datetime.now().date()
-    start_date = (today - timedelta(days=7)).isoformat()
-    end_date = today.isoformat()
+    start_date = "2024-01-01"
+    end_date = "2025-04-30"
 
     for token_index, refresh_token in enumerate(tokens, 1):
         logging.info("Processing token %d/%d", token_index, len(tokens))

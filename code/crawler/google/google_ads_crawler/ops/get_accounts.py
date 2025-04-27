@@ -59,13 +59,6 @@ async def test_customers_endpoint():
                     account_count = len(data["accounts"])
                     logger.info(f"Accounts Retrieved: {account_count}")
 
-                    # Log first account as sample
-                    if account_count > 0:
-                        sample = data["accounts"][0]
-                        logger.info("Sample Account:")
-                        logger.info(f"  Name: {sample.get('name', 'N/A')}")
-                        logger.info(f"  ID: {sample.get('customer_id', 'N/A')}")
-
                 # Save detailed response to file
                 output_file = f"customer_response_token{token_index}_{test_case['params'].get('account_type', 'all')}.json"
                 with open(output_file, "w") as f:
