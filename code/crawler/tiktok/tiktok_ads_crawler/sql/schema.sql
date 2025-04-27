@@ -11,20 +11,22 @@ CREATE TABLE `CrawlInfo` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `crawl_id` (`crawl_id`),
-  UNIQUE KEY `index_name` (`index_name`),
-  UNIQUE KEY `access_token` (`access_token`)
+  UNIQUE KEY `crawl_id` (`crawl_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `CrawlHistory` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `history_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `crawl_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `crawl_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `crawl_status` enum('in_progress','success','failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `crawl_error` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `crawl_duration` int NOT NULL,
   `crawl_data_number` int NOT NULL,
+  `crawl_from_date` timestamp NOT NULL,
+  `crawl_to_date` timestamp NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `history_id` (`history_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

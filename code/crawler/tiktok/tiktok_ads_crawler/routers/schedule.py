@@ -14,13 +14,15 @@ async def post_schedule_crawl(crawl_id: str = None):
 
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
-        crawl_id = None
+        history_id = None
+
         for item in crawl_info:
-            crawl_id = item.crawl_id
-            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=crawl_id))
+            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=crawl_id, crawl_from_date=item.last_crawl_time, crawl_to_date=item.next_crawl_time))
             logger.info(crawl_history)
 
-            crawl_response = await tiktok_business_get(item.index_name, item.access_token, item.next_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
+            history_id = crawl_history.history_id
+
+            crawl_response = await tiktok_business_get(item.index_name, item.access_token, item.last_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
             logger.info(crawl_response)
 
             item.last_crawl_time = item.next_crawl_time
@@ -28,7 +30,7 @@ async def post_schedule_crawl(crawl_id: str = None):
             crawl_info = await update_crawl_info(crawl_id, item)
             logger.info(crawl_info)
             
-            crawl_history = await update_crawl_history(crawl_id, CrawlHistory(
+            crawl_history = await update_crawl_history(history_id, CrawlHistory(
                 crawl_id=crawl_id,
                 crawl_status="success",
                 crawl_duration=int(crawl_response.get("execution_time")),
@@ -37,7 +39,7 @@ async def post_schedule_crawl(crawl_id: str = None):
             logger.info(crawl_history)
 
     except Exception as e:
-        crawl_history = await update_crawl_history(crawl_id, CrawlHistory(
+        crawl_history = await update_crawl_history(history_id, CrawlHistory(
             crawl_id=crawl_id,
             crawl_status="failed",
             crawl_error=str(e)
