@@ -22,7 +22,7 @@ def build_customer_query(
             customer.time_zone,
             customer.auto_tagging_enabled,
             customer.status,
-            customer.test_account,
+            customer.test_account
         FROM customer 
         WHERE customer.id = '{customer_id}'
         AND customer.manager = {is_manager}
