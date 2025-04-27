@@ -1,3 +1,6 @@
+from .metric import METRIC_FIELDS
+
+
 def build_customer_query(
     customer_id: str, is_manager: bool = False, is_enabled: bool = True
 ) -> str:
@@ -57,4 +60,35 @@ def build_customer_client_query(manager_id: str, is_enabled: bool = True) -> str
     """.format(
         manager_id=manager_id,
         operator="=" if is_enabled else "!=",
+    )
+
+
+def build_report_query(start_date: str, end_date: str) -> str:
+    """Build query for ad, campaign and ad group performance data"""
+    metric_fields = [
+        f"metrics.{field_info['field']}" for field_info in METRIC_FIELDS.values()
+    ]
+
+    return """
+        SELECT
+            segments.date,
+            customer.id,
+            customer.descriptive_name,
+            campaign.id,
+            campaign.name,
+            campaign.status,
+            ad_group.id,
+            ad_group.name,
+            ad_group.status,
+            ad_group_ad.ad.id,
+            ad_group_ad.ad.name,
+            ad_group_ad.status,
+            {metrics}
+        FROM ad_group_ad
+        WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
+        ORDER BY metrics.cost_micros DESC
+    """.format(
+        start_date=start_date,
+        end_date=end_date,
+        metrics=",\n            ".join(metric_fields),
     )
