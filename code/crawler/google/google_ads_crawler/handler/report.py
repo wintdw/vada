@@ -77,7 +77,7 @@ async def get_reports(
 
         # Process each non-manager child account
         for child in manager["child_accounts"]:
-            if child["is_manager"]:
+            if child["manager"]:
                 continue
 
             try:
