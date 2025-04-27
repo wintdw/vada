@@ -194,9 +194,6 @@ def build_report_query(start_date: str, end_date: str) -> str:
             {metrics}
         FROM ad_group_ad
         WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
-        AND campaign.status != 'REMOVED'
-        AND ad_group.status != 'REMOVED'
-        AND ad_group_ad.status != 'REMOVED'
         ORDER BY metrics.cost_micros DESC
     """.format(
         start_date=start_date,

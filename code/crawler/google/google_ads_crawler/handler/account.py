@@ -343,6 +343,7 @@ async def get_child_accounts(
     logging.info(f"Getting child accounts for manager {manager_id}...")
     try:
         # First get basic account information
+
         base_query = """
             SELECT
                 customer_client.id,
@@ -350,15 +351,16 @@ async def get_child_accounts(
                 customer_client.applied_labels,
                 customer_client.client_customer,
                 customer_client.level,
+                customer_client.status,
                 customer_client.manager,
                 customer_client.currency_code,
                 customer_client.time_zone
             FROM customer_client
-            WHERE customer_client.status = 'ENABLED'
-            AND customer_client.id != {manager_id}
+            WHERE customer_client.id != {manager_id}
         """.format(
             manager_id=manager_id
         )
+        # AND customer_client.status = 'ENABLED'
 
         ga_service = ga_client.get_service("GoogleAdsService")
         response = ga_service.search(
