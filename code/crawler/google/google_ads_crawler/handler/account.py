@@ -35,10 +35,8 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
 
         try:
             response = googleads_service.search(
-                request={
-                    "customer_id": customer_id,
-                    "query": build_customer_query(customer_id, is_manager=True),
-                }
+                customer_id=customer_id,
+                query=build_customer_query(customer_id, is_manager=True),
             )
 
             for row in response:
@@ -139,12 +137,10 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
         customer_id = resource_name.split("/")[-1]
         logging.info(f"├── [{idx}/{total_accounts}] Processing account: {customer_id}")
 
-        base_query = build_customer_query(customer_id, is_manager=False)
+        query = build_customer_query(customer_id, is_manager=False)
 
         try:
-            response = googleads_service.search(
-                request={"customer_id": customer_id, "query": base_query}
-            )
+            response = googleads_service.search(customer_id=customer_id, query=query)
 
             for row in response:
                 processed += 1
@@ -208,10 +204,7 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
     try:
         googleads_service = ga_client.get_service("GoogleAdsService")
         response = googleads_service.search(
-            request={
-                "customer_id": str(manager_id),
-                "query": build_customer_client_query(manager_id),
-            }
+            customer_id=manager_id, query=build_customer_client_query(manager_id)
         )
 
         child_accounts = []

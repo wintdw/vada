@@ -85,7 +85,7 @@ async def get_reports(
                     f"│   ├── Getting reports for child: {child['descriptive_name']}"
                 )
                 response = googleads_service.search(
-                    request={"customer_id": child["customer_id"], "query": query}
+                    customer_id=child["customer_id"], query=query
                 )
 
                 child_results = []  # Track results for this child only
