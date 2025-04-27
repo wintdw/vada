@@ -167,7 +167,9 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                     ],
                 }
 
-                logging.info(f"│   ├── Found client account: {client_data['name']}")
+                logging.info(
+                    f"│   ├── Found client account: {client_data['descriptive_name']}"
+                )
                 logging.info(f"│   ├── Status: {client_data['status']}")
 
                 client_accounts.append(client_data)
