@@ -329,10 +329,19 @@ async def get_reports(
                     logging.info(f"│   │   └── Found {child_count} records")
 
             except Exception as e:
-                logging.error(
-                    f"│   ⚠️  Error getting reports for {child['name']}: {str(e)}",
-                    exc_info=True,
-                )
+                if "CUSTOMER_NOT_ENABLED" in str(e):
+                    logging.warning(
+                        f"│   ⚠️  Account {child['name']} ({child['id']}) is not enabled"
+                    )
+                elif "PERMISSION_DENIED" in str(e):
+                    logging.warning(
+                        f"│   ⚠️  No permission to access account {child['name']} ({child['id']})"
+                    )
+                else:
+                    logging.error(
+                        f"│   ⚠️  Error getting reports for {child['name']} ({child['id']}): {str(e)}",
+                        exc_info=True,
+                    )
                 continue
 
         logging.info(f"│   └── Total records for {manager['name']}: {manager_total}")
