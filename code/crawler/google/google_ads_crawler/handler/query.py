@@ -23,7 +23,6 @@ def build_customer_query(
             customer.auto_tagging_enabled,
             customer.status,
             customer.test_account,
-            customer.pay_per_conversion_eligibility_failure_reasons
         FROM customer 
         WHERE customer.id = '{customer_id}'
         AND customer.manager = {is_manager}

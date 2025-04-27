@@ -52,10 +52,6 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                     "auto_tagging_enabled": row.customer.auto_tagging_enabled,
                     "status": row.customer.status.name,
                     "is_test_account": row.customer.test_account,
-                    "pay_per_conversion_issues": [
-                        reason.name
-                        for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
-                    ],
                 }
 
                 logging.info(
@@ -161,10 +157,6 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                     "auto_tagging_enabled": row.customer.auto_tagging_enabled,
                     "status": row.customer.status.name,
                     "is_test_account": row.customer.test_account,
-                    "pay_per_conversion_issues": [
-                        reason.name
-                        for reason in row.customer.pay_per_conversion_eligibility_failure_reasons
-                    ],
                 }
 
                 logging.info(
