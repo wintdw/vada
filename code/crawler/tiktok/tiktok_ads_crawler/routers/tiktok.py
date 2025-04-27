@@ -48,13 +48,13 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
                 f"Processing advertiser {idx}/{total_advertisers} - ID: {advertiser['advertiser_id']}"
             )
 
-            # Get advertiser debug
-            advertiser_debug = await tiktok_biz_info_advertiser(
+            # Get advertiser info
+            advertiser_info = await tiktok_biz_info_advertiser(
                 access_token,
                 [advertiser["advertiser_id"]]
             )
-            logger.debug(f"  → Advertiser name: {advertiser_debug[0].get('name', 'N/A')}")
-            logger.debug(advertiser_debug)
+            logger.debug(f"  → Advertiser name: {advertiser_info[0].get('name', 'N/A')}")
+            logger.debug(advertiser_info)
 
             # Get integrated report
             reports = await tiktok_biz_get_report_integrated(
@@ -77,9 +77,9 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
                     logger.debug("    ✗ Skipping report with zero spend")
                     continue
 
-                # Get ad debugrmation
+                # Get ad information
                 logger.debug(
-                    f"  → Getting campaign / adgroup / ad debugrmation for Ad ID: {report['ad_id']}"
+                    f"  → Getting campaign / adgroup / ad information for Ad ID: {report['ad_id']}"
                 )
                 ads = await tiktok_biz_get_ad(
                     access_token=access_token,
@@ -110,10 +110,10 @@ async def tiktok_business_get(index_name: str, access_token: str, start_date: st
                 # Create and process report
                 detailed_report = construct_detailed_report(
                     report=report,
-                    advertiser_debug=advertiser_debug[0] if advertiser_debug else {},
-                    campaign_debug=campaigns[0] if campaigns else {},
-                    adgroup_debug=adgroups[0] if adgroups else {},
-                    ad_debug=ads[0] if ads else {},
+                    advertiser_info=advertiser_info[0] if advertiser_info else {},
+                    campaign_info=campaigns[0] if campaigns else {},
+                    adgroup_info=adgroups[0] if adgroups else {},
+                    ad_info=ads[0] if ads else {},
                 )
 
                 timestamp = int(
