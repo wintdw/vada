@@ -1,3 +1,4 @@
+import logging
 from .metric import METRIC_FIELDS
 
 
@@ -14,7 +15,7 @@ def build_customer_query(
     Returns:
         SQL query string
     """
-    return """
+    query = """
         SELECT 
             customer.id,
             customer.descriptive_name,
@@ -33,6 +34,10 @@ def build_customer_query(
         operator="=" if is_enabled else "!=",
     )
 
+    logging.debug(f"Generated query: {query}")
+
+    return query
+
 
 def build_customer_client_query(manager_id: str, is_enabled: bool = True) -> str:
     """Build standardized account client query.
@@ -43,7 +48,7 @@ def build_customer_client_query(manager_id: str, is_enabled: bool = True) -> str
     Returns:
         SQL query string
     """
-    return """
+    query = """
         SELECT 
             customer_client.id,
             customer_client.descriptive_name,
@@ -61,6 +66,9 @@ def build_customer_client_query(manager_id: str, is_enabled: bool = True) -> str
         operator="=" if is_enabled else "!=",
     )
 
+    logging.debug(f"Generated query: {query}")
+    return query
+
 
 def build_report_query(start_date: str, end_date: str) -> str:
     """Build query for ad, campaign and ad group performance data"""
@@ -68,7 +76,7 @@ def build_report_query(start_date: str, end_date: str) -> str:
         f"metrics.{field_info['field']}" for field_info in METRIC_FIELDS.values()
     ]
 
-    return """
+    query = """
         SELECT
             segments.date,
             customer.id,
@@ -91,3 +99,6 @@ def build_report_query(start_date: str, end_date: str) -> str:
         end_date=end_date,
         metrics=",\n            ".join(metric_fields),
     )
+
+    logging.debug(f"Generated query: {query}")
+    return query

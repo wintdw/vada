@@ -40,6 +40,7 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
             )
 
             for row in response:
+                logging.debug(f"│   ├── Row content: {row}")
                 processed += 1
                 manager_data = {
                     "customer_id": row.customer.id,
@@ -123,6 +124,7 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
     """
     logging.info("=== Getting Non-Manager Accounts ===")
     logging.info("Getting non-manager accounts...")
+
     googleads_service = ga_client.get_service("GoogleAdsService")
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
@@ -137,12 +139,14 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
         customer_id = resource_name.split("/")[-1]
         logging.info(f"├── [{idx}/{total_accounts}] Processing account: {customer_id}")
 
-        query = build_customer_query(customer_id, is_manager=False)
-
         try:
-            response = googleads_service.search(customer_id=customer_id, query=query)
+            response = googleads_service.search(
+                customer_id=customer_id,
+                query=build_customer_query(customer_id, is_manager=False),
+            )
 
             for row in response:
+                logging.debug(f"│   ├── Row content: {row}")
                 processed += 1
                 client_data = {
                     "customer_id": row.customer.id,
@@ -195,7 +199,6 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
     Args:
         ga_client: Google Ads API client
         manager_id: ID of the manager account
-        get_metrics: Whether to fetch metrics for non-manager accounts (default: False)
 
     Returns:
         List of child accounts
@@ -209,6 +212,7 @@ async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> Lis
 
         child_accounts = []
         for row in response:
+            logging.debug(f"│   ├── Row content: {row}")
             account_data = {
                 "customer_id": row.customer_client.id,
                 "descriptive_name": row.customer_client.descriptive_name,
