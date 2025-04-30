@@ -48,39 +48,6 @@ def summarize_report_data(data: Dict) -> None:
         )
 
 
-def process_json_to_jsonl(input_file: str, index_name: str) -> None:
-    """Convert JSON report data to JSONL format with VADA ingest configuration"""
-    output_file = f"{input_file.rsplit('.', 1)[0]}.jsonl"
-    logging.info(f"Converting {input_file} to {output_file}")
-
-    with open(input_file) as f:
-        records = json.load(f).get("reports", {}).get("data", [])
-
-    with open(output_file, "w") as f:
-        for record in records:
-            # Create doc_id from record identifiers
-            doc_id = ".".join(
-                [
-                    str(record.get("ad", {}).get("id", "")),
-                    str(record.get("ad_group", {}).get("id", "")),
-                    str(record.get("campaign", {}).get("id", "")),
-                    str(record.get("date", "")),
-                ]
-            )
-
-            # Add VADA configuration
-            record["_vada"] = {
-                "ingest": {
-                    "destination": {"type": "elasticsearch", "index": index_name},
-                    "vada_client_id": "a_quang_nguyen",
-                    "doc_id": doc_id,
-                }
-            }
-            f.write(json.dumps(record) + "\n")
-
-    logging.info(f"Processed {len(records)} records to {output_file}")
-
-
 async def fetch_reports():
     """Test different date ranges for the reports endpoint with multiple tokens"""
     base_url = "http://localhost:8146/google/reports"
@@ -104,7 +71,7 @@ async def fetch_reports():
             }
 
             # Add dates as query parameters
-            params = {"start_date": start_date, "end_date": end_date}
+            params = {"start_date": start_date, "end_date": end_date, "persist": False}
 
             logging.debug("Making request to %s", base_url)
             response = requests.post(
@@ -123,11 +90,6 @@ async def fetch_reports():
             logging.info("Saving response to %s", output_file)
             with open(output_file, "w") as f:
                 json.dump(data, f, indent=2)
-
-            # Process JSONL
-            index_name = "a_quang_nguyen_google_ad_report"
-            logging.info("Processing to JSONL with index: %s", index_name)
-            process_json_to_jsonl(output_file, index_name)
 
         except requests.RequestException as e:
             logging.error("API request failed for token %d: %s", token_index, str(e))
