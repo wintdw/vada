@@ -149,60 +149,6 @@ async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
     return client_accounts
 
 
-async def get_all_accounts(ga_client: GoogleAdsClient) -> Dict:
-    """Get both manager and non-manager accounts"""
-    manager_accounts = await get_manager_accounts(ga_client)
-    client_accounts = await get_non_manager_accounts(ga_client)
-
-    return {
-        "manager_accounts": manager_accounts,
-        "client_accounts": client_accounts,
-        "total_accounts": len(manager_accounts) + len(client_accounts),
-    }
-
-
-@log_execution_time
-async def get_child_accounts(ga_client: GoogleAdsClient, manager_id: str) -> List:
-    """Get all child accounts under a specific manager account.
-
-    Args:
-        ga_client: Google Ads API client
-        manager_id: ID of the manager account
-
-    Returns:
-        List of child accounts
-    """
-    logging.info(f"Getting child accounts for manager {manager_id}...")
-    try:
-        googleads_service = ga_client.get_service("GoogleAdsService")
-        response = googleads_service.search(
-            customer_id=str(manager_id), query=build_customer_client_query()
-        )
-
-        child_accounts = []
-        for row in response:
-            logging.debug(f"│   ├── Row content: {row}")
-            account_data = {
-                "customer_id": row.customer_client.id,
-                "descriptive_name": row.customer_client.descriptive_name,
-                "currency_code": row.customer_client.currency_code,
-                "time_zone": row.customer_client.time_zone,
-                "client_customer": row.customer_client.client_customer,
-                "level": row.customer_client.level,
-                "status": row.customer_client.status,
-                "manager": row.customer_client.manager,
-            }
-
-            child_accounts.append(account_data)
-
-        logging.info(f"└── Completed processing {len(child_accounts)} child accounts")
-        return child_accounts
-
-    except Exception as e:
-        logging.error(f"⚠️  Error getting child accounts: {str(e)}", exc_info=True)
-        return []
-
-
 @log_execution_time
 async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> Dict:
     """Get full hierarchy of a MCC account.

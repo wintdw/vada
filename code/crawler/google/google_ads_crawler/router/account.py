@@ -19,63 +19,21 @@ router = APIRouter()
 
 
 @router.get("/google/accounts")
-async def fetch_google_accounts(
-    credentials: GoogleAdsCredentials,
-    account_type: Optional[str] = None,
-):
+async def fetch_google_accounts(credentials: GoogleAdsCredentials):
     """
     Get Google Ads accounts with their hierarchy structure
 
     Args:
         credentials: Google Ads API credentials
-        account_type: Optional filter for account type ('manager', 'client', or None for all)
     """
     try:
         ga_client = await get_google_ads_client(credentials)
 
-        if account_type == "manager":
-            accounts = await get_manager_accounts(ga_client)
+        accounts = await get_manager_accounts(ga_client)
 
-            # Always get child accounts for managers
-            for account in accounts:
-                children = await get_child_accounts(ga_client, account["customer_id"])
-                account["child_accounts"] = children
-                account["child_count"] = len(children)
-
-            return JSONResponse(
-                content={
-                    "account_type": "manager",
-                    "total_accounts": len(accounts),
-                    "accounts": accounts,
-                }
-            )
-
-        elif account_type == "client":
-            accounts = await get_non_manager_accounts(ga_client)
-            return JSONResponse(
-                content={
-                    "account_type": "client",
-                    "total_accounts": len(accounts),
-                    "accounts": accounts,
-                }
-            )
-
-        else:
-            # Get all accounts
-            all_accounts = await get_all_accounts(ga_client)
-
-            # Always get child accounts for manager accounts
-            for account in all_accounts["manager_accounts"]:
-                children = await get_child_accounts(ga_client, account["customer_id"])
-                account["child_accounts"] = children
-                account["child_count"] = len(children)
-
-            return JSONResponse(
-                content={
-                    "account_type": "all",
-                    **all_accounts,
-                }
-            )
+        return JSONResponse(
+            content={"total_mcc_accounts": len(accounts), "hierachy": accounts}
+        )
 
     except Exception as e:
         logging.error(f"Error fetching Google Ads accounts: {str(e)}", exc_info=True)
