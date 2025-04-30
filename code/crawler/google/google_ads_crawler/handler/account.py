@@ -236,7 +236,7 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
     logging.debug(f"│   │   ├── Customer dict {customer_ids_to_children}")
 
     if str(node["customer_id"]) in customer_ids_to_children:
-        node["children"] = customer_ids_to_children[node["customer_id"]]
+        node["children"] = customer_ids_to_children[str(node["customer_id"])]
         logging.debug(f"│   │   ├── Found {len(node['children'])} children")
 
         for child in node["children"]:
