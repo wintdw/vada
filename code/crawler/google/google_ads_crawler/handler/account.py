@@ -188,7 +188,7 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
                     )
 
                     if customer_client.manager and customer_client.level == 1:
-                        if customer_client.id not in customer_ids_to_children:
+                        if str(customer_client.id) not in customer_ids_to_children:
                             unprocessed_customer_ids.append(customer_client.id)
                             logging.debug(
                                 f"│   │   │   └── Queued manager account for processing: "
@@ -235,7 +235,7 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
     logging.debug(f"│   ├── Building tree for node: {node}")
     logging.debug(f"│   │   ├── Customer dict {customer_ids_to_children}")
 
-    if node["customer_id"] in customer_ids_to_children:
+    if str(node["customer_id"]) in customer_ids_to_children:
         node["children"] = customer_ids_to_children[node["customer_id"]]
         logging.debug(f"│   │   ├── Found {len(node['children'])} children")
 
