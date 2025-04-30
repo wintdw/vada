@@ -58,7 +58,6 @@ async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
                     "level": mcc_hierarchy["level"],
                     "manager": mcc_hierarchy["manager"],
                     "test_account": mcc_hierarchy["test_account"],
-                    "resource_name": resource_name,
                     "status": mcc_hierarchy["status"],
                     "children": mcc_hierarchy["children"],
                     "child_count": len(mcc_hierarchy["children"]),
@@ -114,72 +113,107 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
             "children": List[Dict]  # recursive structure
         }
     """
-    logging.info("=== Getting Account Hierarchy ===")
+    logging.info(f"=== Getting Account Hierarchy for {manager_id} ===")
 
     googleads_service = ga_client.get_service("GoogleAdsService")
+    logging.debug(f"├── Created Google Ads service")
 
-    # Build query for child accounts
     cc_query = build_customer_client_query("customer_client.level <= 1")
 
     try:
-        # Perform breadth-first search
-        # Initialize queue with the root manager account
         unprocessed_customer_ids = [manager_id]
         customer_ids_to_children = {}
         root_customer_client = None
 
+        logging.debug(f"├── Starting BFS traversal with root: {manager_id}")
+        processed_count = 0
+
         while unprocessed_customer_ids:
             customer_id = unprocessed_customer_ids.pop(0)
-            response = googleads_service.search(
-                customer_id=str(customer_id), query=cc_query
-            )
+            logging.debug(f"│   ├── Processing customer: {customer_id}")
 
-            for row in response:
-                customer_client = row.customer_client
+            try:
+                response = googleads_service.search(
+                    customer_id=str(customer_id), query=cc_query
+                )
+                logging.debug(f"│   │   ├── Got response for {customer_id}")
 
-                # Store root customer
-                if customer_client.level == 0:
-                    if root_customer_client is None:
-                        root_customer_client = {
-                            "customer_id": customer_client.id,
-                            "descriptive_name": customer_client.descriptive_name,
-                            "currency_code": customer_client.currency_code,
-                            "time_zone": customer_client.time_zone,
-                            "client_customer": customer_client.client_customer,
-                            "level": customer_client.level,
-                            "status": customer_client.status,
-                            "manager": customer_client.manager,
-                            "test_account": customer_client.test_account,
-                            "children": [],
-                        }
-                    continue
+                for row in response:
+                    customer_client = row.customer_client
+                    processed_count += 1
 
-                # Store child accounts
-                if customer_id not in customer_ids_to_children:
-                    customer_ids_to_children[customer_id] = []
+                    if customer_client.level == 0:
+                        if root_customer_client is None:
+                            logging.debug(
+                                f"│   │   ├── Found root account: {customer_client.descriptive_name} "
+                                f"({customer_client.id})"
+                            )
+                            root_customer_client = {
+                                "customer_id": customer_client.id,
+                                "descriptive_name": customer_client.descriptive_name,
+                                "currency_code": customer_client.currency_code,
+                                "time_zone": customer_client.time_zone,
+                                "client_customer": customer_client.client_customer,
+                                "level": customer_client.level,
+                                "status": customer_client.status,
+                                "manager": customer_client.manager,
+                                "test_account": customer_client.test_account,
+                                "children": [],
+                            }
+                        continue
 
-                child_data = {
-                    "customer_id": customer_client.id,
-                    "descriptive_name": customer_client.descriptive_name,
-                    "currency_code": customer_client.currency_code,
-                    "time_zone": customer_client.time_zone,
-                    "client_customer": customer_client.client_customer,
-                    "level": customer_client.level,
-                    "status": customer_client.status,
-                    "manager": customer_client.manager,
-                    "test_account": customer_client.test_account,
-                }
+                    if customer_id not in customer_ids_to_children:
+                        customer_ids_to_children[customer_id] = []
+                        logging.debug(
+                            f"│   │   ├── Created children list for {customer_id}"
+                        )
 
-                customer_ids_to_children[customer_id].append(child_data)
+                    child_data = {
+                        "customer_id": customer_client.id,
+                        "descriptive_name": customer_client.descriptive_name,
+                        "currency_code": customer_client.currency_code,
+                        "time_zone": customer_client.time_zone,
+                        "client_customer": customer_client.client_customer,
+                        "level": customer_client.level,
+                        "status": customer_client.status,
+                        "manager": customer_client.manager,
+                        "test_account": customer_client.test_account,
+                    }
 
-                # Add manager accounts to be processed
-                if customer_client.manager and customer_client.level == 1:
-                    if customer_client.id not in customer_ids_to_children:
-                        unprocessed_customer_ids.append(customer_client.id)
+                    customer_ids_to_children[customer_id].append(child_data)
+                    logging.debug(
+                        f"│   │   │   ├── Added child: {child_data['descriptive_name']} "
+                        f"({child_data['customer_id']}, Level: {child_data['level']}, "
+                        f"Manager: {child_data['manager']})"
+                    )
 
-        # Build hierarchy tree
+                    if customer_client.manager and customer_client.level == 1:
+                        if customer_client.id not in customer_ids_to_children:
+                            unprocessed_customer_ids.append(customer_client.id)
+                            logging.debug(
+                                f"│   │   │   └── Queued manager account for processing: "
+                                f"{customer_client.id}"
+                            )
+
+            except Exception as search_error:
+                logging.error(
+                    f"│   │   ⚠️  Error searching customer {customer_id}: {str(search_error)}",
+                    exc_info=True,
+                )
+                continue
+
+        logging.debug(f"├── Processed {processed_count} total accounts")
+
         if root_customer_client:
+            logging.debug("├── Building hierarchy tree")
             build_hierarchy_tree(root_customer_client, customer_ids_to_children)
+            logging.debug(
+                f"└── Built tree with {len(root_customer_client['children'])} "
+                f"direct children"
+            )
+        else:
+            logging.warning(f"└── No root account found for {manager_id}")
+            return None
 
     except Exception as e:
         logging.error(
