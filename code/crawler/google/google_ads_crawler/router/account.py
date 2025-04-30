@@ -1,19 +1,11 @@
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from handler.account import (
-    get_manager_accounts,
-    get_non_manager_accounts,
-    get_all_accounts,
-    get_child_accounts,
-)
+from handler.account import get_manager_accounts
 from model.ga_client import GoogleAdsCredentials
-from dependency.google_ad_client import (
-    get_google_ads_client,
-)
+from dependency.google_ad_client import get_google_ads_client
 
 router = APIRouter()
 
