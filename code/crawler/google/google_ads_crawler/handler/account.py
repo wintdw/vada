@@ -232,7 +232,14 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
         node: Current node in hierarchy
         customer_ids_to_children: Dict mapping customer IDs to their children
     """
+    logging.debug(f"│   ├── Building tree for node: {node}")
+    logging.debug(f"│   │   ├── Customer dict {customer_ids_to_children}")
+
     if node["customer_id"] in customer_ids_to_children:
         node["children"] = customer_ids_to_children[node["customer_id"]]
+        logging.debug(f"│   │   ├── Found {len(node['children'])} children")
+
         for child in node["children"]:
             build_hierarchy_tree(child, customer_ids_to_children)
+    else:
+        logging.debug(f"│   │   └── No children found")
