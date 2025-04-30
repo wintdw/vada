@@ -2,25 +2,16 @@ import logging
 from .metric import METRIC_FIELDS
 
 
-def build_customer_query(
-    customer_id: str, is_manager: bool = False, is_enabled: bool | None = None
-) -> str:
+def build_customer_query(customer_id: str, is_manager: bool = False) -> str:
     """Build standardized account query.
 
     Args:
         customer_id: Account ID to query
         is_manager: Whether to query manager accounts
-        is_enabled: If True, query ENABLED accounts. If False, query non-ENABLED accounts.
-                   If None, don't filter by status.
 
     Returns:
         SQL query string
     """
-    status_filter = (
-        f"AND customer.status {'=' if is_enabled else '!='} 'ENABLED'"
-        if is_enabled is not None
-        else ""
-    )
 
     query = """
         SELECT 
@@ -34,33 +25,23 @@ def build_customer_query(
         FROM customer 
         WHERE customer.id = '{customer_id}'
         AND customer.manager = {is_manager}
-        {status_filter}
     """.format(
-        customer_id=customer_id,
-        is_manager=str(is_manager).upper(),
-        status_filter=status_filter,
+        customer_id=customer_id, is_manager=str(is_manager).upper()
     )
 
     logging.debug(f"Generated query: {query}")
     return query
 
 
-def build_customer_client_query(manager_id: str, is_enabled: bool | None = None) -> str:
+def build_customer_client_query(where_clause: str | None = None) -> str:
     """Build standardized account client query.
 
     Args:
-        manager_id: Account ID to query
-        is_enabled: If True, query ENABLED accounts. If False, query non-ENABLED accounts.
-                   If None, don't filter by status.
+        where: Optional additional WHERE clause conditions
 
     Returns:
         SQL query string
     """
-    status_filter = (
-        f"AND customer_client.status {'=' if is_enabled else '!='} 'ENABLED'"
-        if is_enabled is not None
-        else ""
-    )
 
     query = """
         SELECT 
@@ -73,11 +54,9 @@ def build_customer_client_query(manager_id: str, is_enabled: bool | None = None)
             customer_client.currency_code,
             customer_client.time_zone
         FROM customer_client
-        WHERE customer_client.id != {manager_id}
-        {status_filter}
+        WHERE {where_clause}
     """.format(
-        manager_id=manager_id,
-        status_filter=status_filter,
+        where_clause=where_clause
     )
 
     logging.debug(f"Generated query: {query}")
