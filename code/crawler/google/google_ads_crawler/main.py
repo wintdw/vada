@@ -1,7 +1,7 @@
 import os
 import logging
 from fastapi import FastAPI  # type: ignore
-from router import auth, account, report  # type: ignore
+from router import auth, account  # type: ignore
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
