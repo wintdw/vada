@@ -98,18 +98,30 @@ async def get_reports(
                     campaign_data = {
                         "id": row.campaign.id,
                         "name": row.campaign.name,
+                        "resource_name": row.campaign.resource_name,
                         "status": row.campaign.status.name,
+                        "serving_status": row.campaign.serving_status.name,
+                        "payment_mode": row.campaign.payment_mode.name,
+                        "optimization_score": float(row.campaign.optimization_score),
+                        "start_date": row.campaign.start_date,
+                        "end_date": row.campaign.end_date,
                     }
 
                     ad_group_data = {
                         "id": row.ad_group.id,
                         "name": row.ad_group.name,
+                        "resource_name": row.ad_group.resource_name,
                         "status": row.ad_group.status.name,
+                        "type": row.ad_group.type_.name,
+                        "base_ad_group": row.ad_group.base_ad_group,
+                        "campaign": row.ad_group.campaign,
                     }
 
                     ad_data = {
                         "id": row.ad_group_ad.ad.id,
                         "name": row.ad_group_ad.ad.name,
+                        "resource_name": row.ad_group_ad.ad.resource_name,
+                        "ad_group_ad_resource_name": row.ad_group_ad.resource_name,
                         "status": row.ad_group_ad.status.name,
                     }
 
