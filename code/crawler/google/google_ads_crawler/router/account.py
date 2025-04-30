@@ -21,7 +21,7 @@ async def fetch_google_accounts(credentials: GoogleAdsCredentials):
     try:
         ga_client = await get_google_ads_client(credentials)
 
-        accounts = await get_all_account_hierarchy(ga_client)
+        accounts = await get_all_account_hierarchies(ga_client)
 
         return JSONResponse(content={"total": len(accounts), "hierachies": accounts})
 
