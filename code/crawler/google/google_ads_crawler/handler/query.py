@@ -52,7 +52,8 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
             customer_client.status,
             customer_client.manager,
             customer_client.currency_code,
-            customer_client.time_zone
+            customer_client.time_zone,
+            customer_client.test_account,
         FROM customer_client
         WHERE {where_clause}
     """.format(

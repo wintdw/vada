@@ -228,7 +228,7 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
     googleads_service = ga_client.get_service("GoogleAdsService")
 
     # Build query for child accounts
-    cc_query = build_customer_client_query(manager_id, "customer_client.level <= 1")
+    cc_query = build_customer_client_query("customer_client.level <= 1")
 
     try:
         # Perform breadth-first search
@@ -258,6 +258,7 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
                             "level": customer_client.level,
                             "status": customer_client.status,
                             "manager": customer_client.manager,
+                            "test_account": customer_client.test_account,
                             "children": [],
                         }
                     continue
@@ -275,8 +276,7 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
                     "level": customer_client.level,
                     "status": customer_client.status,
                     "manager": customer_client.manager,
-                    "currency_code": customer_client.currency_code,
-                    "time_zone": customer_client.time_zone,
+                    "test_account": customer_client.test_account,
                 }
 
                 customer_ids_to_children[customer_id].append(child_data)
