@@ -6,7 +6,7 @@ from router import auth, account, report  # type: ignore
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 app = FastAPI(title="Google OAuth API")

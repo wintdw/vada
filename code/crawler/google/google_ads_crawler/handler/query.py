@@ -37,7 +37,7 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
     """Build standardized account client query.
 
     Args:
-        where: Optional additional WHERE clause conditions
+        where_clause: Optional additional WHERE clause conditions
 
     Returns:
         SQL query string
@@ -53,7 +53,7 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
             customer_client.manager,
             customer_client.currency_code,
             customer_client.time_zone,
-            customer_client.test_account,
+            customer_client.test_account
         FROM customer_client
         WHERE {where_clause}
     """.format(
