@@ -291,7 +291,9 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
             build_hierarchy_tree(root_customer_client, customer_ids_to_children)
 
     except Exception as e:
-        logging.error(f"Error processing hierarchy for {manager_id}: {str(e)}")
+        logging.error(
+            f"⚠️  Error processing hierarchy for {manager_id}: {str(e)}", exc_info=True
+        )
         return None
 
     logging.info(f"=== Completed Account Hierarchy for MCC {manager_id} ===")
@@ -305,7 +307,7 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
         node: Current node in hierarchy
         customer_ids_to_children: Dict mapping customer IDs to their children
     """
-    if node["id"] in customer_ids_to_children:
-        node["children"] = customer_ids_to_children[node["id"]]
+    if node["customer_id"] in customer_ids_to_children:
+        node["children"] = customer_ids_to_children[node["customer_id"]]
         for child in node["children"]:
             build_hierarchy_tree(child, customer_ids_to_children)
