@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from handler.account import get_all_account_hierarchy
+from handler.account import get_all_account_hierarchies
 from model.ga_client import GoogleAdsCredentials
 from dependency.google_ad_client import get_google_ads_client
 
@@ -23,9 +23,7 @@ async def fetch_google_accounts(credentials: GoogleAdsCredentials):
 
         accounts = await get_all_account_hierarchy(ga_client)
 
-        return JSONResponse(
-            content={"total_mcc_accounts": len(accounts), "hierachy": accounts}
-        )
+        return JSONResponse(content={"total": len(accounts), "hierachies": accounts})
 
     except Exception as e:
         logging.error(f"Error fetching Google Ads accounts: {str(e)}", exc_info=True)

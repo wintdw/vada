@@ -8,7 +8,7 @@ from dependency.profile import log_execution_time
 
 
 @log_execution_time
-async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
+async def get_all_account_hierarchies(ga_client: GoogleAdsClient) -> List[Dict]:
     """Get all accessible accounts and their hierarchical structure.
 
     This function fetches all accounts the authenticated user has access to,
