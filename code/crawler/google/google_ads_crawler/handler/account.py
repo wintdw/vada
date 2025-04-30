@@ -32,7 +32,7 @@ async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
 
-    accounts = []
+    account_hiers = []
     total_accounts = len(accessible_customers.resource_names)
     processed = 0
 
@@ -44,23 +44,23 @@ async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
 
         try:
             # Get account hierarchy
-            mcc_hierarchy = await get_account_hierarchy(ga_client, customer_id)
-            if mcc_hierarchy:
+            root_hierarchy = await get_account_hierarchy(ga_client, customer_id)
+            if root_hierarchy:
                 processed += 1
 
                 # Convert hierarchy to manager data format
                 customer_data = {
-                    "customer_id": mcc_hierarchy["customer_id"],
-                    "descriptive_name": mcc_hierarchy["descriptive_name"],
-                    "currency_code": mcc_hierarchy["currency_code"],
-                    "time_zone": mcc_hierarchy["time_zone"],
-                    "client_customer": mcc_hierarchy["client_customer"],
-                    "level": mcc_hierarchy["level"],
-                    "manager": mcc_hierarchy["manager"],
-                    "test_account": mcc_hierarchy["test_account"],
-                    "status": mcc_hierarchy["status"],
-                    "children": mcc_hierarchy["children"],
-                    "child_count": len(mcc_hierarchy["children"]),
+                    "customer_id": root_hierarchy["customer_id"],
+                    "descriptive_name": root_hierarchy["descriptive_name"],
+                    "currency_code": root_hierarchy["currency_code"],
+                    "time_zone": root_hierarchy["time_zone"],
+                    "client_customer": root_hierarchy["client_customer"],
+                    "level": root_hierarchy["level"],
+                    "manager": root_hierarchy["manager"],
+                    "test_account": root_hierarchy["test_account"],
+                    "status": root_hierarchy["status"],
+                    "children": root_hierarchy["children"],
+                    "child_count": len(root_hierarchy["children"]),
                 }
 
                 logging.info(
@@ -73,7 +73,7 @@ async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
                         f"│       └── Found {customer_data['child_count']} child accounts"
                     )
 
-                accounts.append(customer_data)
+                account_hiers.append(customer_data)
 
         except Exception as e:
             if "CUSTOMER_NOT_ENABLED" in str(e):
@@ -88,14 +88,14 @@ async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
             continue
 
     logging.info(f"└── Completed processing {processed}/{total_accounts} accounts")
-    logging.info(f"   └── Total accounts with hierarchy: {len(accounts)}")
+    logging.info(f"   └── Total accounts with hierarchy: {len(account_hiers)}")
     logging.info("=== Completed Account Hierarchy ===")
 
-    return accounts
+    return account_hiers
 
 
-async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> Dict:
-    """Get full hierarchy of a MCC account.
+async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> Dict:
+    """Get full hierarchy of a account.
 
     Args:
         ga_client: Google Ads API client
@@ -113,7 +113,7 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
             "children": List[Dict]  # recursive structure
         }
     """
-    logging.info(f"=== Getting Account Hierarchy for {manager_id} ===")
+    logging.info(f"=== Getting Account Hierarchy for {account_id} ===")
 
     googleads_service = ga_client.get_service("GoogleAdsService")
     logging.debug(f"├── Created Google Ads service")
@@ -121,11 +121,11 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
     cc_query = build_customer_client_query("customer_client.level <= 1")
 
     try:
-        unprocessed_customer_ids = [manager_id]
+        unprocessed_customer_ids = [account_id]
         customer_ids_to_children = {}
         root_customer_client = None
 
-        logging.debug(f"├── Starting BFS traversal with root: {manager_id}")
+        logging.debug(f"├── Starting BFS traversal with root: {account_id}")
         processed_count = 0
 
         while unprocessed_customer_ids:
@@ -212,16 +212,16 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> 
                 f"direct children"
             )
         else:
-            logging.warning(f"└── No root account found for {manager_id}")
+            logging.warning(f"└── No root account found for {account_id}")
             return None
 
     except Exception as e:
         logging.error(
-            f"⚠️  Error processing hierarchy for {manager_id}: {str(e)}", exc_info=True
+            f"⚠️  Error processing hierarchy for {account_id}: {str(e)}", exc_info=True
         )
         return None
 
-    logging.info(f"=== Completed Account Hierarchy for MCC {manager_id} ===")
+    logging.info(f"=== Completed Account Hierarchy for {account_id} ===")
     return root_customer_client
 
 
