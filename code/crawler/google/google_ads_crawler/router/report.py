@@ -1,13 +1,14 @@
 import logging
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, Query  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
-from datetime import datetime, timedelta
-from typing import Optional
 
 from model.ga_client import GoogleAdsCredentials
 from handler.report import get_reports
 from handler.account import get_manager_accounts
-from dependency.google import get_google_ads_client
+from handler.persist import post_processing
+from dependency.google_ad_client import get_google_ads_client
 
 router = APIRouter()
 
@@ -15,17 +16,23 @@ router = APIRouter()
 @router.post("/google/reports")
 async def fetch_google_reports(
     credentials: GoogleAdsCredentials,
-    start_date: Optional[str] = Query(
-        None, description="Start date in YYYY-MM-DD format"
+    start_date: str = Query(
+        ..., description="Start date in YYYY-MM-DD format", example="2025-04-30"
     ),
-    end_date: Optional[str] = Query(None, description="End date in YYYY-MM-DD format"),
+    end_date: str = Query(
+        ..., description="End date in YYYY-MM-DD format", example="2025-04-30"
+    ),
+    persist: bool = Query(
+        False,
+        description="Persist data to insert service",
+    ),
 ):
     """Fetch Google Ads reports using provided credentials
 
     Args:
         credentials: Google Ads API credentials in request body
-        start_date: Start date in YYYY-MM-DD format as query param (default: 7 days ago)
-        end_date: End date in YYYY-MM-DD format as query param (default: today)
+        start_date: Start date in YYYY-MM-DD format as query param
+        end_date: End date in YYYY-MM-DD format as query param
 
     Example:
         POST /google/reports?start_date=2025-04-16&end_date=2025-04-23
@@ -35,14 +42,6 @@ async def fetch_google_reports(
         HTTPException: If dates are invalid or API errors occur
     """
     try:
-        # Validate and parse dates
-        end_date = end_date if end_date else datetime.now().date().isoformat()
-        start_date = (
-            start_date
-            if start_date
-            else (datetime.now().date() - timedelta(days=30)).isoformat()
-        )
-
         # Validate date formats
         try:
             start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -65,6 +64,12 @@ async def fetch_google_reports(
         ad_reports = await get_reports(
             ga_client, start_date, end_date, manager_accounts
         )
+
+        if persist:
+            # Process and send reports to insert service
+            index_name = "a_quang_nguyen_google_ad_report"
+            await post_processing(ad_reports, index_name)
+            logging.info("Reports sent to insert service successfully")
 
         # Build response with hierarchy information
         response_data = {

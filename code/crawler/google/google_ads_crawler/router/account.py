@@ -11,7 +11,9 @@ from handler.account import (
     get_child_accounts,
 )
 from model.ga_client import GoogleAdsCredentials
-from dependency.google import get_google_ads_client
+from dependency.google_ad_client import (
+    get_google_ads_client,
+)
 
 router = APIRouter()
 

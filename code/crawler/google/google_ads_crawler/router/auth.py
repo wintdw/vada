@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from fastapi.responses import JSONResponse, RedirectResponse  # type: ignore
 
-from dependency.google import (
+from dependency.google_ad_client import (
     get_flows,
     get_app_secret_file,
 )
@@ -35,7 +35,7 @@ async def get_auth_url(
         redirect_uri = "https://google.vadata.vn/connector/google/auth"
 
         # Generate a secure random state value
-        passthrough_val = hashlib.sha256(os.urandom(1024)).hexdigest()
+        passthrough_state = hashlib.sha256(os.urandom(1024)).hexdigest()
 
         # Create OAuth flow using the secret file from dependency
         flow = Flow.from_client_secrets_file(client_secrets_path, scopes=scopes)
@@ -44,7 +44,7 @@ async def get_auth_url(
         # Generate authorization URL
         authorization_url, state = flow.authorization_url(
             access_type="offline",
-            state=passthrough_val,
+            state=passthrough_state,
             prompt="consent",
             include_granted_scopes="true",
         )

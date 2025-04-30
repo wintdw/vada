@@ -14,5 +14,6 @@ services:
       - "8146:8146"
     environment:
       GOOGLE_APP_SECRET_FILE: /run/secrets/google_app_secret
+      INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn
     secrets:
       - google_app_secret

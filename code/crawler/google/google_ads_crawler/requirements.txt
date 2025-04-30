@@ -1,4 +1,6 @@
 uvicorn
 fastapi
+aiohttp
+pydantic-settings
 google-auth-oauthlib
 google-ads
