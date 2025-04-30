@@ -2,12 +2,11 @@ import logging
 from .metric import METRIC_FIELDS
 
 
-def build_customer_query(customer_id: str, is_manager: bool = False) -> str:
+def build_customer_query(customer_id: str) -> str:
     """Build standardized account query.
 
     Args:
         customer_id: Account ID to query
-        is_manager: Whether to query manager accounts
 
     Returns:
         SQL query string
@@ -24,9 +23,8 @@ def build_customer_query(customer_id: str, is_manager: bool = False) -> str:
             customer.test_account
         FROM customer 
         WHERE customer.id = '{customer_id}'
-        AND customer.manager = {is_manager}
     """.format(
-        customer_id=customer_id, is_manager=str(is_manager).upper()
+        customer_id=customer_id
     )
 
     logging.debug(f"Generated query: {query}")

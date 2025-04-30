@@ -3,25 +3,36 @@ from typing import Dict, List
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
-from .query import build_customer_query, build_customer_client_query
+from .query import build_customer_client_query
 from dependency.profile import log_execution_time
 
 
 @log_execution_time
-async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
-    """Get all manager accounts with their hierarchy.
+async def get_all_account_hierarchy(ga_client: GoogleAdsClient) -> List[Dict]:
+    """Get all accessible accounts and their hierarchical structure.
+
+    This function fetches all accounts the authenticated user has access to,
+    and builds their complete hierarchical structure including child accounts.
 
     Args:
         ga_client: Google Ads API client
 
     Returns:
-        List[Dict]: List of manager accounts with their hierarchical structure
+        List[AccountData]: List of accounts with their hierarchy, where each account contains:
+            - customer_id: Account identifier
+            - descriptive_name: Account name
+            - currency_code: Account currency
+            - time_zone: Account timezone
+            - resource_name: Google Ads resource path
+            - status: Account status (ENABLED, etc)
+            - children: List of child accounts with same structure
+            - child_count: Number of direct child accounts
     """
     logging.info("=== Getting Manager Accounts ===")
     customer_service = ga_client.get_service("CustomerService")
     accessible_customers = customer_service.list_accessible_customers()
 
-    manager_accounts = []
+    accounts = []
     total_accounts = len(accessible_customers.resource_names)
     processed = 0
 
@@ -33,33 +44,37 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
 
         try:
             # Get account hierarchy
-            hierarchy = await get_account_hierarchy(ga_client, customer_id)
-            if hierarchy:
+            mcc_hierarchy = await get_account_hierarchy(ga_client, customer_id)
+            if mcc_hierarchy:
                 processed += 1
 
                 # Convert hierarchy to manager data format
-                manager_data = {
-                    "customer_id": hierarchy["customer_id"],
-                    "descriptive_name": hierarchy["descriptive_name"],
-                    "currency_code": hierarchy["currency_code"],
-                    "time_zone": hierarchy["time_zone"],
+                customer_data = {
+                    "customer_id": mcc_hierarchy["customer_id"],
+                    "descriptive_name": mcc_hierarchy["descriptive_name"],
+                    "currency_code": mcc_hierarchy["currency_code"],
+                    "time_zone": mcc_hierarchy["time_zone"],
+                    "client_customer": mcc_hierarchy["client_customer"],
+                    "level": mcc_hierarchy["level"],
+                    "manager": mcc_hierarchy["manager"],
+                    "test_account": mcc_hierarchy["test_account"],
                     "resource_name": resource_name,
-                    "status": hierarchy["status"],
-                    "child_accounts": hierarchy["children"],
-                    "child_count": len(hierarchy["children"]),
+                    "status": mcc_hierarchy["status"],
+                    "children": mcc_hierarchy["children"],
+                    "child_count": len(mcc_hierarchy["children"]),
                 }
 
                 logging.info(
-                    f"│   ├── Found manager account: {manager_data['descriptive_name']}"
+                    f"│   ├── Found account: {customer_data['descriptive_name']}"
                 )
-                logging.info(f"│   ├── Status: {manager_data['status']}")
+                logging.info(f"│   ├── Status: {customer_data['status']}")
 
-                if manager_data["child_count"] > 0:
+                if customer_data["child_count"] > 0:
                     logging.info(
-                        f"│       └── Found {manager_data['child_count']} child accounts"
+                        f"│       └── Found {customer_data['child_count']} child accounts"
                     )
 
-                manager_accounts.append(manager_data)
+                accounts.append(customer_data)
 
         except Exception as e:
             if "CUSTOMER_NOT_ENABLED" in str(e):
@@ -68,88 +83,18 @@ async def get_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
                 logging.warning(f"│   ⚠️  No permission to access account {customer_id}")
             else:
                 logging.error(
-                    f"│   ⚠️  Error processing manager {customer_id}: {str(e)}",
+                    f"│   ⚠️  Error processing account {customer_id}: {str(e)}",
                     exc_info=True,
                 )
             continue
 
-    logging.info(
-        f"└── Completed processing {processed} manager accounts "
-        f"(found {len(manager_accounts)} with {sum(m['child_count'] for m in manager_accounts)} total children)"
-    )
-    logging.info("=== Completed Manager Accounts ===")
-    return manager_accounts
+    logging.info(f"└── Completed processing {processed}/{total_accounts} accounts")
+    logging.info(f"   └── Total accounts with hierarchy: {len(accounts)}")
+    logging.info("=== Completed Account Hierarchy ===")
+
+    return accounts
 
 
-@log_execution_time
-async def get_non_manager_accounts(ga_client: GoogleAdsClient) -> List[Dict]:
-    """Get all non-manager accounts.
-
-    Args:
-        ga_client: Google Ads API client
-
-    Returns:
-        List of non-manager accounts
-    """
-    logging.info("=== Getting Non-Manager Accounts ===")
-    logging.info("Getting non-manager accounts...")
-
-    googleads_service = ga_client.get_service("GoogleAdsService")
-    customer_service = ga_client.get_service("CustomerService")
-    accessible_customers = customer_service.list_accessible_customers()
-    total_accounts = len(accessible_customers.resource_names)
-    client_accounts = []
-    processed = 0
-
-    logging.info(f"├── Found {total_accounts} accessible accounts to process")
-
-    # First, get basic account info without metrics
-    for idx, resource_name in enumerate(accessible_customers.resource_names, 1):
-        customer_id = resource_name.split("/")[-1]
-        logging.info(f"├── [{idx}/{total_accounts}] Processing account: {customer_id}")
-
-        try:
-            response = googleads_service.search(
-                customer_id=str(customer_id),
-                query=build_customer_query(customer_id, is_manager=False),
-            )
-
-            for row in response:
-                logging.debug(f"│   ├── Row content: {row}")
-                processed += 1
-                client_data = {
-                    "customer_id": row.customer.id,
-                    "descriptive_name": row.customer.descriptive_name,
-                    "currency_code": row.customer.currency_code,
-                    "time_zone": row.customer.time_zone,
-                    "resource_name": resource_name,
-                    "auto_tagging_enabled": row.customer.auto_tagging_enabled,
-                    "status": row.customer.status.name,
-                    "is_test_account": row.customer.test_account,
-                }
-
-                logging.info(
-                    f"│   ├── Found client account: {client_data['descriptive_name']}"
-                )
-                logging.info(f"│   ├── Status: {client_data['status']}")
-
-                client_accounts.append(client_data)
-
-        except Exception as e:
-            logging.error(
-                f"│   ⚠️  Error processing client account {customer_id}: {str(e)}",
-                exc_info=True,
-            )
-
-    logging.info(
-        f"└── Completed processing {processed} client accounts "
-        f"(found {len(client_accounts)} active accounts)"
-    )
-    logging.info("=== Completed Non-Manager Accounts ===")
-    return client_accounts
-
-
-@log_execution_time
 async def get_account_hierarchy(ga_client: GoogleAdsClient, manager_id: str) -> Dict:
     """Get full hierarchy of a MCC account.
 
