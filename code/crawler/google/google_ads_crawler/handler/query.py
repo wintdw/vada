@@ -2,16 +2,17 @@ import logging
 from .metric import METRIC_FIELDS
 
 
-def build_customer_query(customer_id: str) -> str:
+def build_customer_query(where_clause: str | None = None) -> str:
     """Build standardized account query.
 
     Args:
-        customer_id: Account ID to query
+        customer_id: Optional account ID to query. If provided, adds WHERE customer.id = {id}
+        where_clause: Optional additional WHERE clause conditions.
+                     Takes precedence over customer_id if both provided.
 
     Returns:
         SQL query string
     """
-
     query = """
         SELECT 
             customer.id,
@@ -21,10 +22,10 @@ def build_customer_query(customer_id: str) -> str:
             customer.auto_tagging_enabled,
             customer.status,
             customer.test_account
-        FROM customer 
-        WHERE customer.id = '{customer_id}'
+        FROM customer
+        {where_statement}
     """.format(
-        customer_id=customer_id
+        where_statement=(f"WHERE {where_clause}" if where_clause else "")
     )
 
     logging.debug(f"Generated query: {query}")
@@ -35,7 +36,8 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
     """Build standardized account client query.
 
     Args:
-        where_clause: Optional additional WHERE clause conditions
+        where_clause: Optional additional WHERE clause conditions.
+                     If None, will select all client accounts.
 
     Returns:
         SQL query string
@@ -53,9 +55,9 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
             customer_client.time_zone,
             customer_client.test_account
         FROM customer_client
-        WHERE {where_clause}
+        {where_statement}
     """.format(
-        where_clause=where_clause
+        where_statement=f"WHERE {where_clause}" if where_clause else ""
     )
 
     logging.debug(f"Generated query: {query}")
