@@ -15,7 +15,7 @@ async def update_metrics():
     from repositories import select_crawl_history_by_crawl_status
 
     try:
-        crawl_history = await select_crawl_history_by_crawl_status()
+        crawl_history = await select_crawl_history_by_crawl_status("in_progress")
         active_crawl_jobs_gauge.set(len(crawl_history))
         logger.info(f"Metrics updated")
     except Exception as e:

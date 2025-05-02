@@ -7,7 +7,7 @@ from models import CrawlHistory, CrawlHistoryResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-@router.post("/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
+@router.post("/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["CrawlHistory"])
 async def post_crawl_history(crawl_history: CrawlHistory):
     from repositories import insert_crawl_history
 
@@ -32,7 +32,7 @@ async def post_crawl_history(crawl_history: CrawlHistory):
         data=crawl_history
     )
 
-@router.get("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
+@router.get("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, tags=["CrawlHistory"])
 async def get_crawl_history_by_crawl_id(crawl_id: str):
     from repositories import select_crawl_history_by_crawl_id
 
@@ -57,7 +57,7 @@ async def get_crawl_history_by_crawl_id(crawl_id: str):
             data=crawl_history
         )
 
-@router.get("/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
+@router.get("/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["CrawlHistory"])
 async def get_crawl_history():
     from repositories import select_crawl_history
 
@@ -76,12 +76,12 @@ async def get_crawl_history():
         data=crawl_history
     )
 
-@router.put("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, tags=["Crawl"])
-async def put_crawl_history(crawl_id: str, crawl_history: CrawlHistory):
-    from repositories import select_crawl_history_by_crawl_id, update_crawl_history
+@router.put("/v1/crawl/{history_id}/history", response_model=CrawlHistoryResponse, tags=["CrawlHistory"])
+async def put_crawl_history(history_id: str, crawl_history: CrawlHistory):
+    from repositories import select_crawl_history_by_history_id, update_crawl_history
 
     try:
-        crawl_history_selected = await select_crawl_history_by_crawl_id(crawl_id)
+        crawl_history_selected = await select_crawl_history_by_history_id(history_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -95,7 +95,7 @@ async def put_crawl_history(crawl_id: str, crawl_history: CrawlHistory):
         )
     else:
         try:
-            crawl_history = await update_crawl_history(crawl_id, crawl_history)
+            crawl_history = await update_crawl_history(history_id, crawl_history)
         except Exception as e:
             logger.exception(e)
             raise HTTPException(
@@ -109,12 +109,12 @@ async def put_crawl_history(crawl_id: str, crawl_history: CrawlHistory):
             data=crawl_history
         )
 
-@router.delete("/v1/crawl/{crawl_id}/history", response_model=CrawlHistoryResponse, response_model_exclude_none=True, tags=["Crawl"])
-async def delete_crawl_history(crawl_id: str):
+@router.delete("/v1/crawl/{history_id}/history", response_model=CrawlHistoryResponse, response_model_exclude_none=True, tags=["CrawlHistory"])
+async def delete_crawl_history(history_id: str):
     from repositories import remove_crawl_history
 
     try:
-        row_count = await remove_crawl_history(crawl_id)
+        row_count = await remove_crawl_history(history_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(

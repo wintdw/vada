@@ -15,4 +15,4 @@ class CrawlHistory(BaseModel):
 class CrawlHistoryResponse(BaseModel):
     status: int
     message: str
-    data: list[CrawlHistory] | CrawlHistory = []
+    data: list[CrawlHistory] | CrawlHistory | None = None

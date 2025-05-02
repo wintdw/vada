@@ -7,7 +7,7 @@ from models import CrawlInfo, CrawlInfoResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-@router.post("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["Crawl"])
+@router.post("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
 async def post_crawl_info(crawl_info: CrawlInfo):
     from repositories import insert_crawl_info
 
@@ -32,7 +32,7 @@ async def post_crawl_info(crawl_info: CrawlInfo):
         data=crawl_info
     )
 
-@router.get("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["Crawl"])
+@router.get("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
 async def get_crawl_info(crawl_id: str):
     from repositories import select_crawl_info_by_crawl_id
 
@@ -57,7 +57,7 @@ async def get_crawl_info(crawl_id: str):
             data=crawl_info
         )
 
-@router.get("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["Crawl"])
+@router.get("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
 async def get_crawl_info():
     from repositories import select_crawl_info
 
@@ -76,7 +76,7 @@ async def get_crawl_info():
         data=crawl_info
     )
 
-@router.put("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["Crawl"])
+@router.put("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
 async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
     from repositories import select_crawl_info_by_crawl_id, update_crawl_info
 
@@ -109,7 +109,7 @@ async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
             data=crawl_info
         )
 
-@router.delete("/v1/crawl/{crawl_info}/info", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["Crawl"])
+@router.delete("/v1/crawl/{crawl_info}/info", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["CrawlInfo"])
 async def delete_crawl_info(crawl_id: str):
     from repositories import remove_crawl_info
 

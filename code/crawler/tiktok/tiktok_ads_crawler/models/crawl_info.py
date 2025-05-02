@@ -14,4 +14,4 @@ class CrawlInfo(BaseModel):
 class CrawlInfoResponse(BaseModel):
     status: int
     message: str
-    data: list[CrawlInfo] | CrawlInfo = []
+    data: list[CrawlInfo] | CrawlInfo | None = None
