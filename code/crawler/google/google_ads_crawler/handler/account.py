@@ -246,14 +246,30 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
         node: Current node in hierarchy
         customer_ids_to_children: Dict mapping customer IDs to their children
     """
-    logging.debug(f"│   ├── Building tree for node: {node}")
-    logging.debug(f"│   │   ├── Customer dict {customer_ids_to_children}")
+    logging.debug(f"│   ├── Building tree for node: {node['descriptive_name']}")
 
-    if str(node["customer_id"]) in customer_ids_to_children:
-        node["children"] = customer_ids_to_children[str(node["customer_id"])]
-        logging.debug(f"│   │   ├── Found {len(node['children'])} children")
+    # Initialize children array if not present
+    if "children" not in node:
+        node["children"] = []
 
-        for child in node["children"]:
-            build_hierarchy_tree(child, customer_ids_to_children)
+    # Get node's children
+    node_id = str(node["customer_id"])
+    if node_id in customer_ids_to_children:
+        children = customer_ids_to_children[node_id]
+        for child in children:
+            # Initialize child's children array
+            if "children" not in child:
+                child["children"] = []
+            node["children"].append(child)
+
+            # Recursively process child if it's a manager
+            if child.get("manager", False):
+                build_hierarchy_tree(child, customer_ids_to_children)
+                # Add child_count after processing children
+                child["child_count"] = len(child["children"])
+
+        logging.debug(
+            f"│   │   ├── Added {len(node['children'])} children to {node['descriptive_name']}"
+        )
     else:
-        logging.debug(f"│   │   └── No children found")
+        logging.debug(f"│   │   └── No children found for {node['descriptive_name']}")
