@@ -1,3 +1,13 @@
+"""
+Customer Status:
+    0 → UNSPECIFIED
+    1 → UNKNOWN
+    2 → ENABLED
+    3 → CANCELED
+    4 → SUSPENDED
+    5 → CLOSED
+"""
+
 import logging
 from typing import Dict, List
 
@@ -76,15 +86,10 @@ async def get_all_account_hierarchies(ga_client: GoogleAdsClient) -> List[Dict]:
                 account_hiers.append(customer_data)
 
         except Exception as e:
-            if "CUSTOMER_NOT_ENABLED" in str(e):
-                logging.warning(f"│   ⚠️  Account {customer_id} is not enabled")
-            elif "PERMISSION_DENIED" in str(e):
-                logging.warning(f"│   ⚠️  No permission to access account {customer_id}")
-            else:
-                logging.error(
-                    f"│   ⚠️  Error processing account {customer_id}: {str(e)}",
-                    exc_info=True,
-                )
+            logging.error(
+                f"│   ⚠️  Error processing account {customer_id}: {str(e)}",
+                exc_info=True,
+            )
             continue
 
     logging.info(f"└── Completed processing {processed}/{total_accounts} accounts")
@@ -120,105 +125,103 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
 
     cc_query = build_customer_client_query("customer_client.level <= 1")
 
-    try:
-        unprocessed_customer_ids = [account_id]
-        customer_ids_to_children = {}
-        root_customer_client = None
+    unprocessed_customer_ids = [account_id]
+    customer_ids_to_children = {}
+    root_customer_client = None
 
-        logging.debug(f"├── Starting BFS traversal with root: {account_id}")
-        processed_count = 0
+    logging.debug(f"├── Starting BFS traversal with root: {account_id}")
+    processed_count = 0
 
-        while unprocessed_customer_ids:
-            customer_id = unprocessed_customer_ids.pop(0)
-            logging.debug(f"│   ├── Processing customer: {customer_id}")
+    while unprocessed_customer_ids:
+        customer_id = unprocessed_customer_ids.pop(0)
+        logging.debug(f"│   ├── Processing customer: {customer_id}")
 
-            try:
-                response = googleads_service.search(
-                    customer_id=str(customer_id), query=cc_query
-                )
-                logging.debug(f"│   │   ├── Got response for {customer_id}")
+        try:
+            response = googleads_service.search(
+                customer_id=str(customer_id), query=cc_query
+            )
+            logging.debug(f"│   │   ├── Got response for {customer_id}")
 
-                for row in response:
-                    customer_client = row.customer_client
-                    processed_count += 1
+            for row in response:
+                customer_client = row.customer_client
+                processed_count += 1
 
-                    if customer_client.level == 0:
-                        if root_customer_client is None:
-                            logging.debug(
-                                f"│   │   ├── Found root account: {customer_client.descriptive_name} "
-                                f"({customer_client.id})"
-                            )
-                            root_customer_client = {
-                                "customer_id": customer_client.id,
-                                "descriptive_name": customer_client.descriptive_name,
-                                "currency_code": customer_client.currency_code,
-                                "time_zone": customer_client.time_zone,
-                                "client_customer": customer_client.client_customer,
-                                "level": customer_client.level,
-                                "status": customer_client.status,
-                                "manager": customer_client.manager,
-                                "test_account": customer_client.test_account,
-                                "children": [],
-                            }
-                        continue
-
-                    if customer_id not in customer_ids_to_children:
-                        customer_ids_to_children[customer_id] = []
+                if customer_client.level == 0:
+                    if root_customer_client is None:
                         logging.debug(
-                            f"│   │   ├── Created children list for {customer_id}"
+                            f"│   │   ├── Found root account: {customer_client.descriptive_name} "
+                            f"({customer_client.id})"
                         )
+                        root_customer_client = {
+                            "customer_id": customer_client.id,
+                            "descriptive_name": customer_client.descriptive_name,
+                            "currency_code": customer_client.currency_code,
+                            "time_zone": customer_client.time_zone,
+                            "client_customer": customer_client.client_customer,
+                            "level": customer_client.level,
+                            "status": customer_client.status,
+                            "manager": customer_client.manager,
+                            "test_account": customer_client.test_account,
+                            "children": [],
+                        }
+                    continue
 
-                    child_data = {
-                        "customer_id": customer_client.id,
-                        "descriptive_name": customer_client.descriptive_name,
-                        "currency_code": customer_client.currency_code,
-                        "time_zone": customer_client.time_zone,
-                        "client_customer": customer_client.client_customer,
-                        "level": customer_client.level,
-                        "status": customer_client.status,
-                        "manager": customer_client.manager,
-                        "test_account": customer_client.test_account,
-                    }
-
-                    customer_ids_to_children[customer_id].append(child_data)
+                if customer_id not in customer_ids_to_children:
+                    customer_ids_to_children[customer_id] = []
                     logging.debug(
-                        f"│   │   │   ├── Added child: {child_data['descriptive_name']} "
-                        f"({child_data['customer_id']}, Level: {child_data['level']}, "
-                        f"Manager: {child_data['manager']})"
+                        f"│   │   ├── Created children list for {customer_id}"
                     )
 
-                    if customer_client.manager and customer_client.level == 1:
-                        if str(customer_client.id) not in customer_ids_to_children:
-                            unprocessed_customer_ids.append(customer_client.id)
-                            logging.debug(
-                                f"│   │   │   └── Queued manager account for processing: "
-                                f"{customer_client.id}"
-                            )
+                child_data = {
+                    "customer_id": customer_client.id,
+                    "descriptive_name": customer_client.descriptive_name,
+                    "currency_code": customer_client.currency_code,
+                    "time_zone": customer_client.time_zone,
+                    "client_customer": customer_client.client_customer,
+                    "level": customer_client.level,
+                    "status": customer_client.status,
+                    "manager": customer_client.manager,
+                    "test_account": customer_client.test_account,
+                }
 
-            except Exception as search_error:
+                customer_ids_to_children[customer_id].append(child_data)
+                logging.debug(
+                    f"│   │   │   ├── Added child: {child_data['descriptive_name']} "
+                    f"({child_data['customer_id']}, Level: {child_data['level']}, "
+                    f"Manager: {child_data['manager']})"
+                )
+
+                if customer_client.manager and customer_client.level == 1:
+                    if str(customer_client.id) not in customer_ids_to_children:
+                        unprocessed_customer_ids.append(customer_client.id)
+                        logging.debug(
+                            f"│   │   │   └── Queued manager account for processing: "
+                            f"{customer_client.id}"
+                        )
+
+        except Exception as search_error:
+            if "CUSTOMER_NOT_ENABLED" in str(e):
+                logging.warning(f"│   ⚠️  Account {customer_id} is not enabled")
+            elif "PERMISSION_DENIED" in str(e):
+                logging.warning(f"│   ⚠️  No permission to access account {customer_id}")
+            else:
                 logging.error(
                     f"│   │   ⚠️  Error searching customer {customer_id}: {str(search_error)}",
                     exc_info=True,
                 )
-                continue
+            continue
 
-        logging.debug(f"├── Processed {processed_count} total accounts")
+    logging.debug(f"├── Processed {processed_count} total accounts")
 
-        if root_customer_client:
-            logging.debug("├── Building hierarchy tree")
-            build_hierarchy_tree(root_customer_client, customer_ids_to_children)
-            logging.debug(
-                f"└── Built tree with {len(root_customer_client['children'])} "
-                f"direct children"
-            )
-        else:
-            logging.warning(f"└── No root account found for {account_id}")
-            return None
-
-    except Exception as e:
-        logging.error(
-            f"⚠️  Error processing hierarchy for {account_id}: {str(e)}", exc_info=True
+    if root_customer_client:
+        logging.debug("├── Building hierarchy tree")
+        build_hierarchy_tree(root_customer_client, customer_ids_to_children)
+        logging.debug(
+            f"└── Built tree with {len(root_customer_client['children'])} "
+            f"direct children"
         )
+    else:
+        logging.warning(f"└── No root account found for {account_id}")
         return None
 
     logging.info(f"=== Completed Account Hierarchy for {account_id} ===")
