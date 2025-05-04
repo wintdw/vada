@@ -206,7 +206,6 @@ async def get_reports(
         List of campaign/ad group performance data with metrics
     """
     logging.info("=== Getting Performance Reports ===")
-    googleads_service = ga_client.get_service("GoogleAdsService")
     results = []
     total_processed = 0
 
@@ -216,6 +215,10 @@ async def get_reports(
 
     # Process each root account recursively
     for root in hierarchies:
+        # Set login_customer_id to root for all queries to child accounts
+        ga_client.login_customer_id = str(root["customer_id"])
+        googleads_service = ga_client.get_service("GoogleAdsService")
+
         root_results = await process_account_hierarchy(
             googleads_service, root, start_date, end_date
         )
