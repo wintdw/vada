@@ -259,32 +259,34 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
             customer_ids_to_children: Mapping of customer IDs to their child accounts
         """
         node_id = str(node["customer_id"])
-        node_level = node["level"]
         if "children" not in node:
             node["children"] = []
 
         if node_id in customer_ids_to_children:
-            # Filter children by level to ensure correct hierarchy
-            children = [
-                child
-                for child in customer_ids_to_children[node_id]
-                if child["level"] == node_level + 1  # Only direct children
-            ]
+            # Add each child to its proper parent
+            children = customer_ids_to_children[node_id]
+            seen_children = set()  # Track processed children
 
-            # Process each child
             for child in children:
                 child_id = str(child["customer_id"])
+
+                # Skip if we've already processed this child
+                if child_id in seen_children:
+                    continue
+
+                seen_children.add(child_id)
+
+                # Initialize children array
                 if "children" not in child:
                     child["children"] = []
 
-                # Add child to parent's children list if not already present
+                # Add child if not already in parent's children
                 if not any(
                     existing["customer_id"] == child_id for existing in node["children"]
                 ):
                     node["children"].append(child)
-                    # Recursively process this child's children
-                    if child_id in customer_ids_to_children:
-                        build_hierarchy_tree(child, customer_ids_to_children)
+                    # Recursively process child's children
+                    build_hierarchy_tree(child, customer_ids_to_children)
 
             node["child_count"] = len(node["children"])
 
