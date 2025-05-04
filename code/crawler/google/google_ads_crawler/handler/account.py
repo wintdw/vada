@@ -115,11 +115,11 @@ async def get_all_account_hierarchies(ga_client: GoogleAdsClient) -> List[Dict]:
 
 
 async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> Dict:
-    """Get full hierarchy of a account.
+    """Get full hierarchy of a account with unlimited nesting levels.
 
     Args:
         ga_client: Google Ads API client
-        manager_id: ID of the manager account to start hierarchy from
+        account_id: ID of the account to start hierarchy from
 
     Returns:
         Dict containing account hierarchy with structure:
@@ -130,43 +130,43 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
             "time_zone": str,
             "status": str,
             "manager": bool,
-            "children": List[Dict]  # recursive structure
+            "children": List[Dict]  # recursive structure with unlimited depth
         }
     """
     logging.info(f"=== Getting Account Hierarchy for {account_id} ===")
 
     googleads_service = ga_client.get_service("GoogleAdsService")
-    logging.debug(f"├── Created Google Ads service")
-
-    cc_query = build_customer_client_query("customer_client.level <= 1")
+    # Remove level restriction to allow deeper nesting
+    cc_query = build_customer_client_query()
 
     unprocessed_customer_ids = [account_id]
     customer_ids_to_children = {}
     root_customer_client = None
+    processed_ids = set()  # Track processed IDs to prevent cycles
 
     logging.debug(f"├── Starting BFS traversal with root: {account_id}")
     processed_count = 0
 
     while unprocessed_customer_ids:
         customer_id = unprocessed_customer_ids.pop(0)
+        if customer_id in processed_ids:
+            continue
+
+        processed_ids.add(customer_id)
         logging.debug(f"│   ├── Processing customer: {customer_id}")
 
         try:
             response = googleads_service.search(
                 customer_id=str(customer_id), query=cc_query
             )
-            logging.debug(f"│   │   ├── Got response for {customer_id}")
 
             for row in response:
                 customer_client = row.customer_client
                 processed_count += 1
 
+                # Handle root account
                 if customer_client.level == 0:
                     if root_customer_client is None:
-                        logging.debug(
-                            f"│   │   ├── Found root account: {customer_client.descriptive_name} "
-                            f"({customer_client.id})"
-                        )
                         root_customer_client = {
                             "customer_id": customer_client.id,
                             "descriptive_name": customer_client.descriptive_name,
@@ -181,11 +181,9 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
                         }
                     continue
 
+                # Handle child accounts
                 if customer_id not in customer_ids_to_children:
                     customer_ids_to_children[customer_id] = []
-                    logging.debug(
-                        f"│   │   ├── Created children list for {customer_id}"
-                    )
 
                 child_data = {
                     "customer_id": customer_client.id,
@@ -200,19 +198,17 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
                 }
 
                 customer_ids_to_children[customer_id].append(child_data)
-                logging.debug(
-                    f"│   │   │   ├── Added child: {child_data['descriptive_name']} "
-                    f"({child_data['customer_id']}, Level: {child_data['level']}, "
-                    f"Manager: {child_data['manager']})"
-                )
 
-                if customer_client.manager and customer_client.level == 1:
-                    if str(customer_client.id) not in customer_ids_to_children:
-                        unprocessed_customer_ids.append(customer_client.id)
-                        logging.debug(
-                            f"│   │   │   └── Queued manager account for processing: "
-                            f"{customer_client.id}"
-                        )
+                # Queue any manager account for processing, regardless of level
+                if (
+                    customer_client.manager
+                    and str(customer_client.id) not in processed_ids
+                ):
+                    unprocessed_customer_ids.append(customer_client.id)
+                    logging.debug(
+                        f"│   │   │   └── Queued manager account for processing: "
+                        f"{customer_client.id} (Level: {customer_client.level})"
+                    )
 
         except Exception as search_error:
             if "CUSTOMER_NOT_ENABLED" in str(search_error):
