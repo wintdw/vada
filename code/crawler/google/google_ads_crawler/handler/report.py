@@ -109,12 +109,19 @@ async def process_single_account_report(
         logging.info(f"│   │   └── Found {record_count} records")
         return account_results
 
-    except Exception as e:
-        logging.error(
-            f"│   ⚠️  Error getting reports for {account['descriptive_name']} "
-            f"({account['customer_id']}): {str(e)}",
-            exc_info=True,
-        )
+    except Exception as search_error:
+        if "CUSTOMER_NOT_ENABLED" in str(search_error):
+            logging.warning(f"│   ⚠️  Account {account["customer_id"]} is not enabled")
+        elif "PERMISSION_DENIED" in str(search_error):
+            logging.warning(
+                f"│   ⚠️  No permission to access account {account["customer_id"]}"
+            )
+        else:
+            logging.error(
+                f"│   ⚠️  Error getting reports for {account['descriptive_name']} "
+                f"({account['customer_id']}): {str(search_error)}",
+                exc_info=True,
+            )
         return []
 
 
