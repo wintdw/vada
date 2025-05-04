@@ -27,7 +27,7 @@ async def periodic_task() -> None:
 @app.on_event("startup")
 @repeat_every(seconds=60)  # Executes every 1 minute
 async def update_metrics() -> None:
-    from routers.schedule import update_metrics
+    from tools import update_metrics
 
     await update_metrics()
 
