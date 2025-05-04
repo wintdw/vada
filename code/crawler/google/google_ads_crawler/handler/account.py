@@ -200,9 +200,9 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
                         )
 
         except Exception as search_error:
-            if "CUSTOMER_NOT_ENABLED" in str(e):
+            if "CUSTOMER_NOT_ENABLED" in str(search_error):
                 logging.warning(f"│   ⚠️  Account {customer_id} is not enabled")
-            elif "PERMISSION_DENIED" in str(e):
+            elif "PERMISSION_DENIED" in str(search_error):
                 logging.warning(f"│   ⚠️  No permission to access account {customer_id}")
             else:
                 logging.error(
