@@ -17,12 +17,18 @@ metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
 @app.on_event("startup")
-@repeat_every(seconds=60)  # Executes every 1 minute
+@repeat_every(seconds=3600)  # Executes every 60 minutes
 async def periodic_task() -> None:
-    from routers.schedule import post_schedule_auth, post_schedule_crawl, update_metrics
+    from routers.schedule import post_schedule_auth, post_schedule_crawl
 
     await post_schedule_auth()
     await post_schedule_crawl()
+
+@app.on_event("startup")
+@repeat_every(seconds=60)  # Executes every 1 minute
+async def update_metrics() -> None:
+    from routers.schedule import update_metrics
+
     await update_metrics()
 
 @app.get("/health")
