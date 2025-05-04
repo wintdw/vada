@@ -115,40 +115,22 @@ async def get_all_account_hierarchies(ga_client: GoogleAdsClient) -> List[Dict]:
 
 
 async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> Dict:
-    """Get full hierarchy of a account with unlimited nesting levels.
-
-    Args:
-        ga_client: Google Ads API client
-        account_id: ID of the account to start hierarchy from
-
-    Returns:
-        Dict containing account hierarchy with structure:
-        {
-            "customer_id": str,
-            "descriptive_name": str,
-            "currency_code": str,
-            "time_zone": str,
-            "status": str,
-            "manager": bool,
-            "children": List[Dict]  # recursive structure with unlimited depth
-        }
-    """
+    """Get full hierarchy of a account with unlimited nesting levels."""
     logging.info(f"=== Getting Account Hierarchy for {account_id} ===")
 
     googleads_service = ga_client.get_service("GoogleAdsService")
-    # Remove level restriction to allow deeper nesting
     cc_query = build_customer_client_query()
 
-    unprocessed_customer_ids = [account_id]
+    unprocessed_customer_ids = [(account_id, None)]  # (customer_id, manager_id)
     customer_ids_to_children = {}
     root_customer_client = None
-    processed_ids = set()  # Track processed IDs to prevent cycles
+    processed_ids = set()
 
     logging.debug(f"├── Starting BFS traversal with root: {account_id}")
     processed_count = 0
 
     while unprocessed_customer_ids:
-        customer_id = unprocessed_customer_ids.pop(0)
+        customer_id, manager_id = unprocessed_customer_ids.pop(0)
         if customer_id in processed_ids:
             continue
 
@@ -156,8 +138,13 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
         logging.debug(f"│   ├── Processing customer: {customer_id}")
 
         try:
+            # Set login-customer-id header for accessing child accounts
+            client_options = {}
+            if manager_id:
+                client_options["login_customer_id"] = manager_id
+
             response = googleads_service.search(
-                customer_id=str(customer_id), query=cc_query
+                customer_id=str(customer_id), query=cc_query, **client_options
             )
 
             for row in response:
@@ -199,15 +186,16 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
 
                 customer_ids_to_children[customer_id].append(child_data)
 
-                # Queue any manager account for processing, regardless of level
+                # Queue manager account with proper parent ID
                 if (
                     customer_client.manager
                     and str(customer_client.id) not in processed_ids
                 ):
-                    unprocessed_customer_ids.append(customer_client.id)
+                    unprocessed_customer_ids.append((customer_client.id, customer_id))
                     logging.debug(
                         f"│   │   │   └── Queued manager account for processing: "
-                        f"{customer_client.id} (Level: {customer_client.level})"
+                        f"{customer_client.id} (Level: {customer_client.level}, "
+                        f"Manager: {customer_id})"
                     )
 
         except Exception as search_error:
@@ -269,7 +257,7 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
                 child["child_count"] = len(child["children"])
 
         logging.debug(
-            f"│   │   ├── Added {len(node['children'])} children to {node['descriptive_name']}"
+            f"│   ├── Added {len(node['children'])} children to {node['descriptive_name']}"
         )
     else:
         logging.debug(f"│   │   └── No children found for {node['descriptive_name']}")
