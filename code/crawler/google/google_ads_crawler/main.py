@@ -1,7 +1,7 @@
 import os
 import logging
 from fastapi import FastAPI  # type: ignore
-from router import auth, account  # type: ignore
+from router import auth, account, report  # type: ignore
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
@@ -16,7 +16,7 @@ flows = {}
 
 app.include_router(auth.router, tags=["auth"])
 app.include_router(account.router, tags=["account"])
-# app.include_router(report.router, tags=["report"])
+app.include_router(report.router, tags=["report"])
 
 # Pass the flows dictionary to router endpoints that need it
 app.state.flows = flows
