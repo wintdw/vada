@@ -82,9 +82,9 @@ def build_report_query(start_date: str, end_date: str) -> str:
             campaign.status,
             campaign.serving_status,
             campaign.payment_mode,
-            campaign.optimization_score
-            campaign.start_date,
-            campaign.end_date,
+            campaign.optimization_score,
+            # campaign.start_date,
+            # campaign.end_date,
             ad_group.id,
             ad_group.name,
             ad_group.resource_name,
@@ -100,7 +100,6 @@ def build_report_query(start_date: str, end_date: str) -> str:
             {metrics}
         FROM ad_group_ad
         WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
-        ORDER BY metrics.cost_micros DESC
     """.format(
         start_date=start_date,
         end_date=end_date,
