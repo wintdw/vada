@@ -3,14 +3,14 @@ from datetime import timedelta
 from prometheus_client import Gauge
 
 from tools import get_logger
-from models import CrawlHistory, CrawlInfo, CrawlInfoResponse
+from models import CrawlHistory, CrawlInfoResponse
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
 active_crawl_jobs_gauge = Gauge("active_crawl_jobs", "Number of active jobs")
 
-@router.get("/v1/schedule")
+@router.get("/v1/schedule", tags=["Schedule"])
 async def update_metrics():
     from repositories import select_crawl_history_by_crawl_status
 
@@ -24,23 +24,27 @@ async def update_metrics():
 @router.post("/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_crawl(crawl_id: str = None):
     from repositories import select_crawl_info_by_next_crawl_time, update_crawl_info, insert_crawl_history, update_crawl_history
-    from routers.tiktok import tiktok_business_get
+    from handlers.tiktok import crawl_tiktok_business
 
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
         history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=item.crawl_id, crawl_from_date=item.last_crawl_time, crawl_to_date=item.next_crawl_time))
+            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=item.crawl_id, crawl_from_date=item.crawl_from_date, crawl_to_date=item.crawl_to_date))
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
 
-            crawl_response = await tiktok_business_get(item.index_name, item.access_token, item.last_crawl_time.strftime('%Y-%m-%d'), item.next_crawl_time.strftime('%Y-%m-%d'))
+            crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, item.crawl_from_date.strftime('%Y-%m-%d'), item.crawl_to_date.strftime('%Y-%m-%d'))
             logger.info(crawl_response)
 
+            item.crawl_from_date = item.crawl_to_date
+            item.crawl_to_date = item.crawl_to_date + timedelta(minutes=item.crawl_interval)
+
             item.last_crawl_time = item.next_crawl_time
-            item.next_crawl_time = item.last_crawl_time + timedelta(minutes=item.crawl_interval)
+            item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)
+
             crawl_info = await update_crawl_info(item.crawl_id, item)
             logger.info(crawl_info)
             
