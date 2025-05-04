@@ -158,9 +158,9 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
         try:
             # For non-root accounts, we need to use the root account's login_customer_id
             if root_customer_client:
-                ga_client.login_customer_id = root_customer_client["customer_id"]
+                ga_client.login_customer_id = str(root_customer_client["customer_id"])
             else:
-                ga_client.login_customer_id = account_id
+                ga_client.login_customer_id = str(account_id)
 
             googleads_service = ga_client.get_service("GoogleAdsService")
 
