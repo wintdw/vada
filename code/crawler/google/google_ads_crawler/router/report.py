@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse  # type: ignore
 
 from model.ga_client import GoogleAdsCredentials
 from handler.report import get_reports
-from handler.account import get_manager_accounts
+from handler.account import get_all_account_hierarchies
 from handler.persist import post_processing
 from dependency.google_ad_client import get_google_ads_client
 
@@ -33,6 +33,13 @@ async def fetch_google_reports(
         credentials: Google Ads API credentials in request body
         start_date: Start date in YYYY-MM-DD format as query param
         end_date: End date in YYYY-MM-DD format as query param
+        persist: Whether to persist data to insert service
+
+    Returns:
+        JSONResponse containing:
+            - date_range: Start and end dates
+            - accounts: Account hierarchy information
+            - reports: Campaign/ad performance data
 
     Example:
         POST /google/reports?start_date=2025-04-16&end_date=2025-04-23
@@ -59,17 +66,20 @@ async def fetch_google_reports(
         ga_client = await get_google_ads_client(credentials)
         logging.info(f"Fetching reports from {start_date} to {end_date}")
 
-        # Get data
-        manager_accounts = await get_manager_accounts(ga_client)
-        ad_reports = await get_reports(
-            ga_client, start_date, end_date, manager_accounts
-        )
+        # Get account hierarchies
+        hierarchies = await get_all_account_hierarchies(ga_client)
+
+        # Get report data
+        ad_reports = await get_reports(ga_client, start_date, end_date, hierarchies)
 
         if persist:
             # Process and send reports to insert service
             index_name = "a_quang_nguyen_google_ad_report"
             await post_processing(ad_reports, index_name)
             logging.info("Reports sent to insert service successfully")
+
+        # Count non-manager accounts
+        total_clients = sum(1 for acc in hierarchies if not acc["manager"])
 
         # Build response with hierarchy information
         response_data = {
@@ -78,12 +88,9 @@ async def fetch_google_reports(
                 "end_date": end_date,
             },
             "accounts": {
-                "manager_accounts": len(manager_accounts),
-                "total_clients": sum(
-                    len([c for c in m["child_accounts"] if not c["manager"]])
-                    for m in manager_accounts
-                ),
-                "hierarchy": manager_accounts,
+                "total_roots": len(hierarchies),
+                "total_clients": total_clients,
+                "hierarchy": hierarchies,
             },
             "reports": {
                 "total_campaigns": len(set(r["campaign"]["id"] for r in ad_reports)),
@@ -95,7 +102,7 @@ async def fetch_google_reports(
 
         logging.info(
             f"Returning {len(ad_reports)} reports from "
-            f"{response_data['accounts']['total_clients']} client accounts"
+            f"{total_clients} client accounts"
         )
 
         return JSONResponse(content=response_data, status_code=200)

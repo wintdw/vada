@@ -123,7 +123,7 @@ async def get_reports(
     ga_client: GoogleAdsClient,
     start_date: str,
     end_date: str,
-    hierarchies: Dict | None = None,
+    hierarchies: List[Dict] | None = None,
 ) -> List[Dict]:
     """Fetch Google Ads reports for all accounts through hierarchy.
 
@@ -146,7 +146,7 @@ async def get_reports(
     if not hierarchies:
         hierarchies = await get_all_account_hierarchies(ga_client)
 
-    for root in hierarchies.get("hierarchies", []):
+    for root in hierarchies:
         logging.info(
             f"├── Processing account: {root['descriptive_name']} "
             f"({root['customer_id']})"

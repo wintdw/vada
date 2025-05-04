@@ -1,11 +1,26 @@
 """
+https://github.com/googleapis/googleapis/blob/master/google/ads/googleads/v17/enums/customer_status.proto
 Customer Status:
-    0 → UNSPECIFIED
-    1 → UNKNOWN
-    2 → ENABLED
-    3 → CANCELED
-    4 → SUSPENDED
-    5 → CLOSED
+    UNSPECIFIED = 0;
+
+    // Used for return value only. Represents value unknown in this version.
+    UNKNOWN = 1;
+
+    // Indicates an active account able to serve ads.
+    ENABLED = 2;
+
+    // Indicates a canceled account unable to serve ads.
+    // Can be reactivated by an admin user.
+    CANCELED = 3;
+
+    // Indicates a suspended account unable to serve ads.
+    // May only be activated by Google support.
+    SUSPENDED = 4;
+
+    // Indicates a closed account unable to serve ads.
+    // Test account will also have CLOSED status.
+    // Status is permanent and may not be reopened.
+    CLOSED = 5;
 """
 
 import logging
