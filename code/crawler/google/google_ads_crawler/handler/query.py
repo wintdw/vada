@@ -28,7 +28,7 @@ def build_customer_query(where_clause: str | None = None) -> str:
         where_statement=(f"WHERE {where_clause}" if where_clause else "")
     )
 
-    logging.debug(f"Generated query: {query}")
+    # logging.debug(f"Generated query: {query}")
     return query
 
 
@@ -60,7 +60,7 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
         where_statement=f"WHERE {where_clause}" if where_clause else ""
     )
 
-    logging.debug(f"Generated query: {query}")
+    # logging.debug(f"Generated query: {query}")
     return query
 
 
@@ -106,5 +106,5 @@ def build_report_query(start_date: str, end_date: str) -> str:
         metrics=",\n            ".join(metric_fields),
     )
 
-    logging.debug(f"Generated query: {query}")
+    # logging.debug(f"Generated query: {query}")
     return query
