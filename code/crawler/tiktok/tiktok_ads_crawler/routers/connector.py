@@ -10,8 +10,8 @@ from services import (
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-@router.get("/connector/tiktok/auth", response_model=CrawlInfoResponse, tags=["Connector"])
-async def get_connector_tiktok_auth(auth_code: str, user_id: str):
+@router.get("/connector/tiktok/ads", response_model=CrawlInfoResponse, tags=["Connector"])
+async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_test"):
     from repositories import insert_crawl_info
 
     try:
