@@ -1,28 +1,3 @@
-"""
-https://github.com/googleapis/googleapis/blob/master/google/ads/googleads/v17/enums/customer_status.proto
-Customer Status:
-    UNSPECIFIED = 0;
-
-    // Used for return value only. Represents value unknown in this version.
-    UNKNOWN = 1;
-
-    // Indicates an active account able to serve ads.
-    ENABLED = 2;
-
-    // Indicates a canceled account unable to serve ads.
-    // Can be reactivated by an admin user.
-    CANCELED = 3;
-
-    // Indicates a suspended account unable to serve ads.
-    // May only be activated by Google support.
-    SUSPENDED = 4;
-
-    // Indicates a closed account unable to serve ads.
-    // Test account will also have CLOSED status.
-    // Status is permanent and may not be reopened.
-    CLOSED = 5;
-"""
-
 import logging
 from typing import Dict, List
 
@@ -114,7 +89,9 @@ async def get_all_account_hierarchies(ga_client: GoogleAdsClient) -> List[Dict]:
     return account_hiers
 
 
-async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> Dict:
+async def get_account_hierarchy(
+    ga_client: GoogleAdsClient, root_account_id: str
+) -> Dict:
     """Get full hierarchy of a Google Ads account with unlimited nesting levels.
 
     Performs breadth-first traversal of the account hierarchy, handling both manager
@@ -144,19 +121,17 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
     Raises:
         Exception: For API errors (customer not enabled, permission denied, etc.)
     """
-    logging.info(f"=== Getting Account Hierarchy for {account_id} ===")
+    logging.info(f"=== Getting Account Hierarchy for {root_account_id} ===")
 
     # Remove level restriction to allow deeper nesting
-    cc_query = build_customer_client_query()
+    cc_query = build_customer_client_query("customer_client.level <= 1")
 
-    # Track parent-child relationships
-    parent_map = {}  # Maps customer_id to its parent_id
-    unprocessed_customer_ids = [(account_id, None)]  # (customer_id, parent_id)
-    all_accounts = {}  # Store all account data by ID
+    unprocessed_customer_ids = [(root_account_id, None)]  # (customer_id, parent_id)
+    customer_ids_to_children = {}
     root_customer_client = None
-    processed_ids = set()
+    processed_ids = set()  # Track processed IDs to prevent cycles
 
-    logging.debug(f"├── Starting BFS traversal with root: {account_id}")
+    logging.debug(f"├── Starting BFS traversal with root: {root_account_id}")
     processed_count = 0
 
     # First pass: collect all accounts and their parent relationships
@@ -171,57 +146,68 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
         logging.debug(
             f"│   ├── Processing customer: {customer_id} (Parent: {parent_id})"
         )
-
         try:
-            # Set login_customer_id to root for all queries
-            ga_client.login_customer_id = str(account_id)
+            # For non-root accounts, we need to use the root account's login_customer_id
+            if root_customer_client:
+                ga_client.login_customer_id = root_customer_client["customer_id"]
+            else:
+                ga_client.login_customer_id = root_account_id
+
             googleads_service = ga_client.get_service("GoogleAdsService")
 
             response = googleads_service.search(customer_id=customer_id, query=cc_query)
+            logging.debug("GA Search Response: %s", response)
 
             for row in response:
                 customer_client = row.customer_client
                 processed_count += 1
-                client_id = str(customer_client.id)
 
-                # Store parent relationship (the most important part - tracks who is the parent)
-                if parent_id:
-                    parent_map[client_id] = str(parent_id)
+                # Handle root account
+                if customer_client.level == 0:
+                    if root_customer_client is None:
+                        root_customer_client = {
+                            "customer_id": str(customer_client.id),
+                            "descriptive_name": customer_client.descriptive_name,
+                            "currency_code": customer_client.currency_code,
+                            "time_zone": customer_client.time_zone,
+                            "client_customer": customer_client.client_customer,
+                            "level": customer_client.level,
+                            "status": customer_client.status.name,
+                            "manager": customer_client.manager,
+                            "test_account": customer_client.test_account,
+                            "children": [],
+                        }
+                    continue
 
-                # Create account data
-                account_data = {
-                    "customer_id": client_id,
+                # If level > 0, this is a child account of the customer_id
+                # so we add the child data to the customer_ids_to_children dict
+                if customer_id not in customer_ids_to_children:
+                    customer_ids_to_children[customer_id] = []
+                child_data = {
+                    "customer_id": str(customer_client.id),
                     "descriptive_name": customer_client.descriptive_name,
                     "currency_code": customer_client.currency_code,
                     "time_zone": customer_client.time_zone,
                     "client_customer": customer_client.client_customer,
                     "level": customer_client.level,
-                    "status": customer_client.status,
+                    "status": customer_client.status.name,
                     "manager": customer_client.manager,
                     "test_account": customer_client.test_account,
-                    "children": [],
                 }
+                customer_ids_to_children[customer_id].append(child_data)
 
-                # Store in all_accounts dictionary
-                all_accounts[client_id] = account_data
-
-                # Handle root account
-                if customer_client.level == 0 and root_customer_client is None:
-                    root_customer_client = account_data
-
-                # Queue manager accounts with their parent
-                if customer_client.manager and client_id not in processed_ids:
-                    # remove the client_id from unprocessed_customer_ids if it exists
-                    # to have the correct hierarchy
-                    unprocessed_customer_ids = [
-                        t for t in unprocessed_customer_ids if t[0] != client_id
-                    ]
-                    unprocessed_customer_ids.append((client_id, customer_id))
-
+                # Queue any manager account for processing, regardless of level
+                if (
+                    customer_client.manager
+                    and str(customer_client.id) not in processed_ids
+                ):
+                    unprocessed_customer_ids.append(
+                        (str(customer_client.id), customer_id)
+                    )
                     logging.debug(
                         f"│   │   │   └── Queued manager account for processing: "
-                        f"{client_id} (Level: {customer_client.level}, "
-                        f"Parent: {customer_id})"
+                        f"{customer_client.id} (Level: {customer_client.level}) "
+                        f"Current Queue: {unprocessed_customer_ids}"
                     )
 
         except Exception as search_error:
@@ -234,41 +220,56 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
                     f"│   │   ⚠️  Error searching customer {customer_id}: {str(search_error)}",
                     exc_info=True,
                 )
-            all_accounts[customer_id] = {
-                "customer_id": customer_id,
-                "status": 4,  # SUSPENDED
-            }
             continue
 
     logging.debug(f"├── Processed {processed_count} total accounts")
 
-    if not root_customer_client:
-        logging.warning(f"└── No root account found for {account_id}")
+    if root_customer_client:
+        logging.debug("├── Building hierarchy tree")
+        build_hierarchy_tree(root_customer_client, customer_ids_to_children)
+        logging.debug(
+            f"└── Built tree with {len(root_customer_client['children'])} "
+            f"direct children"
+        )
+    else:
+        logging.warning(f"└── No root account found for {root_customer_client}")
         return None
 
-    # Second pass: build the hierarchy using parent relationships
-    logging.debug("├── Building hierarchy tree")
-
-    # For each account, add it as a child to its parent
-    for customer_id, parent_id in parent_map.items():
-        if parent_id in all_accounts and customer_id in all_accounts:
-            parent = all_accounts[parent_id]
-            child = all_accounts[customer_id]
-
-            # Check if child is already in parent's children to avoid duplicates
-            if not any(
-                existing["customer_id"] == customer_id
-                for existing in parent["children"]
-            ):
-                parent["children"].append(child)
-
-    # Update child_count for all accounts
-    for account in all_accounts.values():
-        account["child_count"] = len(account["children"])
-
-    logging.debug(
-        f"└── Built tree with {len(root_customer_client['children'])} "
-        f"direct children"
-    )
-    logging.info(f"=== Completed Account Hierarchy for {account_id} ===")
+    logging.info(f"=== Completed Account Hierarchy for {root_account_id} ===")
     return root_customer_client
+
+
+def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
+    """Recursively build hierarchy tree.
+
+    Args:
+        node: Current node in hierarchy
+        customer_ids_to_children: Dict mapping customer IDs to their children
+    """
+    logging.debug(f"│   ├── Building tree for node: {node['descriptive_name']}")
+
+    # Initialize children array if not present
+    if "children" not in node:
+        node["children"] = []
+
+    # Get node's children
+    node_id = str(node["customer_id"])
+    if node_id in customer_ids_to_children:
+        children = customer_ids_to_children[node_id]
+        for child in children:
+            # Initialize child's children array
+            if "children" not in child:
+                child["children"] = []
+            node["children"].append(child)
+
+            # Recursively process child if it's a manager
+            if child.get("manager", False):
+                build_hierarchy_tree(child, customer_ids_to_children)
+                # Add child_count after processing children
+                child["child_count"] = len(child["children"])
+
+        logging.debug(
+            f"│   │   ├── Added {len(node['children'])} children to {node['descriptive_name']}"
+        )
+    else:
+        logging.debug(f"│   │   └── No children found for {node['descriptive_name']}")
