@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from aiomysql import IntegrityError
+from datetime import datetime
 
 from tools import get_logger
 from models import CrawlInfo, CrawlInfoResponse
@@ -20,7 +21,10 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
         
         crawl_info = await insert_crawl_info(CrawlInfo(
             access_token=access_token.get("access_token"),
-            index_name=user_id
+            index_name=user_id,
+            crawl_type="TikTok Business Ads",
+            crawl_from_date=datetime.now(),
+            crawl_to_date=datetime.now()
         ))
         
     except Exception as e:
