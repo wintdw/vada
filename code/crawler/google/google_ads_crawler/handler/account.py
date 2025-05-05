@@ -211,7 +211,13 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
 
                 # Queue manager accounts with their parent
                 if customer_client.manager and client_id not in processed_ids:
+                    # remove the client_id from unprocessed_customer_ids if it exists
+                    # to have the correct hierarchy
+                    unprocessed_customer_ids = [
+                        t for t in unprocessed_customer_ids if t[0] != client_id
+                    ]
                     unprocessed_customer_ids.append((client_id, customer_id))
+
                     logging.debug(
                         f"│   │   │   └── Queued manager account for processing: "
                         f"{client_id} (Level: {customer_client.level}, "
@@ -228,6 +234,10 @@ async def get_account_hierarchy(ga_client: GoogleAdsClient, account_id: str) -> 
                     f"│   │   ⚠️  Error searching customer {customer_id}: {str(search_error)}",
                     exc_info=True,
                 )
+            all_accounts[customer_id] = {
+                "customer_id": customer_id,
+                "status": 4,  # SUSPENDED
+            }
             continue
 
     logging.debug(f"├── Processed {processed_count} total accounts")
