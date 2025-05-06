@@ -29,7 +29,7 @@ async def send_to_insert_service(data: Dict, insert_service_baseurl: str) -> Dic
             json=data,
             headers={"Content-Type": "application/json"},
         ) as response:
-            return {"status": response.status, "detail": await response.json()}
+            return {"status": response.status, "detail": await response.text()}
 
 
 ### The main function to process and send reports
