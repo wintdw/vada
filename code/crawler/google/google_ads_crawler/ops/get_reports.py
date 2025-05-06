@@ -32,21 +32,6 @@ def summarize_report_data(data: Dict) -> None:
         reports.get("total_reports", 0),
     )
 
-    # Log sample record if available
-    if records := reports.get("data"):
-        sample = records[0]
-        logging.debug(
-            "Sample: Customer=%s (%s) | Campaign=%s | AdGroup=%s | Metrics: Cost=%.2f, Clicks=%d, Impressions=%d, Conv=%.2f",
-            sample.get("customer_name"),
-            sample.get("customer_id"),
-            sample.get("campaign", {}).get("name"),
-            sample.get("ad_group", {}).get("name"),
-            sample.get("cost", 0),
-            sample.get("clicks", 0),
-            sample.get("impressions", 0),
-            sample.get("conversions", 0),
-        )
-
 
 async def fetch_reports():
     """Test different date ranges for the reports endpoint with multiple tokens"""

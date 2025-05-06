@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from typing import Dict, List, Any
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
@@ -155,7 +156,10 @@ async def get_account_hierarchy(
 
             googleads_service = ga_client.get_service("GoogleAdsService")
 
-            response = googleads_service.search(customer_id=customer_id, query=cc_query)
+            response = await asyncio.to_thread(
+                googleads_service.search, customer_id=customer_id, query=cc_query
+            )
+
             logging.debug("GA Search Response: %s", response)
 
             for row in response:

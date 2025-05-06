@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from typing import Dict, List
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
@@ -56,8 +57,10 @@ async def process_single_account_report(
 
     try:
         query = build_report_query(start_date, end_date)
-        response = googleads_service.search(
-            customer_id=str(account["customer_id"]), query=query
+        response = await asyncio.to_thread(
+            googleads_service.search,
+            customer_id=str(account["customer_id"]),
+            query=query,
         )
 
         account_results = []
@@ -213,7 +216,7 @@ async def get_reports(
     if not hierarchies:
         hierarchies = await get_all_account_hierarchies(ga_client)
 
-    customer_ads_accounts = await get_non_manager_accounts(hierarchies)
+    customer_ads_accounts = get_non_manager_accounts(hierarchies)
 
     for account in customer_ads_accounts:
         # Set login_customer_id to account for all queries
