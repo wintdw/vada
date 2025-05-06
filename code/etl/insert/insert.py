@@ -223,7 +223,7 @@ async def insert_json(
     except ESException as es_exc:
         logging.error("Elasticsearch exception: %s", es_exc)
         raise HTTPException(
-            status_code=es_exc.status,
+            status_code=es_exc.status_code,
             detail=es_exc.detail,
         )
     except HTTPException:
