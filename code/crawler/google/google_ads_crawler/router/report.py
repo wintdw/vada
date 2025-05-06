@@ -77,7 +77,7 @@ async def fetch_google_reports(
             index_name = "a_quang_nguyen_google_ad_report"
             insert_response = await post_processing(ad_reports, index_name)
             logging.info(
-                "Reports sent to insert service successfully. Response: %s",
+                "Sending to Insert service. Response: %s",
                 insert_response,
             )
 
