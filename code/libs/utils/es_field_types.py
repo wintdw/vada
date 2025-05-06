@@ -20,12 +20,12 @@ def determine_es_field_types(
     """
 
     def is_valid_timestamp(value: int) -> bool:
-        # Unix timestamps for the years 2000 to 2100
+        # Unix timestamps for the years 2000 to 2030
         # Start of 2000: 946684800
-        # End of 2100: 4102444800
-        # With milliseconds: Start of 2000: 946684800000, End of 2100: 4102444800000
-        return (946684800 <= value <= 4102444800) or (
-            946684800000 <= value <= 4102444800000
+        # End of 2030: 1893456000
+        # With milliseconds: Start of 2000: 946684800000, End of 2030: 1893456000000
+        return (946684800 <= value <= 1893456000) or (
+            946684800000 <= value <= 1893456000000
         )
 
     # Initialize a dictionary to count the occurrences of each type for each field
