@@ -66,45 +66,69 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
 
 def build_report_query(start_date: str, end_date: str) -> str:
     """Build query for ad, campaign and ad group performance data"""
+
+    segment_fields = ["date"]
+    customer_fields = ["id", "descriptive_name", "resource_name"]
+    campaign_fields = [
+        "id",
+        "name",
+        "resource_name",
+        "status",
+        "serving_status",
+        "payment_mode",
+        "optimization_score",
+        "advertising_channel_type",
+        "advertising_channel_sub_type",
+        "bidding_strategy_type",
+        "labels",
+        "start_date",
+        "end_date",
+    ]
+    ad_group_fields = [
+        "id",
+        "name",
+        "resource_name",
+        "status",
+        "primary_status",
+        "primary_status_reasons",
+        "type",
+        "labels",
+        "base_ad_group",
+        "campaign",
+    ]
+    ad_group_ad_fields = [
+        "ad.id",
+        "ad.name",
+        "ad.resource_name",
+        "ad.added_by_google_ads",
+        "resource_name",
+        "status",
+        "ad_strength",
+        "labels",
+    ]
     metric_fields = [
         f"metrics.{field_info['field']}" for field_info in METRIC_FIELDS.values()
     ]
 
+    query_fields = (
+        [f"segments.{field}" for field in segment_fields]
+        + [f"customer.{field}" for field in customer_fields]
+        + [f"campaign.{field}" for field in campaign_fields]
+        + [f"ad_group.{field}" for field in ad_group_fields]
+        + [f"ad_group_ad.{field}" for field in ad_group_ad_fields]
+        + metric_fields
+    )
+
     query = """
         SELECT
-            segments.date,
-            customer.id,
-            customer.descriptive_name,
-            customer.resource_name,
-            campaign.id,
-            campaign.name,
-            campaign.resource_name,
-            campaign.status,
-            campaign.serving_status,
-            campaign.payment_mode,
-            campaign.optimization_score,
-            campaign.start_date,
-            campaign.end_date,
-            ad_group.id,
-            ad_group.name,
-            ad_group.resource_name,
-            ad_group.status,
-            ad_group.type,
-            ad_group.base_ad_group,
-            ad_group.campaign,
-            ad_group_ad.ad.id,
-            ad_group_ad.ad.name,
-            ad_group_ad.ad.resource_name,
-            ad_group_ad.resource_name,
-            ad_group_ad.status,
-            {metrics}
+            {fields}
         FROM ad_group_ad
         WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
     """.format(
+        fields=",\n            ".join(query_fields),
         start_date=start_date,
         end_date=end_date,
-        metrics=",\n            ".join(metric_fields),
     )
 
-    # logging.debug(f"Generated query: {query}")
+    logging.debug(f"Generated query: {query}")
     return query

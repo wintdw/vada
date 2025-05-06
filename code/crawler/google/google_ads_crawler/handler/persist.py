@@ -52,6 +52,7 @@ async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
         # Create unique doc ID using ad.id + ad_group.id + campaign.id + date
         doc_id = ".".join(
             [
+                str(report.get("customer_id", "")),
                 str(report.get("ad", {}).get("id", "")),
                 str(report.get("ad_group", {}).get("id", "")),
                 str(report.get("campaign", {}).get("id", "")),

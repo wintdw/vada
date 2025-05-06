@@ -40,16 +40,7 @@ def get_metrics_from_row(metrics_obj) -> Dict:
 async def process_single_account_report(
     googleads_service, account: Dict, start_date: str, end_date: str
 ) -> List[Dict]:
-    """Process reports for a single Google Ads account.
-
-    Args:
-        googleads_service: Google Ads API service client
-        query: Query string to execute
-        account: Dictionary containing account information
-
-    Returns:
-        List[Dict]: List of processed report data
-    """
+    """Process reports for a single Google Ads account."""
     logging.info(
         f"│   ├── Getting reports for: {account['descriptive_name']} "
         f"({account['customer_id']})"
@@ -67,14 +58,14 @@ async def process_single_account_report(
         for row in response:
             metrics = get_metrics_from_row(row.metrics)
 
-            # Build report data structure
             report_data = {
-                # Date info
+                # Segment fields
                 "date": row.segments.date,
-                # Account hierarchy info
-                "customer_id": account["customer_id"],
-                "customer_name": account["descriptive_name"],
-                # Campaign data
+                # Customer fields
+                "customer_id": row.customer.id,
+                "customer_descriptive_name": row.customer.descriptive_name,
+                "customer_resource_name": row.customer.resource_name,
+                # Campaign fields
                 "campaign": {
                     "id": row.campaign.id,
                     "name": row.campaign.name,
@@ -83,27 +74,40 @@ async def process_single_account_report(
                     "serving_status": row.campaign.serving_status.name,
                     "payment_mode": row.campaign.payment_mode.name,
                     "optimization_score": float(row.campaign.optimization_score),
+                    "advertising_channel_type": row.campaign.advertising_channel_type.name,
+                    "advertising_channel_sub_type": row.campaign.advertising_channel_sub_type.name,
+                    "bidding_strategy_type": row.campaign.bidding_strategy_type.name,
+                    "labels": [label.name for label in row.campaign.labels],
                     "start_date": row.campaign.start_date,
                     "end_date": row.campaign.end_date,
                 },
-                # Ad group data
+                # Ad group fields
                 "ad_group": {
                     "id": row.ad_group.id,
                     "name": row.ad_group.name,
                     "resource_name": row.ad_group.resource_name,
                     "status": row.ad_group.status.name,
+                    "primary_status": row.ad_group.primary_status.name,
+                    "primary_status_reasons": [
+                        reason.name for reason in row.ad_group.primary_status_reasons
+                    ],
                     "type": row.ad_group.type_.name,
+                    "labels": [label.name for label in row.ad_group.labels],
                     "base_ad_group": row.ad_group.base_ad_group,
                     "campaign": row.ad_group.campaign,
                 },
-                # Ad data
-                "ad": {
-                    "id": row.ad_group_ad.ad.id,
-                    "name": row.ad_group_ad.ad.name,
-                    "resource_name": row.ad_group_ad.ad.resource_name,
-                    "ad_group_ad_resource_name": row.ad_group_ad.resource_name,
+                # Ad group ad fields
+                "ad_group_ad": {
+                    "ad_id": row.ad_group_ad.ad.id,
+                    "ad_name": row.ad_group_ad.ad.name,
+                    "ad_resource_name": row.ad_group_ad.ad.resource_name,
+                    "added_by_google_ads": row.ad_group_ad.ad.added_by_google_ads,
+                    "resource_name": row.ad_group_ad.resource_name,
                     "status": row.ad_group_ad.status.name,
+                    "strength": row.ad_group_ad.ad_strength.name,
+                    "labels": [label.name for label in row.ad_group_ad.labels],
                 },
+                # Metrics
                 **metrics,
             }
             account_results.append(report_data)
@@ -114,10 +118,10 @@ async def process_single_account_report(
 
     except Exception as search_error:
         if "CUSTOMER_NOT_ENABLED" in str(search_error):
-            logging.warning(f"│   ⚠️  Account {account["customer_id"]} is not enabled")
+            logging.warning(f"│   ⚠️  Account {account['customer_id']} is not enabled")
         elif "PERMISSION_DENIED" in str(search_error):
             logging.warning(
-                f"│   ⚠️  No permission to access account {account["customer_id"]}"
+                f"│   ⚠️  No permission to access account {account['customer_id']}"
             )
         else:
             logging.error(
