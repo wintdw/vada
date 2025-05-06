@@ -75,11 +75,11 @@ async def fetch_google_reports(
         if persist:
             # Process and send reports to insert service
             index_name = "a_quang_nguyen_google_ad_report"
-            await post_processing(ad_reports, index_name)
-            logging.info("Reports sent to insert service successfully")
-
-        # Count non-manager accounts
-        total_clients = sum(1 for acc in hierarchies if not acc["manager"])
+            insert_response = await post_processing(ad_reports, index_name)
+            logging.info(
+                "Reports sent to insert service successfully. Response: %s",
+                insert_response,
+            )
 
         # Build response with hierarchy information
         response_data = {
@@ -89,7 +89,6 @@ async def fetch_google_reports(
             },
             "accounts": {
                 "total_roots": len(hierarchies),
-                "total_clients": total_clients,
                 "hierarchy": hierarchies,
             },
             "reports": {
@@ -100,15 +99,11 @@ async def fetch_google_reports(
             },
         }
 
-        logging.info(
-            f"Returning {len(ad_reports)} reports from "
-            f"{total_clients} client accounts"
-        )
+        logging.info(f"Returning {len(ad_reports)} reports")
 
         return JSONResponse(content=response_data, status_code=200)
-
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"Error fetching Google Ads reports: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error")

@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
@@ -273,3 +273,30 @@ def build_hierarchy_tree(node: Dict, customer_ids_to_children: Dict) -> None:
         )
     else:
         logging.debug(f"│   │   └── No children found for {node['descriptive_name']}")
+
+
+def get_non_manager_accounts(hiers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Extract all non-manager accounts from the account hierarchy.
+
+    Args:
+        hiers: List of account hierarchies
+
+    Returns:
+        List of flattened non-manager accounts
+    """
+    non_manager_accounts = []
+
+    def traverse_hierarchy(accounts: List[Dict[str, Any]]):
+        for account in accounts:
+            # Add the account if it's not a manager account
+            if not account.get("manager", False):
+                non_manager_accounts.append(account)
+
+            # Recursively process children
+            children = account.get("children", [])
+            if children:
+                traverse_hierarchy(children)
+
+    traverse_hierarchy(hiers)
+    return non_manager_accounts

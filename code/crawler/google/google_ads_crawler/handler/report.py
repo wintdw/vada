@@ -4,7 +4,7 @@ from typing import Dict, List
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
-from .account import get_all_account_hierarchies
+from .account import get_all_account_hierarchies, get_non_manager_accounts
 from .metric import METRIC_FIELDS
 from .query import build_report_query
 
@@ -213,23 +213,22 @@ async def get_reports(
     if not hierarchies:
         hierarchies = await get_all_account_hierarchies(ga_client)
 
-    # Process each root account recursively
-    for root in hierarchies:
-        # Set login_customer_id to root for all queries to child accounts
-        ga_client.login_customer_id = str(root["customer_id"])
+    customer_ads_accounts = await get_non_manager_accounts(hierarchies)
+
+    for account in customer_ads_accounts:
+        # Set login_customer_id to account for all queries
+        ga_client.login_customer_id = str(account["customer_id"])
         googleads_service = ga_client.get_service("GoogleAdsService")
 
-        root_results = await process_account_hierarchy(
-            googleads_service, root, start_date, end_date
+        account_results = await process_single_account_report(
+            googleads_service, account, start_date, end_date
         )
-        results.extend(root_results)
-        total_processed += len(root_results)
-
-    # Count unique accounts processed
-    unique_accounts = len({r["customer_id"] for r in results})
+        if account_results:
+            results.extend(account_results)
+            total_processed += len(account_results)
 
     logging.info(
-        f"└── Completed processing {total_processed} records from {unique_accounts} accounts"
+        f"└── Completed processing {total_processed} records from {len({r["customer_id"] for r in results})} accounts"
     )
     logging.info("=== Completed Performance Reports ===")
 
