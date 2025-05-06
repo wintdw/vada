@@ -130,5 +130,5 @@ def build_report_query(start_date: str, end_date: str) -> str:
         end_date=end_date,
     )
 
-    logging.debug(f"Generated query: {query}")
+    # logging.debug(f"Generated query: {query}")
     return query

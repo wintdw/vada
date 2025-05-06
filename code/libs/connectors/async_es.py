@@ -181,6 +181,9 @@ class AsyncESProcessor:
             response_json = await response.json()
             logging.info("Bulk response: %s", response_json)
 
+            if response_json["status"] >= 400:
+                raise ESException(response_json["status"], response_json["error"])
+
             # For accounting purposes
             success = 0
             failure = 0

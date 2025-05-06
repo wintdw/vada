@@ -15,7 +15,7 @@ from typing import List, Dict, Any
 
 from etl.libs.vadadoc import VadaDocument
 from etl.libs.processor import get_es_processor
-from libs.connectors.async_es import AsyncESProcessor
+from libs.connectors.async_es import AsyncESProcessor, ESException
 from libs.utils.es_field_types import (
     determine_es_field_types,
     convert_es_field_types,
@@ -220,7 +220,12 @@ async def insert_json(
         return JSONResponse(
             content={"status": status_msg, "detail": index_response["detail"]}
         )
-
+    except ESException as es_exc:
+        logging.error("Elasticsearch exception: %s", e)
+        raise HTTPException(
+            status_code=es_exc.status,
+            detail=es_exc.detail,
+        )
     except HTTPException:
         raise
     except Exception as e:
