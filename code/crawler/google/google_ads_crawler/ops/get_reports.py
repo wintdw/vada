@@ -20,13 +20,22 @@ def summarize_report_data(data: Dict) -> None:
     account = data.get("account", {})
     report = data.get("report", {})
 
+    # Calculate account stats
+    manager_accounts = sum(
+        1 for acc in account.get("hierarchy", []) if acc.get("manager", False)
+    )
+    client_accounts = len(account.get("customer_ads_accounts", []))
+
     # Log main stats
     logging.info(
-        "Report Summary: %s to %s | Accounts: %d managers, %d clients | Campaigns: %d, Ad Groups: %d, Reports: %d",
+        "Report Summary: %s to %s | Accounts: %d managers, %d clients | Campaigns: %d, Ad Groups: %d, Ads: %d, Reports: %d",
         date_range.get("start_date"),
         date_range.get("end_date"),
+        manager_accounts,
+        client_accounts,
         report.get("total_campaigns", 0),
         report.get("total_ad_groups", 0),
+        report.get("total_ads", 0),
         report.get("total_reports", 0),
     )
 

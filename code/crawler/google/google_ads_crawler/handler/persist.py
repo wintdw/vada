@@ -52,9 +52,9 @@ async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
         doc_id = ".".join(
             [
                 str(report.get("customer_id", "")),
-                str(report.get("ad", {}).get("id", "")),
-                str(report.get("ad_group_ad", {}).get("ad_id", "")),
                 str(report.get("campaign", {}).get("id", "")),
+                str(report.get("ad_group", {}).get("id", "")),
+                str(report.get("ad_group_ad", {}).get("ad_id", "")),
                 str(report.get("date", "")),
             ]
         )
