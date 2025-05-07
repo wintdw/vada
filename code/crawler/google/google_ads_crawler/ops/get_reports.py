@@ -17,19 +17,17 @@ def summarize_report_data(data: Dict) -> None:
     """Log summary of report data including date range, account stats, and campaign metrics"""
     # Extract data
     date_range = data.get("date_range", {})
-    accounts = data.get("accounts", {})
-    reports = data.get("reports", {})
+    account = data.get("account", {})
+    report = data.get("report", {})
 
     # Log main stats
     logging.info(
         "Report Summary: %s to %s | Accounts: %d managers, %d clients | Campaigns: %d, Ad Groups: %d, Reports: %d",
         date_range.get("start_date"),
         date_range.get("end_date"),
-        accounts.get("manager_accounts", 0),
-        accounts.get("total_clients", 0),
-        reports.get("total_campaigns", 0),
-        reports.get("total_ad_groups", 0),
-        reports.get("total_reports", 0),
+        report.get("total_campaigns", 0),
+        report.get("total_ad_groups", 0),
+        report.get("total_reports", 0),
     )
 
 

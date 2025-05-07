@@ -132,68 +132,6 @@ async def process_single_account_report(
         return []
 
 
-async def process_account_hierarchy(
-    googleads_service,
-    account: Dict,
-    start_date: str,
-    end_date: str,
-    parent: Dict | None = None,
-) -> List[Dict]:
-    """Process reports for an account and all its children recursively.
-
-    Args:
-        googleads_service: Google Ads API service client
-        account: Account to process
-        start_date: Start date for report data
-        end_date: End date for report data
-        parent: Optional parent manager account
-
-    Returns:
-        List[Dict]: Combined list of all report data
-    """
-    results = []
-
-    # Process non-manager account
-    if not account.get("manager", False):
-        account_results = await process_single_account_report(
-            googleads_service, account, start_date, end_date
-        )
-        if account_results:
-            # Add parent manager info if available
-            for result in account_results:
-                if parent:
-                    result["manager_id"] = parent["customer_id"]
-                    result["manager_name"] = parent["descriptive_name"]
-            results.extend(account_results)
-        return results
-
-    # Process manager account's children
-    logging.info(
-        f"├── Processing manager account: {account['descriptive_name']} "
-        f"({account['customer_id']})"
-    )
-
-    if not account.get("children"):
-        logging.info("│   └── No child accounts found")
-        return results
-
-    total_processed = 0
-    for child in account["children"]:
-        # Recursively process each child (which might be another manager)
-        child_results = await process_account_hierarchy(
-            googleads_service, child, start_date, end_date, account
-        )
-        results.extend(child_results)
-        total_processed += len(child_results)
-
-    if total_processed:
-        logging.info(
-            f"│   └── Total records for {account['descriptive_name']}: {total_processed}"
-        )
-
-    return results
-
-
 @log_execution_time
 async def get_reports(
     ga_client: GoogleAdsClient,

@@ -97,6 +97,7 @@ async def fetch_google_reports(
             "report": {
                 "total_campaigns": len(set(r["campaign"]["id"] for r in ad_reports)),
                 "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
+                "total_ads": len(set(r["ad_group_ad"]["ad_id"] for r in ad_reports)),
                 "total_reports": len(ad_reports),
                 "reports": ad_reports,
             },
