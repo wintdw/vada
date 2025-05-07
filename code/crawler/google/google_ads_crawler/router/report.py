@@ -90,11 +90,11 @@ async def fetch_google_reports(
                 "start_date": start_date,
                 "end_date": end_date,
             },
-            "accounts": {
+            "account": {
                 "hierarchy": hierarchies,
                 "customer_ads_accounts": customer_ads_accounts,
             },
-            "reports": {
+            "report": {
                 "total_campaigns": len(set(r["campaign"]["id"] for r in ad_reports)),
                 "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
                 "total_reports": len(ad_reports),
