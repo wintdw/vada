@@ -199,7 +199,7 @@ async def get_reports(
     ga_client: GoogleAdsClient,
     start_date: str,
     end_date: str,
-    hierarchies: Dict | None = None,
+    customer_ads_accounts: List = [],
 ) -> List[Dict]:
     """Fetch Google Ads reports for all accounts through hierarchy.
 
@@ -207,7 +207,7 @@ async def get_reports(
         ga_client: Google Ads API client
         start_date: Start date for report data
         end_date: End date for report data
-        hierarchies: Account hierarchy data from get_all_account_hierarchies
+        customer_ads_accounts: Flatten list of customer accounts (non manager)
 
     Returns:
         List of campaign/ad group performance data with metrics
@@ -215,12 +215,6 @@ async def get_reports(
     logging.info("=== Getting Performance Reports ===")
     results = []
     total_processed = 0
-
-    # Get hierarchies if not provided
-    if not hierarchies:
-        hierarchies = await get_all_account_hierarchies(ga_client)
-
-    customer_ads_accounts = get_non_manager_accounts(hierarchies)
 
     for account in customer_ads_accounts:
         # Set login_customer_id to account for all queries

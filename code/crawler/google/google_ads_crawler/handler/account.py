@@ -290,17 +290,21 @@ def get_non_manager_accounts(hiers: List[Dict[str, Any]]) -> List[Dict[str, Any]
         List of flattened non-manager accounts
     """
     non_manager_accounts = []
+    seen_customer_ids = set()
 
     def traverse_hierarchy(accounts: List[Dict[str, Any]]):
         for account in accounts:
-            # Add the account if it's not a manager account
-            if not account.get("manager", False):
-                non_manager_accounts.append(account)
+            customer_id = account.get("customer_id")
+            if customer_id not in seen_customer_ids:
+                seen_customer_ids.add(customer_id)
+                # Add the account if it's not a manager account
+                if not account.get("manager", False):
+                    non_manager_accounts.append(account)
 
-            # Recursively process children
-            children = account.get("children", [])
-            if children:
-                traverse_hierarchy(children)
+                # Recursively process children
+                children = account.get("children", [])
+                if children:
+                    traverse_hierarchy(children)
 
     traverse_hierarchy(hiers)
     return non_manager_accounts

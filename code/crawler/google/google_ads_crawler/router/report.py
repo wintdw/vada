@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse  # type: ignore
 
 from model.ga_client import GoogleAdsCredentials
 from handler.report import get_reports
-from handler.account import get_all_account_hierarchies
+from handler.account import get_all_account_hierarchies, get_non_manager_accounts
 from handler.persist import post_processing
 from dependency.google_ad_client import get_google_ads_client
 
@@ -68,9 +68,12 @@ async def fetch_google_reports(
 
         # Get account hierarchies
         hierarchies = await get_all_account_hierarchies(ga_client)
+        customer_ads_accounts = get_non_manager_accounts(hierarchies)
 
         # Get report data
-        ad_reports = await get_reports(ga_client, start_date, end_date, hierarchies)
+        ad_reports = await get_reports(
+            ga_client, start_date, end_date, customer_ads_accounts
+        )
 
         if persist:
             # Process and send reports to insert service
@@ -88,14 +91,14 @@ async def fetch_google_reports(
                 "end_date": end_date,
             },
             "accounts": {
-                "total_roots": len(hierarchies),
                 "hierarchy": hierarchies,
+                "customer_ads_accounts": customer_ads_accounts,
             },
             "reports": {
                 "total_campaigns": len(set(r["campaign"]["id"] for r in ad_reports)),
                 "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
                 "total_reports": len(ad_reports),
-                "data": ad_reports,
+                "reports": ad_reports,
             },
         }
 
@@ -106,4 +109,4 @@ async def fetch_google_reports(
         raise
     except Exception as e:
         logging.error(f"Error fetching Google Ads reports: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal Server Error")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
