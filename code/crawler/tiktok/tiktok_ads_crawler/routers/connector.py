@@ -7,6 +7,7 @@ from models import CrawlInfo, CrawlInfoResponse
 from services import (
     tiktok_biz_get_access_token
 )
+from fastapi.responses import RedirectResponse
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
@@ -34,8 +35,11 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
             detail="Internal Server Error"
         )
     logger.info(crawl_info)
+    return RedirectResponse(url="localhost:5137/callback.html")
+    """
     return CrawlInfoResponse(
         status=200,
         message="Success",
         data=crawl_info
     )
+    """
