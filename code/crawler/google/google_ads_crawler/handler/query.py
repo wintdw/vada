@@ -64,7 +64,7 @@ def build_customer_client_query(where_clause: str | None = None) -> str:
     return query
 
 
-def build_report_query(start_date: str, end_date: str) -> str:
+def build_report_query(start_date: str = "", end_date: str = "") -> str:
     """Build query for ad, campaign and ad group performance data"""
 
     segment_fields = ["date"]
@@ -119,15 +119,19 @@ def build_report_query(start_date: str, end_date: str) -> str:
         + metric_fields
     )
 
+    if start_date is None and end_date is None:
+        date_condition = "DURING TODAY"
+    else:
+        date_condition = f"BETWEEN '{start_date}' AND '{end_date}'"
+
     query = """
         SELECT
             {fields}
         FROM ad_group_ad
-        WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
+        WHERE segments.date {date_condition}
     """.format(
         fields=",\n            ".join(query_fields),
-        start_date=start_date,
-        end_date=end_date,
+        date_condition=date_condition,
     )
 
     # logging.debug(f"Generated query: {query}")

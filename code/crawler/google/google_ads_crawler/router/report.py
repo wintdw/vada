@@ -17,10 +17,10 @@ router = APIRouter()
 async def fetch_google_reports(
     credentials: GoogleAdsCredentials,
     start_date: str = Query(
-        ..., description="Start date in YYYY-MM-DD format", example="2025-04-30"
+        "", description="Start date in YYYY-MM-DD format", example="2025-04-30"
     ),
     end_date: str = Query(
-        ..., description="End date in YYYY-MM-DD format", example="2025-04-30"
+        "", description="End date in YYYY-MM-DD format", example="2025-04-30"
     ),
     persist: bool = Query(
         False,
@@ -51,12 +51,17 @@ async def fetch_google_reports(
     try:
         # Validate date formats
         try:
-            start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
-            end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
-            if start_dt > end_dt:
-                raise HTTPException(
-                    status_code=400, detail="start_date cannot be later than end_date"
-                )
+            if start_date and end_date:
+                start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
+                end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
+                if start_dt > end_dt:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="start_date cannot be later than end_date",
+                    )
+            else:
+                start_date = datetime.now().date().strftime("%Y-%m-%d")
+                end_date = start_date
         except ValueError:
             raise HTTPException(
                 status_code=400, detail="Invalid date format. Use YYYY-MM-DD"

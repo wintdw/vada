@@ -135,8 +135,8 @@ async def process_single_account_report(
 @log_execution_time
 async def get_reports(
     ga_client: GoogleAdsClient,
-    start_date: str,
-    end_date: str,
+    start_date: str = "",
+    end_date: str = "",
     customer_ads_accounts: List = [],
 ) -> List[Dict]:
     """Fetch Google Ads reports for all accounts through hierarchy.
