@@ -27,7 +27,6 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
         ))
-        crawl_info.
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
