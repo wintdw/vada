@@ -27,7 +27,7 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
         ))
-        
+        crawl_info.
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -35,11 +35,8 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
             detail="Internal Server Error"
         )
     logger.info(crawl_info)
-    return RedirectResponse(url="localhost:5137/callback.html")
-    """
-    return CrawlInfoResponse(
-        status=200,
-        message="Success",
-        data=crawl_info
-    )
-    """
+    return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?crawl_id={crawl_info.crawl_id}")
+
+@router.get("/connector/tiktok/test", response_model=CrawlInfoResponse, tags=["Connector"])
+async def get_connector_tiktok_auth1():
+    return RedirectResponse(url="https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state=your_custom_params&redirect_uri=https%3A%2F%2Fcrawl-dev.vadata.vn%2Fconnector%2Ftiktok%2Fads")
