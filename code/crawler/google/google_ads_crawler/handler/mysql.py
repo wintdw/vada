@@ -2,6 +2,7 @@ import os
 import logging
 import aiomysql  # type: ignore
 from contextlib import asynccontextmanager
+from typing import List, Dict
 
 MYSQL_HOST = os.getenv("MYSQL_HOST")
 MYSQL_USER = os.getenv("MYSQL_USER")
@@ -34,3 +35,38 @@ async def get_mysql_cursor(connection):
         yield cursor
     finally:
         await cursor.close()
+
+
+async def get_google_ad_crawl_info() -> List[Dict]:
+    """
+    Selects index_name, access_token, and crawl_interval from CrawlInfo table
+    where crawl_type is 'google_ad'.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries containing the selected information.
+    """
+    query = """
+        SELECT crawl_id, index_name, refresh_token, crawl_interval
+        FROM CrawlInfo
+        WHERE crawl_type = 'google_ad'
+    """
+
+    try:
+        async with get_mysql_connection() as connection:
+            async with get_mysql_cursor(connection) as cursor:
+                await cursor.execute(query)
+                results = await cursor.fetchall()
+
+        return [
+            {
+                "crawl_id": row["crawl_id"],
+                "index_name": row["index_name"],
+                "refresh_token": row["refresh_token"],
+                "crawl_interval": row["crawl_interval"],
+            }
+            for row in results
+        ]
+
+    except Exception as e:
+        logging.error(f"Error fetching Google Ad crawl info: {str(e)}")
+        return []
