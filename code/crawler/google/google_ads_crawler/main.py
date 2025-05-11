@@ -30,9 +30,9 @@ scheduler = init_scheduler()
 
 @app.on_event("startup")
 async def startup_event():
-    scheduler.start()
+    await scheduler.start()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    scheduler.shutdown()
+    await scheduler.shutdown()
