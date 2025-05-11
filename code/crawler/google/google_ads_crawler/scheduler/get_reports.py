@@ -15,12 +15,11 @@ async def scheduled_fetch_google_reports():
     try:
         # Call the fetch_google_reports function directly
         await fetch_google_reports(
-            request={
-                "refresh_token": "your_refresh_token",
-            },
+            "your_refresh_token",
             start_date="2025-05-01",
             end_date="2025-05-31",
-            persist=False,
+            persist=True,
+            es_index="a_quang_nguyen_google_ad_report",
         )
         logger.info("[Scheduler] Successfully fetched Google Ads reports")
     except Exception as e:

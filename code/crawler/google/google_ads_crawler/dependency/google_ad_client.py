@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from typing import Dict, Union
 from fastapi import Request, HTTPException  # type: ignore
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
@@ -49,18 +48,3 @@ async def get_google_ads_client(refresh_token: str) -> GoogleAdsClient:
     ga_client = GoogleAdsClient.load_from_dict(ga_credentials)
 
     return ga_client
-
-
-async def get_refresh_token(request: Union[Request, Dict]) -> str:
-    if isinstance(request, Request):
-        body = await request.json()
-        refresh_token = body.get("refresh_token")
-    elif isinstance(request, Dict):
-        refresh_token = request.get("refresh_token")
-    else:
-        raise HTTPException(status_code=400, detail="Invalid request type")
-
-    if not refresh_token:
-        raise HTTPException(status_code=400, detail="Missing refresh_token")
-
-    return refresh_token
