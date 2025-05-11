@@ -119,11 +119,12 @@ async def fetch_google_reports_router(
     """
     body = await request.json()
     refresh_token = body.get("refresh_token")
+    index_name = body.get("index_name")
 
     if not refresh_token:
         raise HTTPException(status_code=400, detail="Missing refresh_token")
-
-    index_name = "a_quang_nguyen_google_ad_report"
+    if not index_name:
+        raise HTTPException(status_code=400, detail="Missing index_name")
 
     try:
         response_data = await fetch_google_reports(

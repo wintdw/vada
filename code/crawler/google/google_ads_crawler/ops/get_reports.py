@@ -54,7 +54,10 @@ async def fetch_reports():
 
     for token_index, refresh_token in enumerate(tokens, 1):
         logging.info("Processing token %d/%d", token_index, len(tokens))
-        credentials = {"refresh_token": refresh_token}
+        credentials = {
+            "refresh_token": refresh_token,
+            "index_name": "a_quang_nguyen_google_ad_report",
+        }
 
         try:
             logging.info(f"Processing data from {start_date} to {end_date}")
