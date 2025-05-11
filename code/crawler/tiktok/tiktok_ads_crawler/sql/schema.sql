@@ -6,6 +6,7 @@ CREATE TABLE `CrawlInfo` (
   `access_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `refresh_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `access_token_updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `refresh_token_updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `crawl_interval` int NOT NULL,
   `crawl_from_date` timestamp NOT NULL,
   `crawl_to_date` timestamp NOT NULL,
