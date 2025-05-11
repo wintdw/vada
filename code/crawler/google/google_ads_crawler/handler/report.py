@@ -5,7 +5,6 @@ from typing import Dict, List
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
-from .account import get_all_account_hierarchies, get_non_manager_accounts
 from .metric import METRIC_FIELDS
 from .query import build_report_query
 

@@ -1,10 +1,9 @@
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Query  # type: ignore
+from fastapi import APIRouter, HTTPException, Query, Request  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
-from model.ga_client import GoogleAdsCredentials
 from handler.report import get_reports
 from handler.account import get_all_account_hierarchies, get_non_manager_accounts
 from handler.persist import post_processing
@@ -15,7 +14,7 @@ router = APIRouter()
 
 @router.post("/google/reports")
 async def fetch_google_reports(
-    credentials: GoogleAdsCredentials,
+    request: Request,
     start_date: str = Query(
         "", description="Start date in YYYY-MM-DD format", example="2025-04-30"
     ),
@@ -30,7 +29,7 @@ async def fetch_google_reports(
     """Fetch Google Ads reports using provided credentials
 
     Args:
-        credentials: Google Ads API credentials in request body
+        request: FastAPI Request object containing the request body
         start_date: Start date in YYYY-MM-DD format as query param
         end_date: End date in YYYY-MM-DD format as query param
         persist: Whether to persist data to insert service
@@ -48,6 +47,12 @@ async def fetch_google_reports(
     Raises:
         HTTPException: If dates are invalid or API errors occur
     """
+    # Extract refresh_token from request body
+    body = await request.json()
+    refresh_token = body.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=400, detail="Missing refresh_token")
+
     try:
         # Validate date formats
         try:
@@ -68,7 +73,7 @@ async def fetch_google_reports(
             )
 
         # Initialize client
-        ga_client = await get_google_ads_client(credentials)
+        ga_client = await get_google_ads_client(refresh_token)
         logging.info(f"Fetching reports from {start_date} to {end_date}")
 
         # Get account hierarchies

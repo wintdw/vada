@@ -16,6 +16,7 @@ services:
       - "8146:8146"
     environment:
       GOOGLE_APP_SECRET_FILE: /run/secrets/google_app_secret
+      GOOGLE_DEVELOPER_TOKEN: "3WREvqoZUexzpH_oDUjOPw"
       INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler
