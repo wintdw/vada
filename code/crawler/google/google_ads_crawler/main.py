@@ -1,6 +1,8 @@
 import os
 import logging
 from fastapi import FastAPI  # type: ignore
+from prometheus_client import start_http_server  # type: ignore
+
 from router import auth, account, report
 from scheduler.get_reports import init_scheduler
 
@@ -28,6 +30,8 @@ async def startup_event():
     scheduler = await init_scheduler()
     scheduler.start()
     app.state.scheduler = scheduler  # Store scheduler in app.state
+
+    start_http_server(8000)
 
 
 @app.on_event("shutdown")

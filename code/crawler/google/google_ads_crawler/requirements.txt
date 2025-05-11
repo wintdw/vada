@@ -6,3 +6,4 @@ apscheduler
 pydantic-settings
 google-auth-oauthlib
 google-ads
+prometheus-client

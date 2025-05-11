@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from datetime import datetime, timedelta
+from prometheus_client import Counter  # type: ignore
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
@@ -9,7 +10,17 @@ from router.report import fetch_google_reports
 from handler.mysql import get_google_ad_crawl_info
 
 
-async def scheduled_fetch_google_reports(refresh_token: str, index_name: str):
+google_ad_crawl_total = Counter(
+    "google_ad_crawl_total", "Total number of crawls", ["crawl_id"]
+)
+google_ad_crawl_failure = Counter(
+    "google_ad_crawl_failure", "Total number of failed crawls", ["crawl_id"]
+)
+
+
+async def scheduled_fetch_google_reports(
+    refresh_token: str, index_name: str, crawl_id: str
+):
     """
     Function to call the fetch_google_reports function for a specific Google Ad account.
     """
@@ -17,6 +28,8 @@ async def scheduled_fetch_google_reports(refresh_token: str, index_name: str):
         f"[Scheduler] Starting scheduled fetch of Google Ads reports for {index_name}"
     )
     try:
+        google_ad_crawl_total.labels(crawl_id=crawl_id).inc()
+
         # Calculate dates
         end_date = datetime.now().strftime("%Y-%m-%d")
         start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -35,11 +48,9 @@ async def scheduled_fetch_google_reports(refresh_token: str, index_name: str):
         logging.info(
             f"[Scheduler] Successfully fetched Google Ads reports for {index_name}"
         )
-    except asyncio.TimeoutError:
-        logging.error(
-            f"[Scheduler] Fetching Google Ads reports for {index_name} timed out"
-        )
     except Exception as e:
+        google_ad_crawl_failure.labels(crawl_id=crawl_id).inc()
+
         logging.error(
             f"[Scheduler] Error fetching Google Ads reports for {index_name}: {str(e)}",
             exc_info=True,
@@ -61,7 +72,7 @@ async def init_scheduler():
         scheduler.add_job(
             scheduled_fetch_google_reports,
             trigger=IntervalTrigger(minutes=crawl_interval),
-            args=[refresh_token, index_name],
+            args=[refresh_token, index_name, crawl_id],
             id=f"fetch_google_reports_job_{crawl_id}",
             name=f"Fetch Google Ads Reports for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes",
             replace_existing=True,
