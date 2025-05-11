@@ -56,7 +56,7 @@ async def select_crawl_info_by_next_crawl_time() -> list[CrawlInfo]:
                     access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`
-                WHERE next_crawl_time < NOW()
+                WHERE next_crawl_time < NOW() AND crawl_type = 'tikTok_business_ads'
                 """
             )
             results = await cursor.fetchall()
