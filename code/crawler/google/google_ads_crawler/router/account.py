@@ -1,28 +1,24 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request  # type: ignore
+from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 from handler.account import get_all_account_hierarchies
-from dependency.google_ad_client import get_google_ads_client
+from dependency.google_ad_client import get_google_ads_client, get_refresh_token
 
 router = APIRouter()
 
 
 @router.get("/google/accounts")
-async def fetch_google_accounts(request: Request):
+async def fetch_google_accounts(
+    refresh_token: str = Depends(get_refresh_token),
+):
     """
     Get Google Ads accounts with their hierarchy structure
 
     Args:
-        request: FastAPI Request object containing the request body
+        refresh_token: Extracted refresh token from request
     """
-    # Extract refresh_token from request body
-    body = await request.json()
-    refresh_token = body.get("refresh_token")
-    if not refresh_token:
-        raise HTTPException(status_code=400, detail="Missing refresh_token")
-
     try:
         ga_client = await get_google_ads_client(refresh_token)
 

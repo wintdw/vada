@@ -1,21 +1,20 @@
 import logging
 from datetime import datetime
-from typing import Dict, Union
 
-from fastapi import APIRouter, HTTPException, Query, Request  # type: ignore
+from fastapi import APIRouter, HTTPException, Query, Request, Depends  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 from handler.report import get_reports
 from handler.account import get_all_account_hierarchies, get_non_manager_accounts
 from handler.persist import post_processing
-from dependency.google_ad_client import get_google_ads_client
+from dependency.google_ad_client import get_google_ads_client, get_refresh_token
 
 router = APIRouter()
 
 
 @router.post("/google/reports")
 async def fetch_google_reports(
-    request: Union[Request, Dict],
+    refresh_token: str = Depends(get_refresh_token),
     start_date: str = Query(
         "", description="Start date in YYYY-MM-DD format", example="2025-04-30"
     ),
@@ -30,7 +29,7 @@ async def fetch_google_reports(
     """Fetch Google Ads reports using provided credentials
 
     Args:
-        request: FastAPI Request object or dictionary containing the request body
+        refresh_token: refresh token for Google Ads API
         start_date: Start date in YYYY-MM-DD format as query param
         end_date: End date in YYYY-MM-DD format as query param
         persist: Whether to persist data to insert service
@@ -48,15 +47,6 @@ async def fetch_google_reports(
     Raises:
         HTTPException: If dates are invalid or API errors occur
     """
-    # Extract refresh_token from request body
-    if isinstance(request, Request):
-        body = await request.json()
-        refresh_token = body.get("refresh_token")
-    elif isinstance(request, Dict):
-        refresh_token = request.get("refresh_token")
-    else:
-        raise HTTPException(status_code=400, detail="Missing refresh_token")
-
     try:
         # Validate date formats
         try:
