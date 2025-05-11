@@ -9,7 +9,7 @@ logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-app = FastAPI(title="Google OAuth API")
+app = FastAPI(title="Google Ads Crawler")
 
 # Store the flow object in a global variable or use a more robust solution like a database in production
 flows = {}

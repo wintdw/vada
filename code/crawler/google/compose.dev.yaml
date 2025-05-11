@@ -1,6 +1,8 @@
 secrets:
   google_app_secret:
     file: /var/secret/docker/google/app_secret
+  mysql_crawler:
+    file: /var/secret/docker/mysql/crawler
 
 services:
   google_ads_crawler:
@@ -15,5 +17,10 @@ services:
     environment:
       GOOGLE_APP_SECRET_FILE: /run/secrets/google_app_secret
       INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: crawler
+      MYSQL_DB: crawler_dev
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
     secrets:
       - google_app_secret
+      - mysql_crawler
