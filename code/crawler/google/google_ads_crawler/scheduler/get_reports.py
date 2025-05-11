@@ -18,9 +18,7 @@ async def scheduled_fetch_google_reports():
 
         # Call the fetch_google_reports function directly
         await fetch_google_reports(
-            request={
-                "refresh_token": "your_refresh_token_here",  # Replace with actual refresh token
-            },
+            refresh_token="your_refresh_token_here",  # Replace with actual refresh token
             start_date=start_date,
             end_date=end_date,
             persist=True,
@@ -37,9 +35,9 @@ def init_scheduler():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         scheduled_fetch_google_reports,
-        trigger=IntervalTrigger(minutes=5),
+        trigger=IntervalTrigger(hours=2),
         id="fetch_google_reports_job",
-        name="Fetch Google Ads Reports every 5 minutes",
+        name="Fetch Google Ads Reports every 2 hours",
         replace_existing=True,
     )
     return scheduler
