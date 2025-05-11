@@ -126,7 +126,7 @@ async def fetch_google_reports_router(
     index_name = "a_quang_nguyen_google_ad_report"
 
     try:
-        response_data = fetch_google_reports(
+        response_data = await fetch_google_reports(
             refresh_token, start_date, end_date, persist, index_name
         )
 
