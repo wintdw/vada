@@ -1,9 +1,8 @@
 import os
 import logging
 from fastapi import FastAPI  # type: ignore
-from prometheus_client import start_http_server  # type: ignore
 
-from router import auth, account, report
+from router import auth, account, report, metric
 from scheduler.get_reports import init_scheduler
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
@@ -20,6 +19,7 @@ flows = {}
 app.include_router(auth.router, tags=["auth"])
 app.include_router(account.router, tags=["account"])
 app.include_router(report.router, tags=["report"])
+app.include_router(metric.router, tags=["metric"])
 
 # Pass the flows dictionary to router endpoints that need it
 app.state.flows = flows
@@ -30,8 +30,6 @@ async def startup_event():
     scheduler = await init_scheduler()
     scheduler.start()
     app.state.scheduler = scheduler  # Store scheduler in app.state
-
-    start_http_server(8000)
 
 
 @app.on_event("shutdown")
