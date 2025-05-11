@@ -9,7 +9,7 @@ from router.report import fetch_google_reports
 from handler.mysql import get_google_ad_crawl_info
 
 
-async def scheduled_fetch_google_reports(index_name: str, refresh_token: str):
+async def scheduled_fetch_google_reports(refresh_token: str, index_name: str):
     """
     Function to call the fetch_google_reports function for a specific Google Ad account.
     """
@@ -24,10 +24,11 @@ async def scheduled_fetch_google_reports(index_name: str, refresh_token: str):
         # Set a timeout for the fetch_google_reports function
         await asyncio.wait_for(
             fetch_google_reports(
-                request={"refresh_token": refresh_token},
+                refresh_token=refresh_token,
                 start_date=start_date,
                 end_date=end_date,
                 persist=True,
+                es_index=index_name,
             ),
             timeout=300,  # Timeout in seconds (e.g., 5 minutes)
         )
@@ -59,8 +60,9 @@ async def init_scheduler():
 
         scheduler.add_job(
             scheduled_fetch_google_reports,
-            trigger=IntervalTrigger(minutes=crawl_interval),
-            args=[index_name, refresh_token],
+            # trigger=IntervalTrigger(minutes=crawl_interval),
+            trigger=IntervalTrigger(minutes=5),
+            args=[refresh_token, index_name],
             id=f"fetch_google_reports_job_{crawl_id}",
             name=f"Fetch Google Ads Reports for {index_name} every {crawl_interval} minutes",
             replace_existing=True,

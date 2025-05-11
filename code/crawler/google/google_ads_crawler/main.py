@@ -23,16 +23,13 @@ app.include_router(report.router, tags=["report"])
 app.state.flows = flows
 
 
-##### SCHEDULER #####
-# Initialize and start the scheduler
-scheduler = init_scheduler()
-
-
 @app.on_event("startup")
 async def startup_event():
-    await scheduler.start()
+    scheduler = await init_scheduler()
+    scheduler.start()
+    app.state.scheduler = scheduler  # Store scheduler in app.state
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    await scheduler.shutdown()
+    app.state.scheduler.shutdown()  # Access scheduler from app.state
