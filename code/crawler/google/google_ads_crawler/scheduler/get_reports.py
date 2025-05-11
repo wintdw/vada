@@ -60,15 +60,14 @@ async def init_scheduler():
 
         scheduler.add_job(
             scheduled_fetch_google_reports,
-            # trigger=IntervalTrigger(minutes=crawl_interval),
-            trigger=IntervalTrigger(minutes=5),
+            trigger=IntervalTrigger(minutes=crawl_interval),
             args=[refresh_token, index_name],
             id=f"fetch_google_reports_job_{crawl_id}",
-            name=f"Fetch Google Ads Reports for {index_name} every {crawl_interval} minutes",
+            name=f"Fetch Google Ads Reports for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes",
             replace_existing=True,
         )
         logging.info(
-            f"Added job for {index_name} with interval {crawl_interval} minutes"
+            f"Added Google Ads Reports job for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes"
         )
 
     return scheduler
