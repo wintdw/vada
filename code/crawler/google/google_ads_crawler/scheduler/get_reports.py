@@ -50,7 +50,6 @@ async def scheduled_fetch_google_reports(
         )
     except Exception as e:
         google_ad_crawl_failure.labels(crawl_id=crawl_id).inc()
-
         logging.error(
             f"[Scheduler] Error fetching Google Ads reports for {index_name}: {str(e)}",
             exc_info=True,
@@ -72,10 +71,16 @@ async def init_scheduler():
         scheduler.add_job(
             scheduled_fetch_google_reports,
             trigger=IntervalTrigger(minutes=crawl_interval),
-            args=[refresh_token, index_name, crawl_id],
+            kwargs={
+                "refresh_token": refresh_token,
+                "index_name": index_name,
+                "crawl_id": crawl_id,
+            },
             id=f"fetch_google_reports_job_{crawl_id}",
             name=f"Fetch Google Ads Reports for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes",
             replace_existing=True,
+            misfire_grace_time=30,
+            max_instances=1,
         )
         logging.info(
             f"Added Google Ads Reports job for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes"
