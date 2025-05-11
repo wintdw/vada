@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Dict, Union
 
 from fastapi import APIRouter, HTTPException, Query, Request  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
@@ -14,7 +15,7 @@ router = APIRouter()
 
 @router.post("/google/reports")
 async def fetch_google_reports(
-    request: Request,
+    request: Union[Request, Dict],
     start_date: str = Query(
         "", description="Start date in YYYY-MM-DD format", example="2025-04-30"
     ),
@@ -29,7 +30,7 @@ async def fetch_google_reports(
     """Fetch Google Ads reports using provided credentials
 
     Args:
-        request: FastAPI Request object containing the request body
+        request: FastAPI Request object or dictionary containing the request body
         start_date: Start date in YYYY-MM-DD format as query param
         end_date: End date in YYYY-MM-DD format as query param
         persist: Whether to persist data to insert service
@@ -48,9 +49,12 @@ async def fetch_google_reports(
         HTTPException: If dates are invalid or API errors occur
     """
     # Extract refresh_token from request body
-    body = await request.json()
-    refresh_token = body.get("refresh_token")
-    if not refresh_token:
+    if isinstance(request, Request):
+        body = await request.json()
+        refresh_token = body.get("refresh_token")
+    elif isinstance(request, Dict):
+        refresh_token = request.get("refresh_token")
+    else:
         raise HTTPException(status_code=400, detail="Missing refresh_token")
 
     try:

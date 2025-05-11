@@ -1,7 +1,8 @@
 import os
 import logging
 from fastapi import FastAPI  # type: ignore
-from router import auth, account, report  # type: ignore
+from router import auth, account, report
+from scheduler.get_reports import init_scheduler
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
@@ -20,3 +21,18 @@ app.include_router(report.router, tags=["report"])
 
 # Pass the flows dictionary to router endpoints that need it
 app.state.flows = flows
+
+
+##### SCHEDULER #####
+# Initialize and start the scheduler
+scheduler = init_scheduler()
+
+
+@app.on_event("startup")
+async def startup_event():
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    scheduler.shutdown()
