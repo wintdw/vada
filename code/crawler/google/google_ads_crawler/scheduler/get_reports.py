@@ -13,8 +13,8 @@ from handler.mysql import get_google_ad_crawl_info
 google_ad_crawl_total = Counter(
     "google_ad_crawl_total", "Total number of crawls", ["crawl_id"]
 )
-google_ad_crawl_failure = Counter(
-    "google_ad_crawl_failure", "Total number of failed crawls", ["crawl_id"]
+google_ad_crawl_sucess = Counter(
+    "google_ad_crawl_sucess", "Total number of successful crawls", ["crawl_id"]
 )
 
 
@@ -45,11 +45,12 @@ async def scheduled_fetch_google_reports(
             ),
             timeout=300,  # Timeout in seconds (e.g., 5 minutes)
         )
+
+        google_ad_crawl_sucess.labels(crawl_id=crawl_id).inc()
         logging.info(
             f"[Scheduler] Successfully fetched Google Ads reports for {index_name}"
         )
     except Exception as e:
-        google_ad_crawl_failure.labels(crawl_id=crawl_id).inc()
         logging.error(
             f"[Scheduler] Error fetching Google Ads reports for {index_name}: {str(e)}",
             exc_info=True,
