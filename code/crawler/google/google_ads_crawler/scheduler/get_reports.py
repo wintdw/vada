@@ -60,31 +60,47 @@ async def scheduled_fetch_google_reports(
 async def init_scheduler():
     scheduler = AsyncIOScheduler()
 
-    # Fetch Google Ad crawl info
-    google_ad_info = await get_google_ad_crawl_info()
+    async def update_jobs():
+        # Fetch Google Ad crawl info
+        google_ad_info = await get_google_ad_crawl_info()
 
-    for info in google_ad_info:
-        crawl_id = info["crawl_id"]
-        index_name = info["index_name"]
-        refresh_token = info["refresh_token"]
-        crawl_interval = info["crawl_interval"]
+        for info in google_ad_info:
+            crawl_id = info["crawl_id"]
+            index_name = info["index_name"]
+            refresh_token = info["refresh_token"]
+            crawl_interval = info["crawl_interval"]
 
-        scheduler.add_job(
-            scheduled_fetch_google_reports,
-            trigger=IntervalTrigger(minutes=crawl_interval),
-            kwargs={
-                "refresh_token": refresh_token,
-                "index_name": index_name,
-                "crawl_id": crawl_id,
-            },
-            id=f"fetch_google_reports_job_{crawl_id}",
-            name=f"Fetch Google Ads Reports for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes",
-            replace_existing=True,
-            misfire_grace_time=30,
-            max_instances=1,
-        )
-        logging.info(
-            f"Added Google Ads Reports job for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes"
-        )
+            # Add or update the job in the scheduler
+            scheduler.add_job(
+                scheduled_fetch_google_reports,
+                trigger=IntervalTrigger(minutes=crawl_interval),
+                kwargs={
+                    "refresh_token": refresh_token,
+                    "index_name": index_name,
+                    "crawl_id": crawl_id,
+                },
+                id=f"fetch_google_reports_job_{crawl_id}",
+                name=f"Fetch Google Ads Reports for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes",
+                replace_existing=True,
+                misfire_grace_time=30,
+                max_instances=1,
+            )
+            logging.info(
+                f"Added/Updated Google Ads Reports job for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes"
+            )
+
+    # Schedule the update_jobs function to run every 20 minutes
+    scheduler.add_job(
+        update_jobs,
+        trigger=IntervalTrigger(minutes=20),
+        id="update_jobs",
+        name="Update Google Ads Reports jobs every 20 minutes",
+        replace_existing=True,
+        misfire_grace_time=30,
+        max_instances=1,
+    )
+
+    # Run the update_jobs function once at startup
+    await update_jobs()
 
     return scheduler
