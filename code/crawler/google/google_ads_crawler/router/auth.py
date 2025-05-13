@@ -5,8 +5,9 @@ from typing import Dict
 
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from google_auth_oauthlib.flow import Flow  # type: ignore
-from fastapi.responses import JSONResponse, RedirectResponse  # type: ignore
+from fastapi.responses import RedirectResponse  # type: ignore
 
+from model.setting import settings
 from dependency.google_ad_client import (
     get_flows,
     get_app_secret_file,
@@ -92,12 +93,12 @@ async def auth_callback(
             "refresh_token": refresh_token,
             "client_id": flow.credentials.client_id,
             "client_secret": flow.credentials.client_secret,
-            "developer_token": "3WREvqoZUexzpH_oDUjOPw",
+            "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
             "use_proto_plus": True,
         }
 
         logging.info("OAuth flow completed successfully. Credentials: %s", credentials)
-        return JSONResponse(status_code=200, content=credentials)
+        return RedirectResponse(url=settings.CALLBACK_FINAL_URL, status_code=302)
 
     except Exception as e:
         logging.error("Error in auth_callback: %s", str(e), exc_info=True)

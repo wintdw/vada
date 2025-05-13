@@ -18,6 +18,7 @@ services:
       GOOGLE_APP_SECRET_FILE: /run/secrets/google_app_secret
       GOOGLE_DEVELOPER_TOKEN: "3WREvqoZUexzpH_oDUjOPw"
       INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn
+      CALLBACK_FINAL_URL: https://qa.vadata.vn/callback.html
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler
       MYSQL_DB: crawler_dev

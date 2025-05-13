@@ -39,9 +39,7 @@ async def scheduled_fetch_google_reports(
         end_date = datetime.now().strftime("%Y-%m-%d")
         start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-        timer = google_ad_crawl_latency.labels(crawl_id=crawl_id).time()
-        # Set a timeout for the fetch_google_reports function
-        try:
+        with google_ad_crawl_latency.labels(crawl_id=crawl_id).time():
             await asyncio.wait_for(
                 fetch_google_reports(
                     refresh_token=refresh_token,
@@ -50,10 +48,8 @@ async def scheduled_fetch_google_reports(
                     persist=True,
                     es_index=index_name,
                 ),
-                timeout=300,  # Timeout in seconds (e.g., 5 minutes)
+                timeout=300,
             )
-        finally:
-            timer.observe_duration()
 
         google_ad_crawl_sucess.labels(crawl_id=crawl_id).inc()
         logging.info(
