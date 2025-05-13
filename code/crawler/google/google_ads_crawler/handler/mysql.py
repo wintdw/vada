@@ -124,5 +124,14 @@ async def set_google_ad_crawl_info(
                 await connection.commit()
                 logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
 
+        return [
+            {
+                "crawl_id": crawl_id,
+                "index_name": index_name,
+                "refresh_token": refresh_token,
+                "crawl_interval": crawl_interval,
+            }
+        ]
+
     except Exception as e:
         logging.error(f"Error inserting Google Ad crawl info: {str(e)}")

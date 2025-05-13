@@ -97,15 +97,17 @@ async def auth_callback(
             "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
             "use_proto_plus": True,
         }
+        logging.debug("OAuth flow completed successfully. Credentials: %s", credentials)
 
         # Store the refresh token in the database
-        set_google_ad_crawl_info(
-            index_name="google_ad_",
+        crawl_info = await set_google_ad_crawl_info(
+            index_name="google_ad_tbd",
             refresh_token=refresh_token,
             crawl_interval=1440,
         )
+        logging.debug("Stored Google Ads crawl info: %s", crawl_info)
 
-        logging.info("OAuth flow completed successfully. Credentials: %s", credentials)
+        # Redirect to the final URL
         return RedirectResponse(url=settings.CALLBACK_FINAL_URL, status_code=302)
 
     except Exception as e:
