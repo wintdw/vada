@@ -141,10 +141,13 @@ async def init_scheduler():
 
         # Remove jobs that are no longer in the google_ad_info
         for job_id in current_jobs:
-            scheduler.remove_job(job_id)
-            logging.info(
-                f"Removed Google Ads Reports job with ID: {job_id} as it is no longer needed"
-            )
+            # dont remove update_jobs
+            if job_id != "update_jobs":
+                # Remove the job from the scheduler
+                scheduler.remove_job(job_id)
+                logging.info(
+                    f"Removed Google Ads Reports job with ID: {job_id} as it is no longer needed"
+                )
 
     # Schedule the update_jobs function to run every 20 minutes
     scheduler.add_job(
