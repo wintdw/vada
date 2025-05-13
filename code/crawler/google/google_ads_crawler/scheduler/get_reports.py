@@ -63,6 +63,7 @@ async def init_scheduler():
     async def update_jobs():
         # Fetch Google Ad crawl info
         google_ad_info = await get_google_ad_crawl_info()
+        current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in google_ad_info:
             crawl_id = info["crawl_id"]
@@ -124,6 +125,17 @@ async def init_scheduler():
                 logging.info(
                     f"Added Google Ads Reports job for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes"
                 )
+
+            # Remove the job from current_jobs as it is still valid
+            if job_id in current_jobs:
+                del current_jobs[job_id]
+
+        # Remove jobs that are no longer in the google_ad_info
+        for job_id in current_jobs:
+            scheduler.remove_job(job_id)
+            logging.info(
+                f"Removed Google Ads Reports job with ID: {job_id} as it is no longer needed"
+            )
 
     # Schedule the update_jobs function to run every 20 minutes
     scheduler.add_job(
