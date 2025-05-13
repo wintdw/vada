@@ -23,7 +23,7 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
         crawl_info = await insert_crawl_info(CrawlInfo(
             access_token=access_token.get("access_token"),
             index_name=user_id,
-            crawl_type="TikTok Business Ads",
+            crawl_type="tikTok_business_ads",
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
         ))
