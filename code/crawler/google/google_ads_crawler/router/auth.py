@@ -123,11 +123,12 @@ async def auth_callback(
         }
         logging.debug("OAuth flow completed successfully. Credentials: %s", credentials)
 
+        # Get user information
         user_info = await get_user_info(flow.credentials.token)
 
         # Store the refresh token in the database
         crawl_info = await set_google_ad_crawl_info(
-            index_name="google_ad_tbd",
+            index_name=f"google_ad_{user_info['id']}",
             refresh_token=refresh_token,
             crawl_interval=1440,
         )
