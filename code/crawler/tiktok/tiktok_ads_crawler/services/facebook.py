@@ -33,4 +33,6 @@ async def facebook_get_ads(
         AdAccount.Field.business_street2,
         AdAccount.Field.business_zip,
     ])
-    return ad_accounts
+    for ad_account in ad_accounts:
+        print(ad_account)
+    return []

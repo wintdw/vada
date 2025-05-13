@@ -15,9 +15,12 @@ async def facebook_get():
     Get facebook data
     """
     try:
+        await facebook_get_ads()
+        """
         crawl_response = await facebook_get_ads()
         logger.info(crawl_response)
         return crawl_response
+        """
     except Exception as e:
         logger.error(f"Error in facebook_get: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
