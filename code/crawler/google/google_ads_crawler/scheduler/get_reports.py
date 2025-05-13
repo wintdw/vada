@@ -1,7 +1,7 @@
 import logging
 import asyncio
 from datetime import datetime, timedelta
-from prometheus_client import Counter  # type: ignore
+from prometheus_client import Counter, Histogram  # type: ignore
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
@@ -15,6 +15,11 @@ google_ad_crawl_total = Counter(
 )
 google_ad_crawl_sucess = Counter(
     "google_ad_crawl_sucess", "Total number of successful crawls", ["crawl_id"]
+)
+google_ad_crawl_latency = Histogram(
+    "google_ad_crawl_latency_seconds",
+    "Latency of Google Ad crawls in seconds",
+    ["crawl_id"],
 )
 
 
@@ -34,17 +39,21 @@ async def scheduled_fetch_google_reports(
         end_date = datetime.now().strftime("%Y-%m-%d")
         start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
+        timer = google_ad_crawl_latency.labels(crawl_id=crawl_id).time()
         # Set a timeout for the fetch_google_reports function
-        await asyncio.wait_for(
-            fetch_google_reports(
-                refresh_token=refresh_token,
-                start_date=start_date,
-                end_date=end_date,
-                persist=True,
-                es_index=index_name,
-            ),
-            timeout=300,  # Timeout in seconds (e.g., 5 minutes)
-        )
+        try:
+            await asyncio.wait_for(
+                fetch_google_reports(
+                    refresh_token=refresh_token,
+                    start_date=start_date,
+                    end_date=end_date,
+                    persist=True,
+                    es_index=index_name,
+                ),
+                timeout=300,  # Timeout in seconds (e.g., 5 minutes)
+            )
+        finally:
+            timer.observe_duration()
 
         google_ad_crawl_sucess.labels(crawl_id=crawl_id).inc()
         logging.info(
