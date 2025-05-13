@@ -8,6 +8,7 @@ from google_auth_oauthlib.flow import Flow  # type: ignore
 from fastapi.responses import RedirectResponse  # type: ignore
 
 from model.setting import settings
+from handler.mysql import set_google_ad_crawl_info
 from dependency.google_ad_client import (
     get_flows,
     get_app_secret_file,
@@ -96,6 +97,13 @@ async def auth_callback(
             "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
             "use_proto_plus": True,
         }
+
+        # Store the refresh token in the database
+        set_google_ad_crawl_info(
+            index_name="google_ad_",
+            refresh_token=refresh_token,
+            crawl_interval=1440,
+        )
 
         logging.info("OAuth flow completed successfully. Credentials: %s", credentials)
         return RedirectResponse(url=settings.CALLBACK_FINAL_URL, status_code=302)

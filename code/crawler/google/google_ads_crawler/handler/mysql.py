@@ -1,6 +1,8 @@
 import os
 import logging
 import aiomysql  # type: ignore
+import uuid
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from typing import List, Dict
 
@@ -70,3 +72,57 @@ async def get_google_ad_crawl_info() -> List[Dict]:
     except Exception as e:
         logging.error(f"Error fetching Google Ad crawl info: {str(e)}")
         return []
+
+
+async def set_google_ad_crawl_info(
+    index_name: str,
+    refresh_token: str,
+    crawl_type: str = "google_ad",
+    crawl_interval: int = 1440,
+):
+    """
+    Inserts a new record into the CrawlInfo table.
+
+    Args:
+        index_name (str): The index name.
+        crawl_type (str): The type of crawl.
+        refresh_token (str): The refresh token.
+        crawl_interval (int): The crawl interval in minutes.
+    """
+    crawl_id = str(uuid.uuid4())
+
+    # Calculate crawl_from_date and crawl_to_date
+    crawl_from_date = (datetime.now() - timedelta(days=365)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    crawl_to_date = (datetime.now() + timedelta(days=3650)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    query = """
+        INSERT INTO CrawlInfo (
+            crawl_id, index_name, crawl_type, refresh_token,
+            crawl_interval, crawl_from_date, crawl_to_date
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+
+    try:
+        async with get_mysql_connection() as connection:
+            async with get_mysql_cursor(connection) as cursor:
+                await cursor.execute(
+                    query,
+                    (
+                        crawl_id,
+                        index_name,
+                        crawl_type,
+                        refresh_token,
+                        crawl_interval,
+                        crawl_from_date,
+                        crawl_to_date,
+                    ),
+                )
+                await connection.commit()
+                logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
+
+    except Exception as e:
+        logging.error(f"Error inserting Google Ad crawl info: {str(e)}")
