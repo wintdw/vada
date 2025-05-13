@@ -1,6 +1,7 @@
 import os
 import hashlib
 import logging
+import aiohttp  # type: ignore
 from typing import Dict
 
 from fastapi import APIRouter, HTTPException, Depends  # type: ignore
@@ -25,6 +26,24 @@ async def root():
     }
 
 
+async def get_user_info(token: str) -> Dict:
+    """Fetch user information from Google API using the provided token"""
+    user_info_endpoint = "https://www.googleapis.com/oauth2/v1/userinfo"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            user_info_endpoint,
+            headers={"Authorization": f"Bearer {token}"},
+        ) as response:
+            if response.status == 200:
+                user_info = await response.json()
+                logging.debug("User info retrieved: %s", user_info)
+                return user_info
+            else:
+                logging.error("Failed to retrieve user info: %s", response.status)
+                return {}
+
+
 # Modify the route to use the dependency
 @router.get("/auth/url")
 async def get_auth_url(
@@ -33,7 +52,12 @@ async def get_auth_url(
 ):
     """Generate and return a Google OAuth authorization URL"""
     try:
-        scopes = ["https://www.googleapis.com/auth/adwords"]
+        scopes = [
+            "https://www.googleapis.com/auth/adwords",
+            "openid",
+            "email",
+            "profile",
+        ]
         redirect_uri = "https://google.vadata.vn/connector/google/auth"
 
         # Generate a secure random state value
@@ -98,6 +122,8 @@ async def auth_callback(
             "use_proto_plus": True,
         }
         logging.debug("OAuth flow completed successfully. Credentials: %s", credentials)
+
+        user_info = await get_user_info(flow.credentials.token)
 
         # Store the refresh token in the database
         crawl_info = await set_google_ad_crawl_info(
