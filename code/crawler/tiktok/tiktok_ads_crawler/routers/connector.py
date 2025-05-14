@@ -18,10 +18,10 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
     from repositories import insert_crawl_info
 
     try:
-        user_info = await tiktok_biz_get_user_info(access_token=auth_code)
-        logger.info(user_info)
         access_token = await tiktok_biz_get_access_token(auth_code=auth_code)
         logger.info(access_token)
+        user_info = await tiktok_biz_get_user_info(access_token=access_token.get("access_token"))
+        logger.info(user_info)
         
         crawl_info = await insert_crawl_info(CrawlInfo(
             access_token=access_token.get("access_token"),
