@@ -6,9 +6,7 @@ from tools.settings import settings
 async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:    
     request_json = await get(
         url=f"{settings.TIKTOK_BIZ_API_URL}/user/info/",
-        headers={
-            "Access-Token": access_token
-        }
+        access_token=access_token,
     )
     if "data" in request_json and "id" in request_json["data"]:
         return request_json["data"]["id"]
