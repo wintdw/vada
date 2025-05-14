@@ -3,8 +3,6 @@ import json
 from tools import get, post
 from tools.settings import settings
 
-https://business-api.tiktok.com/open_api/open_api/v1.3/user/info/
-
 async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:    
     request_json = await get(
         url="https://business-api.tiktok.com/open_api/open_api/v1.3/user/info/",
