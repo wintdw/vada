@@ -17,6 +17,8 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
     from repositories import insert_crawl_info
 
     try:
+        user_info = await tiktok_biz_get_user_info(access_token=auth_code)
+        print(user_info)
         access_token = await tiktok_biz_get_access_token(auth_code=auth_code)
         logger.info(access_token)
         
