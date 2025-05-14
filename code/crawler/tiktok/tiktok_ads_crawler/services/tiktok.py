@@ -5,16 +5,13 @@ from tools.settings import settings
 
 async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:    
     request_json = await get(
-        url="https://business-api.tiktok.com/open_api/open_api/v1.3/user/info/",
-        access_token=access_token,
-        params={
-            "app_id": settings.TIKTOK_BIZ_APP_ID,
-            "secret": settings.TIKTOK_BIZ_SECRET,
-        },
+        url=f"{settings.TIKTOK_BIZ_API_URL}/user/info/",
+        headers={
+            "Access-Token": access_token
+        }
     )
-    print(request_json)
-    if "data" in request_json and "list" in request_json["data"]:
-        return request_json["data"]["list"]
+    if "data" in request_json and "id" in request_json["data"]:
+        return request_json["data"]["id"]
     return []
 
 async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:

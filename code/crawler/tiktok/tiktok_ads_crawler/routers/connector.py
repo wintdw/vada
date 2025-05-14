@@ -5,7 +5,8 @@ from datetime import datetime
 from tools import get_logger
 from models import CrawlInfo, CrawlInfoResponse
 from services import (
-    tiktok_biz_get_access_token
+    tiktok_biz_get_access_token,
+    tiktok_biz_get_user_info,
 )
 from fastapi.responses import RedirectResponse
 
@@ -18,7 +19,7 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
 
     try:
         user_info = await tiktok_biz_get_user_info(access_token=auth_code)
-        print(user_info)
+        logger.info(user_info)
         access_token = await tiktok_biz_get_access_token(auth_code=auth_code)
         logger.info(access_token)
         
