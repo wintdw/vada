@@ -22,7 +22,7 @@ router = APIRouter()
 @router.get("/")
 async def root():
     return {
-        "message": "Google OAuth API is running. Use /auth/url to get authorization URL."
+        "message": "Google OAuth API is running. Use /ingest/partner/google/ads/auth to get authorization URL."
     }
 
 
@@ -45,7 +45,7 @@ async def get_user_info(token: str) -> Dict:
 
 
 # Modify the route to use the dependency
-@router.get("/auth/url")
+@router.get("/ingest/partner/google/ads/auth")
 async def get_auth_url(
     flows: Dict = Depends(get_flows),
     client_secrets_path: str = Depends(get_app_secret_file),
@@ -88,10 +88,9 @@ async def get_auth_url(
         )
 
 
-# Also update the callback route
-@router.get("/connector/google/auth")
+@router.get("/ingest/partner/google/ads/callback")
 async def auth_callback(
-    flows: Dict = Depends(get_flows), code: str = None, state: str = None
+    flows: Dict = Depends(get_flows), code: str = "", state: str = ""
 ):
     """Handle the OAuth callback from Google and return comprehensive account information"""
     if not code:
@@ -127,15 +126,19 @@ async def auth_callback(
         user_info = await get_user_info(flow.credentials.token)
 
         # Store the refresh token in the database
+        account_id = user_info["id"]
+        index_name = f"data_ggad_default_{user_info['id']}"
         crawl_info = await set_google_ad_crawl_info(
-            index_name=f"google_ad_{user_info['id']}",
+            account_id=account_id,
+            index_name=index_name,
             refresh_token=refresh_token,
             crawl_interval=1440,
         )
         logging.debug("Stored Google Ads crawl info: %s", crawl_info)
 
         # Redirect to the final URL
-        return RedirectResponse(url=settings.CALLBACK_FINAL_URL, status_code=302)
+        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&index_name={index_name}"
+        return RedirectResponse(url=fe_redirect_url, status_code=302)
 
     except Exception as e:
         logging.error("Error in auth_callback: %s", str(e), exc_info=True)

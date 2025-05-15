@@ -48,7 +48,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
         List[Dict[str, Any]]: A list of dictionaries containing the selected information.
     """
     query = """
-        SELECT crawl_id, index_name, refresh_token, crawl_interval
+        SELECT crawl_id, account_id, index_name, refresh_token, crawl_interval
         FROM CrawlInfo
         WHERE crawl_type = 'google_ad'
     """
@@ -62,6 +62,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
         return [
             {
                 "crawl_id": row["crawl_id"],
+                "account_id": row["account_id"],
                 "index_name": row["index_name"],
                 "refresh_token": row["refresh_token"],
                 "crawl_interval": row["crawl_interval"],
@@ -75,11 +76,12 @@ async def get_google_ad_crawl_info() -> List[Dict]:
 
 
 async def set_google_ad_crawl_info(
+    account_id: str,
     index_name: str,
     refresh_token: str,
     crawl_type: str = "google_ad",
     crawl_interval: int = 1440,
-):
+) -> Dict:
     """
     Inserts a new record into the CrawlInfo table.
 
@@ -101,9 +103,9 @@ async def set_google_ad_crawl_info(
 
     query = """
         INSERT INTO CrawlInfo (
-            crawl_id, index_name, crawl_type, access_token, refresh_token,
+            crawl_id, account_id, index_name, crawl_type, access_token, refresh_token,
             crawl_interval, crawl_from_date, crawl_to_date
-        ) VALUES (%s, %s, %s, "", %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, "", %s, %s, %s, %s)
     """
 
     try:
@@ -113,6 +115,7 @@ async def set_google_ad_crawl_info(
                     query,
                     (
                         crawl_id,
+                        account_id,
                         index_name,
                         crawl_type,
                         refresh_token,
@@ -124,14 +127,14 @@ async def set_google_ad_crawl_info(
                 await connection.commit()
                 logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
 
-        return [
-            {
-                "crawl_id": crawl_id,
-                "index_name": index_name,
-                "refresh_token": refresh_token,
-                "crawl_interval": crawl_interval,
-            }
-        ]
+        return {
+            "crawl_id": crawl_id,
+            "account_id": account_id,
+            "index_name": index_name,
+            "refresh_token": refresh_token,
+            "crawl_interval": crawl_interval,
+        }
 
     except Exception as e:
         logging.error(f"Error inserting Google Ad crawl info: {str(e)}")
+        return {}
