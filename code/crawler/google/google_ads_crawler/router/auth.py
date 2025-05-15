@@ -45,7 +45,7 @@ async def get_user_info(token: str) -> Dict:
 
 
 # Modify the route to use the dependency
-@router.get("/ingest/partner/google/ads/auth")
+@router.get("/ingest/partner/google/ad/auth")
 async def get_auth_url(
     flows: Dict = Depends(get_flows),
     client_secrets_path: str = Depends(get_app_secret_file),
@@ -88,7 +88,7 @@ async def get_auth_url(
         )
 
 
-@router.get("/ingest/partner/google/ads/callback")
+@router.get("/ingest/partner/google/ad/callback")
 async def auth_callback(
     flows: Dict = Depends(get_flows), code: str = "", state: str = ""
 ):
