@@ -100,3 +100,7 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: mon.internal.vadata.vn:9115
+  - job_name: ingest_crawler
+    static_configs:
+    - targets:
+      - backend00.internal.vadata.vn:8146
