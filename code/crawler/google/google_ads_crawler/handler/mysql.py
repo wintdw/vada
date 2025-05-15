@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from typing import List, Dict
 
-MYSQL_HOST = os.getenv("MYSQL_HOST")
-MYSQL_USER = os.getenv("MYSQL_USER")
-MYSQL_DB = os.getenv("MYSQL_DB")
-mysql_passwd_file = os.getenv("MYSQL_PASSWD_FILE")
+from model.setting import settings
+
+
+mysql_passwd_file = settings.MYSQL_PASSWD_FILE
 if mysql_passwd_file and os.path.isfile(mysql_passwd_file):
     with open(mysql_passwd_file, "r") as file:
-        MYSQL_PASSWD = file.read().strip()
+        mysql_passwd = file.read().strip()
 
 
 @asynccontextmanager
@@ -21,7 +21,10 @@ async def get_mysql_connection():
     try:
         logging.debug("Initializing MySQL connection...")
         connection = await aiomysql.connect(
-            host=MYSQL_HOST, user=MYSQL_USER, password=MYSQL_PASSWD, db=MYSQL_DB
+            host=settings.MYSQL_HOST,
+            user=settings.MYSQL_USER,
+            password=mysql_passwd,
+            db=settings.MYSQL_DB,
         )
         yield connection
     finally:

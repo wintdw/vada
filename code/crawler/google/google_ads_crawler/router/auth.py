@@ -58,8 +58,8 @@ async def get_auth_url(
             "email",
             "profile",
         ]
-        redirect_uri = "https://google.vadata.vn/connector/google/auth"
 
+        redirect_uri = f"{settings.API_BASE_URL}/ingest/partner/google/ad/callback"
         # Generate a secure random state value
         passthrough_state = hashlib.sha256(os.urandom(1024)).hexdigest()
 
