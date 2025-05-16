@@ -66,6 +66,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
             {
                 "crawl_id": row["crawl_id"],
                 "account_id": row["account_id"],
+                "account_email": row["account_email"],
                 "index_name": row["index_name"],
                 "refresh_token": row["refresh_token"],
                 "crawl_interval": row["crawl_interval"],
@@ -80,6 +81,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
 
 async def set_google_ad_crawl_info(
     account_id: str,
+    account_email: str,
     index_name: str,
     refresh_token: str,
     crawl_type: str = "google_ad",
@@ -106,9 +108,9 @@ async def set_google_ad_crawl_info(
 
     query = """
         INSERT INTO CrawlInfo (
-            crawl_id, account_id, index_name, crawl_type, access_token, refresh_token,
+            crawl_id, account_id, account_email, index_name, crawl_type, access_token, refresh_token,
             crawl_interval, crawl_from_date, crawl_to_date
-        ) VALUES (%s, %s, %s, %s, "", %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, %s, "", %s, %s, %s, %s)
     """
 
     try:
@@ -119,6 +121,7 @@ async def set_google_ad_crawl_info(
                     (
                         crawl_id,
                         account_id,
+                        account_email,
                         index_name,
                         crawl_type,
                         refresh_token,
@@ -133,6 +136,7 @@ async def set_google_ad_crawl_info(
         return {
             "crawl_id": crawl_id,
             "account_id": account_id,
+            "account_email": account_email,
             "index_name": index_name,
             "refresh_token": refresh_token,
             "crawl_interval": crawl_interval,

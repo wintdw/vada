@@ -89,14 +89,9 @@ async def get_auth_url(
 
 
 @router.get("/ingest/partner/google/ad/callback")
-async def auth_callback(
-    flows: Dict = Depends(get_flows), code: str = "", state: str = ""
-):
+async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows)):
     """Handle the OAuth callback from Google and return comprehensive account information"""
-    if not code:
-        raise HTTPException(status_code=400, detail="Authorization code is missing")
-
-    if not state or state not in flows:
+    if state not in flows:
         raise HTTPException(
             status_code=400, detail="Invalid or expired state parameter"
         )
@@ -127,9 +122,11 @@ async def auth_callback(
 
         # Store the refresh token in the database
         account_id = user_info["id"]
+        account_email = user_info["email"]
         index_name = f"data_ggad_default_{user_info['id']}"
         crawl_info = await set_google_ad_crawl_info(
             account_id=account_id,
+            account_email=account_email,
             index_name=index_name,
             refresh_token=refresh_token,
             crawl_interval=1440,
@@ -137,7 +134,7 @@ async def auth_callback(
         logging.debug("Stored Google Ads crawl info: %s", crawl_info)
 
         # Redirect to the final URL
-        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&index_name={index_name}"
+        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&account_email={account_email}&index_name={index_name}"
         return RedirectResponse(url=fe_redirect_url, status_code=302)
 
     except Exception as e:
