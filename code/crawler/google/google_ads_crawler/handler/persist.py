@@ -42,8 +42,6 @@ async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
     Returns:
         Dict: Response from insert service
     """
-    # Get settings
-    insert_service_baseurl = settings.INSERT_SERVICE_BASEURL
 
     # Enrich each report with metadata
     enriched_reports = []
@@ -66,7 +64,7 @@ async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
 
     # Send to insert service
     response = await send_to_insert_service(
-        enriched_report_data, insert_service_baseurl
+        enriched_report_data, settings.INSERT_SERVICE_BASEURL
     )
 
     return response
