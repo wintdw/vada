@@ -6,7 +6,7 @@ from prometheus_client import Counter, Histogram  # type: ignore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
-from router.report import fetch_google_reports
+from handler.report import fetch_google_reports
 from handler.mysql import get_google_ad_crawl_info
 
 
@@ -48,7 +48,7 @@ async def scheduled_fetch_google_reports(
                     persist=True,
                     es_index=index_name,
                 ),
-                timeout=300,
+                timeout=600,
             )
 
         google_ad_crawl_sucess.labels(crawl_id=crawl_id).inc()

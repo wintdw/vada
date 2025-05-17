@@ -1,12 +1,16 @@
 import logging
 import asyncio
 from typing import Dict, List
+from datetime import datetime
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
 from dependency.profile import log_execution_time
+from dependency.google_ad_client import get_google_ads_client
 from .metric import METRIC_FIELDS
 from .query import build_report_query
+from .account import get_all_account_hierarchies, get_non_manager_accounts
+from .persist import post_processing, copy_crm_mappings
 
 
 def get_metrics_from_row(metrics_obj) -> Dict:
@@ -171,3 +175,81 @@ async def get_reports(
     logging.info("=== Completed Performance Reports ===")
 
     return results
+
+
+async def fetch_google_reports(
+    refresh_token: str,
+    start_date: str,
+    end_date: str,
+    persist: bool,
+    es_index: str = "",
+    mappings: Dict | None = None,
+):
+    # Validate date formats
+    if start_date and end_date:
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
+        if start_dt > end_dt:
+            raise ValueError("start_date cannot be later than end_date")
+    else:
+        start_date = datetime.now().date().strftime("%Y-%m-%d")
+        end_date = start_date
+
+    # Initialize client
+    ga_client = await get_google_ads_client(refresh_token)
+    logging.info(f"Fetching reports from {start_date} to {end_date}")
+
+    # Get account hierarchies
+    hierarchies = await get_all_account_hierarchies(ga_client)
+    customer_ads_accounts = get_non_manager_accounts(hierarchies)
+
+    # Get report data
+    ad_reports = await get_reports(
+        ga_client, start_date, end_date, customer_ads_accounts
+    )
+
+    # Process and send reports to insert service
+    if persist and es_index:
+        insert_response = await post_processing(ad_reports, es_index)
+        logging.info(
+            "Sending to Insert service. Index: %s. Response: %s",
+            es_index,
+            insert_response,
+        )
+
+    # Handle mappings for CRM
+    if mappings:
+        vada_uid = mappings.get("vada_uid", "")
+        account_email = mappings.get("account_email", "")
+
+        mapping_response = await copy_crm_mappings(
+            vada_uid=vada_uid, index_name=es_index, account_email=account_email
+        )
+        logging.info(
+            "Sending to CRM mapping service. Index: %s. UID: %s. Response: %s",
+            es_index,
+            vada_uid,
+            mapping_response,
+        )
+
+    # Build response with hierarchy information
+    response_data = {
+        "date_range": {
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+        "account": {
+            "hierarchy": hierarchies,
+            "customer_ads_accounts": customer_ads_accounts,
+        },
+        "report": {
+            "total_campaigns": len(set(r["campaign"]["id"] for r in ad_reports)),
+            "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
+            "total_ads": len(set(r["ad_group_ad"]["ad_id"] for r in ad_reports)),
+            "total_reports": len(ad_reports),
+            "reports": ad_reports,
+        },
+    }
+    logging.info(f"Returning {len(ad_reports)} reports")
+
+    return response_data
