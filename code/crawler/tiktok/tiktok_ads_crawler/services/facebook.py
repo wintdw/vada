@@ -3,23 +3,36 @@ from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
 from facebook_business.api import FacebookResponse, FacebookAdsApiBatch
+from facebook_business.adobjects.adsinsights import AdsInsights
+
 import time
 
 from tools.settings import settings
 
-def get_insights_callback(response: FacebookResponse):
+def get_insights_callback_success(response: FacebookResponse):
     res = response.json()
     insights = res.get("data")
     for insight in insights:
         print(insight)
 
-def get_ads_callback(response: FacebookResponse, fb_ads_api_batch: FacebookAdsApiBatch):
+def get_insights_callback_failure(response: FacebookResponse):
+    exception = response.error()
+    print(f"Error: {exception}")
+
+def get_ads_callback_failure(response: FacebookResponse):
+    exception = response.error()
+    print(f"Error: {exception}")
+
+def get_ads_callback_success(response: FacebookResponse, fb_ads_api_batch: FacebookAdsApiBatch):
     res = response.json()
     ads = res.get("data")
     for i in range(0, len(ads), 5):
         for ad_data in ads[i:i + 5]:
             ad = Ad(ad_data.get(Ad.Field.id))
-            ad.get_insights(batch=fb_ads_api_batch, success=lambda response: get_insights_callback(response), fields=[
+            ad.get_insights(batch=fb_ads_api_batch,
+                            success=lambda response: get_insights_callback_success(response),
+                            failure=lambda response: get_insights_callback_failure(response),
+                            fields=[
                 AdsInsights.Field.account_currency,
                 AdsInsights.Field.action_values,
                 AdsInsights.Field.actions,
@@ -171,7 +184,10 @@ async def facebook_get_ads(
     fb_ads_api_batch: FacebookAdsApiBatch = ads_api.new_batch()
     for i in range(0, len(ad_accounts), 5):
         for ad_account in ad_accounts[i:i + 5]:
-            ad_account.get_ads(batch=fb_ads_api_batch, success=lambda response: get_ads_callback(response, fb_ads_api_batch), fields=[
+            ad_account.get_ads(batch=fb_ads_api_batch,
+                               success=lambda response: get_ads_callback_success(response, fb_ads_api_batch),
+                               failure=lambda response: get_ads_callback_failure(response),
+                               fields=[
                 Ad.Field.account_id,
                 Ad.Field.ad_active_time,
                 Ad.Field.ad_review_feedback,
