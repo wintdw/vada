@@ -8,8 +8,8 @@ async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:
         url=f"{settings.TIKTOK_BIZ_API_URL}/user/info/",
         access_token=access_token,
     )
-    if "data" in request_json and "core_user_id" in request_json["data"]:
-        return request_json["data"]["core_user_id"]
+    if "data" in request_json:
+        return request_json["data"]
     return []
 
 async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:

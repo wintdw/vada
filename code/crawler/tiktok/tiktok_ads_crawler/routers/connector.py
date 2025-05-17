@@ -13,8 +13,8 @@ from fastapi.responses import RedirectResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-@router.get("/connector/tiktok/ads", response_model=CrawlInfoResponse, tags=["Connector"])
-async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_test"):
+@router.get("/ingest/partner/tiktok/ad/callback", response_model=CrawlInfoResponse, tags=["Connector"])
+async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tiktok_ads_test"):
     from repositories import insert_crawl_info
 
     try:
@@ -37,8 +37,8 @@ async def get_connector_tiktok_auth(auth_code: str, user_id: str = "tiktok_ads_t
             detail="Internal Server Error"
         )
     logger.info(crawl_info)
-    return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?crawl_id={crawl_info.crawl_id}")
+    return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?account_id={user_info["email"]}&index_name={crawl_info.index_name}")
 
-@router.get("/connector/tiktok/test", response_model=CrawlInfoResponse, tags=["Connector"])
-async def get_connector_tiktok_auth1():
+@router.get("/ingest/partner/tiktok/ad/auth", response_model=CrawlInfoResponse, tags=["Connector"])
+async def ingest_partner_tiktok_ad_auth():
     return RedirectResponse(url="https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state=your_custom_params&redirect_uri=https%3A%2F%2Fcrawl-dev.vadata.vn%2Fconnector%2Ftiktok%2Fads")
