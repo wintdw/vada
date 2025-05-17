@@ -8,7 +8,7 @@ router = APIRouter()
 logger = get_logger(__name__, 20)
 
 @router.get("/ingest/partner/tiktok/ad/callback", tags=["Connector"])
-async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tiktok_ads_test"):
+async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
     from repositories import insert_crawl_info
     from models import CrawlInfo
     from services import (
@@ -23,8 +23,8 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tikt
         
         crawl_info = await insert_crawl_info(CrawlInfo(
             access_token=access_token.get("access_token"),
-            index_name=user_id,
-            crawl_type="tikTok_business_ads",
+            index_name=f"{state}_tiktok_ad_report",
+            crawl_type="tiktok_business_ads",
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
         ))
@@ -38,5 +38,5 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tikt
     return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?account_email={user_info["email"]}&index_name={crawl_info.index_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
-async def ingest_partner_tiktok_ad_auth():
-    return RedirectResponse(url="https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state=your_custom_params&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ftiktok%2Fad%2Fcallback")
+async def ingest_partner_tiktok_ad_auth(vada_uid: str):
+    return RedirectResponse(url=f"https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state={vada_uid}&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ftiktok%2Fad%2Fcallback")

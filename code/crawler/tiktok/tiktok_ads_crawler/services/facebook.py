@@ -3,6 +3,8 @@ from facebook_business import FacebookAdsApi
 from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
+from facebook_business.api import FacebookResponse, FacebookAdsApiBatch
+
 
 
 async def facebook_get_ads(
@@ -37,7 +39,9 @@ async def facebook_get_ads(
     ])
     print(ad_accounts[:1])
     for ad_account in ad_accounts[:1]:
-        print(ad_account.get_ads(fields=[
+        fb_ads_api_batch: FacebookAdsApiBatch = ads_api.new_batch()
+        print(ad_account.get_ads(batch=fb_ads_api_batch,
+                                 fields=[
             Ad.Field.account_id,
             Ad.Field.ad_active_time,
             Ad.Field.ad_review_feedback,
