@@ -35,7 +35,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tikt
             detail="Internal Server Error"
         )
     logger.info(crawl_info)
-    return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?account_id={user_info["email"]}&index_name={crawl_info.index_name}")
+    return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?account_email={user_info["email"]}&index_name={crawl_info.index_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth():

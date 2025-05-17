@@ -35,7 +35,8 @@ async def facebook_get_ads(
         AdAccount.Field.business_street2,
         AdAccount.Field.business_zip,
     ])
-    for ad_account in ad_accounts:
+    print(ad_accounts[:1])
+    for ad_account in ad_accounts[:1]:
         print(ad_account.get_ads(fields=[
             Ad.Field.account_id,
             Ad.Field.ad_active_time,
