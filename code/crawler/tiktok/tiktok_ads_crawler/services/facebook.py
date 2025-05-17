@@ -1,11 +1,10 @@
-from tools.settings import settings
 from facebook_business import FacebookAdsApi
 from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
-from facebook_business.api import FacebookResponse, FacebookAdsApiBatch
+import time
 
-
+from tools.settings import settings
 
 async def facebook_get_ads(
     access_token: str = settings.FACEBOOK_ACCESS_TOKEN,
@@ -37,11 +36,9 @@ async def facebook_get_ads(
         AdAccount.Field.business_street2,
         AdAccount.Field.business_zip,
     ])
-    print(ad_accounts[:1])
-    for ad_account in ad_accounts[:1]:
-        fb_ads_api_batch: FacebookAdsApiBatch = ads_api.new_batch()
-        print(ad_account.get_ads(batch=fb_ads_api_batch,
-                                 fields=[
+
+    for ad_account in ad_accounts:
+        ad_account.get_ads(fields=[
             Ad.Field.account_id,
             Ad.Field.ad_active_time,
             Ad.Field.ad_review_feedback,
@@ -87,5 +84,7 @@ async def facebook_get_ads(
             Ad.Field.execution_options,
             Ad.Field.include_demolink_hashes,
             Ad.Field.filename,
-        ]))
+        ])
+        time.sleep(0.5)
+
     return []
