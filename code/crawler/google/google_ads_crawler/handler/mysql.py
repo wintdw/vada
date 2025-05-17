@@ -51,7 +51,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
         List[Dict[str, Any]]: A list of dictionaries containing the selected information.
     """
     query = """
-        SELECT crawl_id, account_id, index_name, refresh_token, crawl_interval
+        SELECT *
         FROM CrawlInfo
         WHERE crawl_type = 'google_ad'
     """
@@ -67,6 +67,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
                 "crawl_id": row["crawl_id"],
                 "account_id": row["account_id"],
                 "account_email": row["account_email"],
+                "vada_uid": row["vada_uid"],
                 "index_name": row["index_name"],
                 "refresh_token": row["refresh_token"],
                 "crawl_interval": row["crawl_interval"],
@@ -82,6 +83,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
 async def set_google_ad_crawl_info(
     account_id: str,
     account_email: str,
+    vada_uid: str,
     index_name: str,
     refresh_token: str,
     crawl_type: str = "google_ad",
@@ -89,12 +91,6 @@ async def set_google_ad_crawl_info(
 ) -> Dict:
     """
     Inserts a new record into the CrawlInfo table.
-
-    Args:
-        index_name (str): The index name.
-        crawl_type (str): The type of crawl.
-        refresh_token (str): The refresh token.
-        crawl_interval (int): The crawl interval in minutes.
     """
     crawl_id = str(uuid.uuid4())
 
@@ -108,9 +104,9 @@ async def set_google_ad_crawl_info(
 
     query = """
         INSERT INTO CrawlInfo (
-            crawl_id, account_id, account_email, index_name, crawl_type, access_token, refresh_token,
+            crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, refresh_token,
             crawl_interval, crawl_from_date, crawl_to_date
-        ) VALUES (%s, %s, %s, %s, %s, "", %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, %s, %s, "", %s, %s, %s, %s)
     """
 
     try:
@@ -122,6 +118,7 @@ async def set_google_ad_crawl_info(
                         crawl_id,
                         account_id,
                         account_email,
+                        vada_uid,
                         index_name,
                         crawl_type,
                         refresh_token,
@@ -137,6 +134,7 @@ async def set_google_ad_crawl_info(
             "crawl_id": crawl_id,
             "account_id": account_id,
             "account_email": account_email,
+            "vada_uid": vada_uid,
             "index_name": index_name,
             "refresh_token": refresh_token,
             "crawl_interval": crawl_interval,

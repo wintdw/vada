@@ -4,7 +4,7 @@ import logging
 import aiohttp  # type: ignore
 from typing import Dict
 
-from fastapi import APIRouter, HTTPException, Depends  # type: ignore
+from fastapi import APIRouter, HTTPException, Depends, Query  # type: ignore
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from fastapi.responses import RedirectResponse  # type: ignore
 
@@ -47,6 +47,7 @@ async def get_user_info(token: str) -> Dict:
 # Modify the route to use the dependency
 @router.get("/ingest/partner/google/ad/auth")
 async def get_auth_url(
+    vada_uid: str = Query(..., description="Vada user ID"),
     flows: Dict = Depends(get_flows),
     client_secrets_path: str = Depends(get_app_secret_file),
 ):
@@ -76,7 +77,11 @@ async def get_auth_url(
         )
 
         # Store the flow object using the state as a key
-        flows[state] = flow
+        flows[state] = {
+            "flow": flow,
+            "vada_uid": vada_uid,
+        }
+        logging.debug(f"Flows: {flows}")
 
         # Redirect to authorization URL
         return RedirectResponse(url=authorization_url, status_code=302)
@@ -98,7 +103,8 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
 
     try:
         # Retrieve the flow object for this session
-        flow = flows[state]
+        flow = flows[state]["flow"]
+        vada_uid = flows[state]["vada_uid"]
 
         # Pass the code back into the OAuth module to get a refresh token
         flow.fetch_token(code=code)
@@ -127,6 +133,7 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
         crawl_info = await set_google_ad_crawl_info(
             account_id=account_id,
             account_email=account_email,
+            vada_uid=vada_uid,
             index_name=index_name,
             refresh_token=refresh_token,
             crawl_interval=1440,
