@@ -1,22 +1,20 @@
 from fastapi import APIRouter, HTTPException
-from aiomysql import IntegrityError
+from fastapi.responses import RedirectResponse
 from datetime import datetime
 
 from tools import get_logger
-from models import CrawlInfo, CrawlInfoResponse
-from services import (
-    tiktok_biz_get_access_token,
-    tiktok_biz_get_user_info,
-)
-from fastapi.responses import RedirectResponse
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-@router.get("/ingest/partner/tiktok/ad/callback", response_model=CrawlInfoResponse, tags=["Connector"])
+@router.get("/ingest/partner/tiktok/ad/callback", tags=["Connector"])
 async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tiktok_ads_test"):
     from repositories import insert_crawl_info
-
+    from models import CrawlInfo
+    from services import (
+        tiktok_biz_get_access_token,
+        tiktok_biz_get_user_info,
+    )
     try:
         access_token = await tiktok_biz_get_access_token(auth_code=auth_code)
         logger.info(access_token)
@@ -39,6 +37,6 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, user_id: str = "tikt
     logger.info(crawl_info)
     return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?account_id={user_info["email"]}&index_name={crawl_info.index_name}")
 
-@router.get("/ingest/partner/tiktok/ad/auth", response_model=CrawlInfoResponse, tags=["Connector"])
+@router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth():
-    return RedirectResponse(url="https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state=your_custom_params&redirect_uri=https%3A%2F%2Fcrawl-dev.vadata.vn%2Fconnector%2Ftiktok%2Fads")
+    return RedirectResponse(url="https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state=your_custom_params&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ftiktok%2Fad%2Fcallback")
