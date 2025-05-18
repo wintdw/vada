@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException  # type: ignore
 from tools import get_logger
 
 from services import (
-    facebook_get_ads
+    crawl_facebook_ads
 )
 
 router = APIRouter()
@@ -15,7 +15,7 @@ async def facebook_get():
     Get facebook data
     """
     try:
-        await facebook_get_ads()
+        await crawl_facebook_ads()
         """
         crawl_response = await facebook_get_ads()
         logger.info(crawl_response)
