@@ -23,10 +23,11 @@ def handle_success(response: FacebookResponse):
     """Handle success callback for Facebook API batch requests."""
     res = response.json()
     data = res.get("data", [])
+    logger.info(f"Getting insights for {len(data)} ads.")
     for ad_data in data:
         ad = Ad(ad_data.get(Ad.Field.id))
         insights = ad.get_insights(
-            params={"date_preset": "today"},
+            params={"date_preset": "today", "limit": 3},
             fields=[
                 AdsInsights.Field.account_currency,
                 AdsInsights.Field.action_values,
@@ -253,7 +254,6 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
                     Ad.Field.execution_options,
                     Ad.Field.include_demolink_hashes,
                     Ad.Field.filename,
-                    "campaign{name}"
                 ],
             )
         fb_ads_api_batch.execute()
