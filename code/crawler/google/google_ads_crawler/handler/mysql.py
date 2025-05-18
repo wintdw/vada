@@ -102,6 +102,13 @@ async def set_google_ad_crawl_info(
         "%Y-%m-%d %H:%M:%S"
     )
 
+    # Check if the record exists
+    query_check = """
+        SELECT crawl_id, account_id, account_email, vada_uid, index_name, refresh_token, crawl_interval
+        FROM CrawlInfo
+        WHERE account_id = %s AND vada_uid = %s
+    """
+
     query = """
         INSERT INTO CrawlInfo (
             crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, refresh_token,
@@ -112,23 +119,39 @@ async def set_google_ad_crawl_info(
     try:
         async with get_mysql_connection() as connection:
             async with get_mysql_cursor(connection) as cursor:
-                await cursor.execute(
-                    query,
-                    (
-                        crawl_id,
-                        account_id,
-                        account_email,
-                        vada_uid,
-                        index_name,
-                        crawl_type,
-                        refresh_token,
-                        crawl_interval,
-                        crawl_from_date,
-                        crawl_to_date,
-                    ),
-                )
-                await connection.commit()
-                logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
+                await cursor.execute(query_check, (account_id, vada_uid))
+                result = await cursor.fetchone()
+
+                # If the record does not exist, insert it
+                if not result:
+                    await cursor.execute(
+                        query,
+                        (
+                            crawl_id,
+                            account_id,
+                            account_email,
+                            vada_uid,
+                            index_name,
+                            crawl_type,
+                            refresh_token,
+                            crawl_interval,
+                            crawl_from_date,
+                            crawl_to_date,
+                        ),
+                    )
+                    await connection.commit()
+                    logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
+                else:
+                    logging.info(
+                        f"Record already exists for account_id: {account_id} and vada_uid: {vada_uid}"
+                    )
+                    crawl_id = result["crawl_id"]
+                    account_id = result["account_id"]
+                    account_email = result["account_email"]
+                    vada_uid = result["vada_uid"]
+                    index_name = result["index_name"]
+                    refresh_token = result["refresh_token"]
+                    crawl_interval = result["crawl_interval"]
 
         return {
             "crawl_id": crawl_id,
