@@ -18,7 +18,8 @@ def get_ads_callback_success(response: FacebookResponse):
     data = res.get("data")
     for ad_data in data:
         ad = Ad(ad_data.get(Ad.Field.id))
-        print(ad.get_insights(fields=[
+        print(ad.get_insights(params={'date_preset': 'today'},
+                              fields=[
             AdsInsights.Field.account_currency,
             AdsInsights.Field.action_values,
             AdsInsights.Field.actions,
@@ -218,6 +219,7 @@ async def facebook_get_ads(
                 Ad.Field.execution_options,
                 Ad.Field.include_demolink_hashes,
                 Ad.Field.filename,
+                "campaign{name}"
             ])
         fb_ads_api_batch.execute()
         time.sleep(1)
