@@ -1,8 +1,8 @@
 import aiohttp  # type: ignore
-import logging
 from typing import Dict, List
 
 from model.setting import settings
+from model.index_mappings import index_mappings_data
 
 
 def add_insert_metadata(reports: List, index_name: str) -> Dict:
@@ -32,7 +32,9 @@ async def send_to_insert_service(data: Dict, insert_service_baseurl: str) -> Dic
             return {"status": response.status, "detail": await response.text()}
 
 
-async def copy_crm_mappings(index_name: str, vada_uid: str, account_email: str) -> Dict:
+async def create_crm_mappings(
+    index_name: str, vada_uid: str, account_email: str
+) -> Dict:
     """Copy CRM mappings from the mappings service
     Args:
         index_name: Name of the index to copy mappings for
@@ -40,47 +42,35 @@ async def copy_crm_mappings(index_name: str, vada_uid: str, account_email: str) 
         account_email: Account email of the Google account - for friendly name
     """
 
-    async def copy_mappings_handler(
+    async def create_crm_mappings_handler(
         user_id: str,
         index_name: str,
-        index_friendly_name: str = "",
+        index_friendly_name: str,
+        mappings: Dict,
         id_field: str = "",
         agg_field: str = "",
         time_field: str = "",
     ) -> Dict:
-        url = f"{settings.MAPPINGS_BASE_URL}/mappings"
+        url = f"{settings.MAPPINGS_BASE_URL}/crm/mappings"
 
         payload = {
             "user_id": user_id,
             "index_name": index_name,
             "index_friendly_name": index_friendly_name,
+            "mappings": mappings,
             "id_field": id_field,
             "agg_field": agg_field,
             "time_field": time_field,
         }
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload) as response:
-                    if response.status >= 400:
-                        response_text = await response.text()
-                        logging.error(
-                            "Failed to get health info. Status: %s - %s",
-                            response.status,
-                            response_text,
-                        )
-                    else:
-                        response_text = await response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.put(url, json=payload) as response:
+                return await response.json()
 
-                    return {"status": response.status, "detail": response_text}
-
-        except aiohttp.ClientError as e:
-            logging.error(f"Network error during CRM mapping copy: {str(e)}")
-            return {"status": 500, "detail": "Network error occurred"}
-
-    response = await copy_mappings_handler(
+    response = await create_crm_mappings_handler(
         user_id=vada_uid,
         index_name=index_name,
         index_friendly_name=f"Google Ads {account_email}",
+        mappings=index_mappings_data["mappings"],
         id_field="customer_id",
         agg_field="customer_id",
         time_field="date",

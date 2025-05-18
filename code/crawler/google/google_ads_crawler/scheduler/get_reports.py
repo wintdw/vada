@@ -24,7 +24,11 @@ google_ad_crawl_latency = Histogram(
 
 
 async def scheduled_fetch_google_reports(
-    refresh_token: str, index_name: str, crawl_id: str
+    refresh_token: str,
+    index_name: str,
+    crawl_id: str,
+    vada_uid: str = "",
+    account_email: str = "",
 ):
     """
     Function to call the fetch_google_reports function for a specific Google Ad account.
@@ -39,6 +43,14 @@ async def scheduled_fetch_google_reports(
         end_date = datetime.now().strftime("%Y-%m-%d")
         start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
+        if vada_uid and account_email:
+            mappings = {
+                "vada_uid": vada_uid,
+                "account_email": account_email,
+            }
+        else:
+            mappings = None
+
         with google_ad_crawl_latency.labels(crawl_id=crawl_id).time():
             await asyncio.wait_for(
                 fetch_google_reports(
@@ -47,6 +59,7 @@ async def scheduled_fetch_google_reports(
                     end_date=end_date,
                     persist=True,
                     es_index=index_name,
+                    mappings=mappings,
                 ),
                 timeout=600,
             )
@@ -72,6 +85,8 @@ async def init_scheduler():
 
         for info in google_ad_info:
             crawl_id = info["crawl_id"]
+            vada_uid = info["vada_uid"]
+            account_email = info["account_email"]
             index_name = info["index_name"]
             refresh_token = info["refresh_token"]
             crawl_interval = info["crawl_interval"]
@@ -98,6 +113,8 @@ async def init_scheduler():
                             "refresh_token": refresh_token,
                             "index_name": index_name,
                             "crawl_id": crawl_id,
+                            "vada_uid": vada_uid,
+                            "account_email": account_email,
                         },
                         id=job_id,
                         name=f"Fetch Google Ads Reports for ID: {crawl_id}, Index: {index_name} every {crawl_interval} minutes",

@@ -10,7 +10,7 @@ from dependency.google_ad_client import get_google_ads_client
 from .metric import METRIC_FIELDS
 from .query import build_report_query
 from .account import get_all_account_hierarchies, get_non_manager_accounts
-from .persist import post_processing, copy_crm_mappings
+from .persist import post_processing, create_crm_mappings
 
 
 def get_metrics_from_row(metrics_obj) -> Dict:
@@ -222,7 +222,7 @@ async def fetch_google_reports(
         vada_uid = mappings.get("vada_uid", "")
         account_email = mappings.get("account_email", "")
 
-        mapping_response = await copy_crm_mappings(
+        mapping_response = await create_crm_mappings(
             vada_uid=vada_uid, index_name=es_index, account_email=account_email
         )
         logging.info(
