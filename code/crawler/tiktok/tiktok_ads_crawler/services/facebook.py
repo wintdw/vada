@@ -2,10 +2,10 @@ from facebook_business import FacebookAdsApi
 from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
-from facebook_business.api import FacebookResponse, FacebookAdsApiBatch
+from facebook_business.api import FacebookResponse
 from facebook_business.adobjects.adsinsights import AdsInsights
 
-import time
+
 import logging
 from tools.settings import settings
 from tools import get_logger
@@ -23,11 +23,12 @@ def handle_success(response: FacebookResponse):
     """Handle success callback for Facebook API batch requests."""
     res = response.json()
     data = res.get("data", [])
+    logger.debug(f"Response: {data}")
     logger.info(f"Getting insights for {len(data)} ads.")
     for ad_data in data:
         ad = Ad(ad_data.get(Ad.Field.id))
         insights = ad.get_insights(
-            params={"date_preset": "today", "limit": 3},
+            params={"date_preset": "today"},
             fields=[
                 AdsInsights.Field.account_currency,
                 AdsInsights.Field.action_values,
@@ -145,7 +146,6 @@ def handle_success(response: FacebookResponse):
             ],
         )
         logger.debug(f"Ad Insights: {insights}")
-        time.sleep(1)
 
 
 async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
@@ -208,6 +208,7 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
                 batch=fb_ads_api_batch,
                 success=handle_success,
                 failure=handle_failure,
+                params={"limit": 3},
                 fields=[
                     Ad.Field.account_id,
                     Ad.Field.ad_active_time,
@@ -258,7 +259,6 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
             )
         fb_ads_api_batch.execute()
         logger.info(f"Processed batch of {len(ad_accounts[i : i + 5])} ad accounts.")
-        time.sleep(1)
 
 
 async def crawl_facebook_ads(access_token: str = settings.FACEBOOK_ACCESS_TOKEN):
