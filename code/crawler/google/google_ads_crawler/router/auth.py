@@ -141,7 +141,8 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
         logging.debug("Stored Google Ads crawl info: %s", crawl_info)
 
         # Redirect to the final URL
-        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&account_email={account_email}&index_name={index_name}"
+        friendly_index_name = f"Google Ads - {user_info['email']}"
+        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&account_email={account_email}&index_name={index_name}&friendly_index_name={friendly_index_name}"
         return RedirectResponse(url=fe_redirect_url, status_code=302)
 
     except Exception as e:
