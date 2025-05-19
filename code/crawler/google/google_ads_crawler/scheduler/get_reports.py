@@ -11,15 +11,19 @@ from handler.mysql import get_google_ad_crawl_info
 
 
 google_ad_crawl_total = Counter(
-    "google_ad_crawl_total", "Total number of crawls", ["crawl_id"]
+    "google_ad_crawl_total",
+    "Total number of crawls",
+    ["crawl_id", "account_email", "vada_uid"],
 )
 google_ad_crawl_sucess = Counter(
-    "google_ad_crawl_sucess", "Total number of successful crawls", ["crawl_id"]
+    "google_ad_crawl_sucess",
+    "Total number of successful crawls",
+    ["crawl_id", "account_email", "vada_uid"],
 )
 google_ad_crawl_latency = Histogram(
     "google_ad_crawl_latency_seconds",
     "Latency of Google Ad crawls in seconds",
-    ["crawl_id"],
+    ["crawl_id", "account_email", "vada_uid"],
 )
 
 
@@ -37,7 +41,9 @@ async def scheduled_fetch_google_reports(
         f"[Scheduler] Starting scheduled fetch of Google Ads reports for {index_name}"
     )
     try:
-        google_ad_crawl_total.labels(crawl_id=crawl_id).inc()
+        google_ad_crawl_total.labels(
+            crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
+        ).inc()
 
         # Calculate dates
         end_date = datetime.now().strftime("%Y-%m-%d")
@@ -51,7 +57,9 @@ async def scheduled_fetch_google_reports(
         else:
             mappings = None
 
-        with google_ad_crawl_latency.labels(crawl_id=crawl_id).time():
+        with google_ad_crawl_latency.labels(
+            crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
+        ).time():
             await asyncio.wait_for(
                 fetch_google_reports(
                     refresh_token=refresh_token,
@@ -64,7 +72,9 @@ async def scheduled_fetch_google_reports(
                 timeout=600,
             )
 
-        google_ad_crawl_sucess.labels(crawl_id=crawl_id).inc()
+        google_ad_crawl_sucess.labels(
+            crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
+        ).inc()
         logging.info(
             f"[Scheduler] Successfully fetched Google Ads reports for {index_name}"
         )
