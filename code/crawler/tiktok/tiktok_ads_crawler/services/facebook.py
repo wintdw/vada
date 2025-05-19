@@ -2,7 +2,6 @@ from facebook_business import FacebookAdsApi
 from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
-from facebook_business.api import FacebookResponse
 from facebook_business.adobjects.adsinsights import AdsInsights
 
 
@@ -67,7 +66,7 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
     
     for ad_account in ad_accounts:
         ads = ad_account.get_ads(
-            params={"limit": 5},
+            params={"limit": 25},
             fields=[
                 Ad.Field.account_id,
                 Ad.Field.ad_active_time,
@@ -116,7 +115,8 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
                 Ad.Field.filename,
             ],
         )
-        for ad in ads:
+        all_ads = list(ads)
+        for ad in all_ads:
             insights = ad.get_insights(
                 params={"date_preset": "today"},
                 fields=[
