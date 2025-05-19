@@ -4,7 +4,7 @@ from datetime import datetime
 from urllib.parse import urlencode
 
 from tools import get_logger
-from tools import settings
+from tools.settings import settings
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
