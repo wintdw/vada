@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from datetime import datetime
 
 from tools import get_logger
+from tools import settings
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
@@ -23,7 +24,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         
         crawl_info = await insert_crawl_info(CrawlInfo(
             access_token=access_token.get("access_token"),
-            index_name=f"{state}_tiktok_ad_report",
+            index_name=f"data_tiktokad_default_{state}",
             crawl_type="tiktok_business_ads",
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
@@ -35,7 +36,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             detail="Internal Server Error"
         )
     logger.info(crawl_info)
-    return RedirectResponse(url=f"https://qa.vadata.vn/callback.html?account_email={user_info["email"]}&index_name={crawl_info.index_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_email={user_info["email"]}&index_name={crawl_info.index_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):

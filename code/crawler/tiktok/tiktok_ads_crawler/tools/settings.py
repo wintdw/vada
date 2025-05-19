@@ -9,5 +9,6 @@ class Settings(BaseSettings):
     FACEBOOK_APP_SECRET: str = os.getenv("FACEBOOK_APP_SECRET")
     FACEBOOK_ACCESS_TOKEN: str = os.getenv("FACEBOOK_ACCESS_TOKEN")
     INSERT_SERVICE_URL: str = os.getenv("INSERT_SERVICE_URL")
+    CONNECTOR_CALLBACK_URL: str = os.getenv("CONNECTOR_CALLBACK_URL")
 
 settings = Settings()
