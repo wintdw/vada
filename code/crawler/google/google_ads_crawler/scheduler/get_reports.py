@@ -105,6 +105,15 @@ async def init_scheduler():
                     or existing_kwargs["refresh_token"] != refresh_token
                     or existing_trigger.interval.total_seconds() != crawl_interval * 60
                 ):
+                    # Run it for the first time
+                    await scheduled_fetch_google_reports(
+                        refresh_token=refresh_token,
+                        index_name=index_name,
+                        crawl_id=crawl_id,
+                        vada_uid=vada_uid,
+                        account_email=account_email,
+                    )
+
                     # Update the job if parameters have changed
                     scheduler.add_job(
                         scheduled_fetch_google_reports,
@@ -165,9 +174,9 @@ async def init_scheduler():
     # Schedule the update_jobs function to run every 20 minutes
     scheduler.add_job(
         update_jobs,
-        trigger=IntervalTrigger(minutes=20),
+        trigger=IntervalTrigger(minutes=1),
         id="update_jobs",
-        name="Update Google Ads Reports jobs every 20 minutes",
+        name="Update Google Ads Reports jobs every 1 minute",
         replace_existing=False,
         misfire_grace_time=30,
         max_instances=1,
