@@ -83,7 +83,7 @@ async def add_google_ad_crawl_job(
     job_id: str,
     vada_uid: str = "",
     account_email: str = "",
-    crawl_interval: int = 1440,
+    crawl_interval: int = 720,
 ):
     # Run it for the first time
     await scheduled_fetch_google_reports(

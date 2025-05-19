@@ -208,14 +208,15 @@ async def fetch_google_reports(
         ga_client, start_date, end_date, customer_ads_accounts
     )
 
-    # Process and send reports to insert service
-    if persist and es_index:
-        insert_response = await post_processing(ad_reports, es_index)
-        logging.info(
-            "Sending to Insert service. Index: %s. Response: %s",
-            es_index,
-            insert_response,
-        )
+    # Process and send reports to insert service if any ads
+    if ad_reports:
+        if persist and es_index:
+            insert_response = await post_processing(ad_reports, es_index)
+            logging.info(
+                "Sending to Insert service. Index: %s. Response: %s",
+                es_index,
+                insert_response,
+            )
 
     # Handle mappings for CRM
     if mappings:
