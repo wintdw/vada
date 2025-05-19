@@ -3,8 +3,6 @@ from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
 from facebook_business.adobjects.adsinsights import AdsInsights
-from facebook_business.api import FacebookAdsApiBatch
-
 
 import logging
 from tools.settings import settings
@@ -28,7 +26,6 @@ async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
         app_secret=settings.FACEBOOK_APP_SECRET,
         access_token=access_token,
     )
-    fb_ads_api_batch = ads_api.new_batch()
     aau = AdAccountUser("me", api=ads_api)
     ad_accounts = aau.get_ad_accounts(
         fields=[
@@ -55,10 +52,10 @@ async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
         ]
     )
     logger.info(f"Fetched {len(ad_accounts)} ad accounts.")
-    return ad_accounts, fb_ads_api_batch
+    return ad_accounts
 
 
-async def fetch_ads_for_accounts(ad_accounts: list[AdAccount], fb_ads_api_batch: FacebookAdsApiBatch):
+async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
     """
     Fetch ads for a list of ad accounts using batch requests.
 
@@ -118,129 +115,125 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount], fb_ads_api_batch:
         )
         all_ads = list(ads)
         logger.info(f"All ads: {len(all_ads)}")
-        for i in range(0, len(all_ads), 50):
-            for ad in all_ads[i : i + 50]:
-                ad.get_insights(
-                    batch=fb_ads_api_batch,
-                    failure=lambda e: logger.error(f"Error fetching insights: {e}"),
-                    params={"date_preset": "today"},
-                    fields=[
-                        AdsInsights.Field.account_currency,
-                        AdsInsights.Field.action_values,
-                        AdsInsights.Field.actions,
-                        AdsInsights.Field.ad_impression_actions,
-                        AdsInsights.Field.adset_id,
-                        AdsInsights.Field.attribution_setting,
-                        AdsInsights.Field.auction_bid,
-                        AdsInsights.Field.auction_competitiveness,
-                        AdsInsights.Field.auction_max_competitor_bid,
-                        AdsInsights.Field.buying_type,
-                        AdsInsights.Field.canvas_avg_view_percent,
-                        AdsInsights.Field.canvas_avg_view_time,
-                        AdsInsights.Field.catalog_segment_actions,
-                        AdsInsights.Field.catalog_segment_value,
-                        AdsInsights.Field.catalog_segment_value_mobile_purchase_roas,
-                        AdsInsights.Field.catalog_segment_value_omni_purchase_roas,
-                        AdsInsights.Field.catalog_segment_value_website_purchase_roas,
-                        AdsInsights.Field.clicks,
-                        AdsInsights.Field.conversion_rate_ranking,
-                        AdsInsights.Field.conversion_values,
-                        AdsInsights.Field.conversions,
-                        AdsInsights.Field.converted_product_quantity,
-                        AdsInsights.Field.converted_product_value,
-                        AdsInsights.Field.cost_per_15_sec_video_view,
-                        AdsInsights.Field.cost_per_2_sec_continuous_video_view,
-                        AdsInsights.Field.cost_per_action_type,
-                        AdsInsights.Field.cost_per_ad_click,
-                        AdsInsights.Field.cost_per_conversion,
-                        AdsInsights.Field.cost_per_dda_countby_convs,
-                        AdsInsights.Field.cost_per_estimated_ad_recallers,
-                        AdsInsights.Field.cost_per_inline_link_click,
-                        AdsInsights.Field.cost_per_inline_post_engagement,
-                        AdsInsights.Field.cost_per_one_thousand_ad_impression,
-                        AdsInsights.Field.cost_per_outbound_click,
-                        AdsInsights.Field.cost_per_thruplay,
-                        AdsInsights.Field.cost_per_unique_action_type,
-                        AdsInsights.Field.cost_per_unique_click,
-                        AdsInsights.Field.cost_per_unique_conversion,
-                        AdsInsights.Field.cost_per_unique_inline_link_click,
-                        AdsInsights.Field.cost_per_unique_outbound_click,
-                        AdsInsights.Field.cpc,
-                        AdsInsights.Field.cpm,
-                        AdsInsights.Field.cpp,
-                        AdsInsights.Field.created_time,
-                        AdsInsights.Field.ctr,
-                        AdsInsights.Field.date_start,
-                        AdsInsights.Field.date_stop,
-                        # AdsInsights.Field.dda_countby_convs,
-                        # AdsInsights.Field.dda_results,
-                        AdsInsights.Field.engagement_rate_ranking,
-                        # AdsInsights.Field.estimated_ad_recall_rate,
-                        # AdsInsights.Field.estimated_ad_recallers,
-                        AdsInsights.Field.frequency,
-                        AdsInsights.Field.full_view_impressions,
-                        AdsInsights.Field.full_view_reach,
-                        AdsInsights.Field.impressions,
-                        AdsInsights.Field.inline_link_click_ctr,
-                        AdsInsights.Field.inline_link_clicks,
-                        AdsInsights.Field.inline_post_engagement,
-                        AdsInsights.Field.instagram_upcoming_event_reminders_set,
-                        AdsInsights.Field.instant_experience_clicks_to_open,
-                        AdsInsights.Field.instant_experience_clicks_to_start,
-                        AdsInsights.Field.instant_experience_outbound_clicks,
-                        # AdsInsights.Field.interactive_component_tap,
-                        AdsInsights.Field.marketing_messages_cost_per_delivered,
-                        AdsInsights.Field.marketing_messages_cost_per_link_btn_click,
-                        AdsInsights.Field.marketing_messages_spend,
-                        AdsInsights.Field.marketing_messages_website_purchase_values,
-                        AdsInsights.Field.mobile_app_purchase_roas,
-                        AdsInsights.Field.objective,
-                        # AdsInsights.Field.onsite_conversion_messaging_detected_purchase_deduped,
-                        AdsInsights.Field.optimization_goal,
-                        AdsInsights.Field.outbound_clicks,
-                        AdsInsights.Field.outbound_clicks_ctr,
-                        # AdsInsights.Field.place_page_name,
-                        # AdsInsights.Field.purchase_roas,
-                        # AdsInsights.Field.qualifying_question_qualify_answer_rate,
-                        # AdsInsights.Field.quality_ranking,
-                        AdsInsights.Field.reach,
-                        # AdsInsights.Field.shops_assisted_purchases,
-                        AdsInsights.Field.social_spend,
-                        AdsInsights.Field.spend,
-                        AdsInsights.Field.unique_actions,
-                        AdsInsights.Field.unique_clicks,
-                        AdsInsights.Field.unique_conversions,
-                        AdsInsights.Field.unique_ctr,
-                        AdsInsights.Field.unique_inline_link_click_ctr,
-                        AdsInsights.Field.unique_inline_link_clicks,
-                        AdsInsights.Field.unique_link_clicks_ctr,
-                        AdsInsights.Field.unique_outbound_clicks,
-                        AdsInsights.Field.unique_outbound_clicks_ctr,
-                        AdsInsights.Field.unique_video_continuous_2_sec_watched_actions,
-                        AdsInsights.Field.unique_video_view_15_sec,
-                        AdsInsights.Field.updated_time,
-                        AdsInsights.Field.video_15_sec_watched_actions,
-                        AdsInsights.Field.video_30_sec_watched_actions,
-                        AdsInsights.Field.video_avg_time_watched_actions,
-                        AdsInsights.Field.video_continuous_2_sec_watched_actions,
+        for ad in all_ads:
+            ad.get_insights(
+                params={"date_preset": "today"},
+                fields=[
+                    AdsInsights.Field.account_currency,
+                    AdsInsights.Field.action_values,
+                    AdsInsights.Field.actions,
+                    AdsInsights.Field.ad_impression_actions,
+                    AdsInsights.Field.adset_id,
+                    AdsInsights.Field.attribution_setting,
+                    AdsInsights.Field.auction_bid,
+                    AdsInsights.Field.auction_competitiveness,
+                    AdsInsights.Field.auction_max_competitor_bid,
+                    AdsInsights.Field.buying_type,
+                    AdsInsights.Field.canvas_avg_view_percent,
+                    AdsInsights.Field.canvas_avg_view_time,
+                    AdsInsights.Field.catalog_segment_actions,
+                    AdsInsights.Field.catalog_segment_value,
+                    AdsInsights.Field.catalog_segment_value_mobile_purchase_roas,
+                    AdsInsights.Field.catalog_segment_value_omni_purchase_roas,
+                    AdsInsights.Field.catalog_segment_value_website_purchase_roas,
+                    AdsInsights.Field.clicks,
+                    AdsInsights.Field.conversion_rate_ranking,
+                    AdsInsights.Field.conversion_values,
+                    AdsInsights.Field.conversions,
+                    AdsInsights.Field.converted_product_quantity,
+                    AdsInsights.Field.converted_product_value,
+                    AdsInsights.Field.cost_per_15_sec_video_view,
+                    AdsInsights.Field.cost_per_2_sec_continuous_video_view,
+                    AdsInsights.Field.cost_per_action_type,
+                    AdsInsights.Field.cost_per_ad_click,
+                    AdsInsights.Field.cost_per_conversion,
+                    AdsInsights.Field.cost_per_dda_countby_convs,
+                    AdsInsights.Field.cost_per_estimated_ad_recallers,
+                    AdsInsights.Field.cost_per_inline_link_click,
+                    AdsInsights.Field.cost_per_inline_post_engagement,
+                    AdsInsights.Field.cost_per_one_thousand_ad_impression,
+                    AdsInsights.Field.cost_per_outbound_click,
+                    AdsInsights.Field.cost_per_thruplay,
+                    AdsInsights.Field.cost_per_unique_action_type,
+                    AdsInsights.Field.cost_per_unique_click,
+                    AdsInsights.Field.cost_per_unique_conversion,
+                    AdsInsights.Field.cost_per_unique_inline_link_click,
+                    AdsInsights.Field.cost_per_unique_outbound_click,
+                    AdsInsights.Field.cpc,
+                    AdsInsights.Field.cpm,
+                    AdsInsights.Field.cpp,
+                    AdsInsights.Field.created_time,
+                    AdsInsights.Field.ctr,
+                    AdsInsights.Field.date_start,
+                    AdsInsights.Field.date_stop,
+                    # AdsInsights.Field.dda_countby_convs,
+                    # AdsInsights.Field.dda_results,
+                    AdsInsights.Field.engagement_rate_ranking,
+                    # AdsInsights.Field.estimated_ad_recall_rate,
+                    # AdsInsights.Field.estimated_ad_recallers,
+                    AdsInsights.Field.frequency,
+                    AdsInsights.Field.full_view_impressions,
+                    AdsInsights.Field.full_view_reach,
+                    AdsInsights.Field.impressions,
+                    AdsInsights.Field.inline_link_click_ctr,
+                    AdsInsights.Field.inline_link_clicks,
+                    AdsInsights.Field.inline_post_engagement,
+                    AdsInsights.Field.instagram_upcoming_event_reminders_set,
+                    AdsInsights.Field.instant_experience_clicks_to_open,
+                    AdsInsights.Field.instant_experience_clicks_to_start,
+                    AdsInsights.Field.instant_experience_outbound_clicks,
+                    # AdsInsights.Field.interactive_component_tap,
+                    AdsInsights.Field.marketing_messages_cost_per_delivered,
+                    AdsInsights.Field.marketing_messages_cost_per_link_btn_click,
+                    AdsInsights.Field.marketing_messages_spend,
+                    AdsInsights.Field.marketing_messages_website_purchase_values,
+                    AdsInsights.Field.mobile_app_purchase_roas,
+                    AdsInsights.Field.objective,
+                    # AdsInsights.Field.onsite_conversion_messaging_detected_purchase_deduped,
+                    AdsInsights.Field.optimization_goal,
+                    AdsInsights.Field.outbound_clicks,
+                    AdsInsights.Field.outbound_clicks_ctr,
+                    # AdsInsights.Field.place_page_name,
+                    # AdsInsights.Field.purchase_roas,
+                    # AdsInsights.Field.qualifying_question_qualify_answer_rate,
+                    # AdsInsights.Field.quality_ranking,
+                    AdsInsights.Field.reach,
+                    # AdsInsights.Field.shops_assisted_purchases,
+                    AdsInsights.Field.social_spend,
+                    AdsInsights.Field.spend,
+                    AdsInsights.Field.unique_actions,
+                    AdsInsights.Field.unique_clicks,
+                    AdsInsights.Field.unique_conversions,
+                    AdsInsights.Field.unique_ctr,
+                    AdsInsights.Field.unique_inline_link_click_ctr,
+                    AdsInsights.Field.unique_inline_link_clicks,
+                    AdsInsights.Field.unique_link_clicks_ctr,
+                    AdsInsights.Field.unique_outbound_clicks,
+                    AdsInsights.Field.unique_outbound_clicks_ctr,
+                    AdsInsights.Field.unique_video_continuous_2_sec_watched_actions,
+                    AdsInsights.Field.unique_video_view_15_sec,
+                    AdsInsights.Field.updated_time,
+                    AdsInsights.Field.video_15_sec_watched_actions,
+                    AdsInsights.Field.video_30_sec_watched_actions,
+                    AdsInsights.Field.video_avg_time_watched_actions,
+                    AdsInsights.Field.video_continuous_2_sec_watched_actions,
 
-                        # AdsInsights.Field.video_p100_watched_actions,
-                        # AdsInsights.Field.video_p25_watched_actions,
-                        # AdsInsights.Field.video_p50_watched_actions,
-                        # AdsInsights.Field.video_p75_watched_actions,
-                        # AdsInsights.Field.video_p95_watched_actions,
-                        AdsInsights.Field.video_play_actions,
-                        # AdsInsights.Field.video_play_curve_actions,
-                        AdsInsights.Field.video_play_retention_0_to_15s_actions,
-                        AdsInsights.Field.video_play_retention_20_to_60s_actions,
-                        # AdsInsights.Field.video_play_retention_graph_actions,
-                        # AdsInsights.Field.video_thruplay_watched_actions,
-                        AdsInsights.Field.video_time_watched_actions,
-                        AdsInsights.Field.website_ctr,
-                        AdsInsights.Field.website_purchase_roas,
-                    ],
-                )
-            fb_ads_api_batch.execute()
+                    # AdsInsights.Field.video_p100_watched_actions,
+                    # AdsInsights.Field.video_p25_watched_actions,
+                    # AdsInsights.Field.video_p50_watched_actions,
+                    # AdsInsights.Field.video_p75_watched_actions,
+                    # AdsInsights.Field.video_p95_watched_actions,
+                    AdsInsights.Field.video_play_actions,
+                    # AdsInsights.Field.video_play_curve_actions,
+                    AdsInsights.Field.video_play_retention_0_to_15s_actions,
+                    AdsInsights.Field.video_play_retention_20_to_60s_actions,
+                    # AdsInsights.Field.video_play_retention_graph_actions,
+                    # AdsInsights.Field.video_thruplay_watched_actions,
+                    AdsInsights.Field.video_time_watched_actions,
+                    AdsInsights.Field.website_ctr,
+                    AdsInsights.Field.website_purchase_roas,
+                ],
+            )
 
 
 async def crawl_facebook_ads(access_token: str = settings.FACEBOOK_ACCESS_TOKEN):
@@ -251,8 +244,8 @@ async def crawl_facebook_ads(access_token: str = settings.FACEBOOK_ACCESS_TOKEN)
         access_token (str): Facebook API access token.
     """
     try:
-        ad_accounts, fb_ads_api_batch = await fetch_ad_accounts(access_token)
-        await fetch_ads_for_accounts(ad_accounts, fb_ads_api_batch)
+        ad_accounts = await fetch_ad_accounts(access_token)
+        await fetch_ads_for_accounts(ad_accounts)
         logger.info("Facebook ads crawling completed successfully.")
     except Exception as e:
         logger.error(f"Error occurred during Facebook ads crawling: {e}")
