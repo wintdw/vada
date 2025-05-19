@@ -69,7 +69,7 @@ async def create_crm_mappings(
     response = await create_crm_mappings_handler(
         user_id=vada_uid,
         index_name=index_name,
-        index_friendly_name=f"Google Ads {account_email}",
+        index_friendly_name=f"Google Ads - {account_email}",
         mappings=index_mappings_data["mappings"],
         id_field="customer_id",
         agg_field="customer_id",
