@@ -66,7 +66,7 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
     
     for ad_account in ad_accounts:
         ads = ad_account.get_ads(
-            params={"limit": 25},
+            params={"limit": 100},
             fields=[
                 Ad.Field.account_id,
                 Ad.Field.ad_active_time,
@@ -116,6 +116,7 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
             ],
         )
         all_ads = list(ads)
+        logger.info(f"All ads: {len(all_ads)}")
         for ad in all_ads:
             insights = ad.get_insights(
                 params={"date_preset": "today"},

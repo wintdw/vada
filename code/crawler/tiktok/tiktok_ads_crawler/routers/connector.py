@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
 from datetime import datetime
+from urllib.parse import urlencode
 
 from tools import get_logger
 from tools import settings
@@ -29,6 +30,9 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
         ))
+        
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads {user_info['email']}"})
+
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
@@ -36,7 +40,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             detail="Internal Server Error"
         )
     logger.info(crawl_info)
-    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_email={user_info["email"]}&index_name={crawl_info.index_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_email={user_info["email"]}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):
