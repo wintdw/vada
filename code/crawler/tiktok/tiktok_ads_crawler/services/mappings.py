@@ -1,4 +1,6 @@
 from typing import Dict
+import json
+
 from tools import put
 from tools.settings import settings
 
@@ -38,7 +40,7 @@ async def create_crm_mappings(
         user_id=vada_uid,
         index_name=index_name,
         index_friendly_name=f"Tiktok Ads {account_email}",
-        mappings= {
+        mappings=json.loads({
             "_doc": {
                 "dynamic": "true",
                 "dynamic_date_formats": [
@@ -1845,7 +1847,7 @@ async def create_crm_mappings(
                 }
                 }
             }
-        },
+        }),
         id_field="customer_id",
         agg_field="customer_id",
         time_field="date",
