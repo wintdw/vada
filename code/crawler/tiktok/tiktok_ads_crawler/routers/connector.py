@@ -40,16 +40,15 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         crawl_status = await crawl_tiktok_business(
             index_name=crawl_info.index_name,
             access_token=access_token.get("access_token"),
-            start_date=datetime.now() - timedelta(days=30),
-            end_date=datetime.now()
+            start_date=(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'),
+            end_date=datetime.now().strftime('%Y-%m-%d')
         )
         logger.info(crawl_status)
 
         mappings_response = await create_crm_mappings(
             index_name=crawl_info.index_name,
-            account_id=user_info["core_user_id"],
+            vada_uid=state,
             account_email=user_info["email"],
-            friendly_index_name=f"Tiktok Ads {user_info['email']}"
         )
         logger.info(mappings_response)
 
