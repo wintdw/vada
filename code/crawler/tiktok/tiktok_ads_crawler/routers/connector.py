@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 from tools import get_logger
@@ -16,7 +16,12 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
     from services import (
         tiktok_biz_get_access_token,
         tiktok_biz_get_user_info,
+        create_crm_mappings
     )
+    from handlers import (
+        crawl_tiktok_business
+    )
+
     try:
         access_token = await tiktok_biz_get_access_token(auth_code=auth_code)
         logger.info(access_token)
@@ -30,16 +35,31 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             crawl_from_date=datetime.now(),
             crawl_to_date=datetime.now()
         ))
-        
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads {user_info['email']}"})
+        logger.info(crawl_info)
 
+        crawl_status = await crawl_tiktok_business(
+            index_name=crawl_info.index_name,
+            access_token=access_token.get("access_token"),
+            start_date=datetime.now() - timedelta(days=30),
+            end_date=datetime.now()
+        )
+        logger.info(crawl_status)
+
+        mappings_response = await create_crm_mappings(
+            index_name=crawl_info.index_name,
+            account_id=user_info["core_user_id"],
+            account_email=user_info["email"],
+            friendly_index_name=f"Tiktok Ads {user_info['email']}"
+        )
+        logger.info(mappings_response)
+
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads {user_info['email']}"})
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
             status_code=500,
             detail="Internal Server Error"
         )
-    logger.info(crawl_info)
     return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_email={user_info["email"]}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])

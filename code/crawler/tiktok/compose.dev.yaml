@@ -27,3 +27,4 @@ services:
       FACEBOOK_APP_SECRET: 1d63cc46243d28b50b0da5a6e2eefbcc
       FACEBOOK_ACCESS_TOKEN: EAALsHAVaa4UBOZCBZCiHUpUyYOQVg9DaKhkISUz3BVy8Fyg2k88lc8T0QPEhGDeiAFbMg2ZBOJpl2foBUwsNwcJl7ZCBJkYVZABQUSgZAk5hPOwEbZCZBktdEEYuJ6ToVzZBvJ01GLtC1xLc4suBZA40lJU3eS4f3smWEuFp3P6CqwKCHLx3WbbxPtRsZBuCbgdCggcytpX
       CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
+      MAPPINGS_BASE_URL: http://mappings-dev.internal.vadata.vn

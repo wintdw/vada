@@ -10,5 +10,6 @@ class Settings(BaseSettings):
     FACEBOOK_ACCESS_TOKEN: str = os.getenv("FACEBOOK_ACCESS_TOKEN")
     INSERT_SERVICE_URL: str = os.getenv("INSERT_SERVICE_URL")
     CONNECTOR_CALLBACK_URL: str = os.getenv("CONNECTOR_CALLBACK_URL")
+    MAPPINGS_BASE_URL: str = os.getenv("MAPPINGS_BASE_URL")
 
 settings = Settings()
