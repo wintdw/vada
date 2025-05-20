@@ -3,6 +3,9 @@ from datetime import datetime
 
 class CrawlInfo(BaseModel):
     crawl_id: str | None = None
+    account_id: str
+    account_email: str
+    vada_uid: str
     index_name: str
     crawl_type: str
     access_token: str

@@ -10,12 +10,16 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
             await cursor.execute(
                 """
                 INSERT INTO `CrawlInfo`
-                    (crawl_id, index_name, crawl_type, access_token, refresh_token,
+                    (crawl_id, account_id, account_email, vada_uid,
+                    index_name, crawl_type, access_token, refresh_token,
                     crawl_interval, crawl_from_date, crawl_to_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, 
                 (
                     crawl_info.crawl_id,
+                    crawl_info.account_id,
+                    crawl_info.account_email,
+                    crawl_info.vada_uid,
                     crawl_info.index_name,
                     crawl_info.crawl_type,
                     crawl_info.access_token,
@@ -33,7 +37,8 @@ async def select_crawl_info_by_crawl_id(crawl_id: str) -> CrawlInfo | None:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                SELECT crawl_id, index_name, crawl_type, access_token, refresh_token,
+                SELECT crawl_id, account_id, account_email, vada_uid,
+                    index_name, crawl_type, access_token, refresh_token,
                     access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`
@@ -52,11 +57,12 @@ async def select_crawl_info_by_next_crawl_time() -> list[CrawlInfo]:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                SELECT crawl_id, index_name, crawl_type, access_token, refresh_token,
+                SELECT crawl_id, account_id, account_email, vada_uid,
+                    index_name, crawl_type, access_token, refresh_token,
                     access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`
-                WHERE next_crawl_time < NOW() AND crawl_type = 'tikTok_business_ads'
+                WHERE next_crawl_time < NOW() AND crawl_type = 'tiktok_business_ads'
                 """
             )
             results = await cursor.fetchall()
@@ -67,7 +73,8 @@ async def select_crawl_info() -> list[CrawlInfo]:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                SELECT crawl_id, index_name, crawl_type, access_token, refresh_token,
+                SELECT crawl_id, account_id, account_email, vada_uid,
+                    index_name, crawl_type, access_token, refresh_token,
                     access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`

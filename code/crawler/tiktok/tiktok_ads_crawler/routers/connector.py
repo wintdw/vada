@@ -29,6 +29,9 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         logger.info(user_info)
         
         crawl_info = await insert_crawl_info(CrawlInfo(
+            account_id=user_info["core_user_id"],
+            account_email=user_info["email"],
+            vada_uid=state,
             access_token=access_token.get("access_token"),
             index_name=f"data_tiktokad_default_{state}",
             crawl_type="tiktok_business_ads",
