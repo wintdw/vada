@@ -10,13 +10,13 @@ from handler.report import fetch_google_reports
 from handler.mysql import get_google_ad_crawl_info
 
 
-google_ad_crawl_total = Counter(
-    "google_ad_crawl_total",
+google_ad_crawl = Counter(
+    "google_ad_crawl",
     "Total number of crawls",
     ["crawl_id", "account_email", "vada_uid"],
 )
-google_ad_crawl_sucess = Counter(
-    "google_ad_crawl_sucess",
+google_ad_crawl_success = Counter(
+    "google_ad_crawl_success",
     "Total number of successful crawls",
     ["crawl_id", "account_email", "vada_uid"],
 )
@@ -41,7 +41,7 @@ async def scheduled_fetch_google_reports(
         f"[Scheduler] Starting scheduled fetch of Google Ads reports for {index_name}"
     )
     try:
-        google_ad_crawl_total.labels(
+        google_ad_crawl.labels(
             crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
         ).inc()
 
@@ -72,7 +72,7 @@ async def scheduled_fetch_google_reports(
                 timeout=600,
             )
 
-        google_ad_crawl_sucess.labels(
+        google_ad_crawl_success.labels(
             crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
         ).inc()
         logging.info(
