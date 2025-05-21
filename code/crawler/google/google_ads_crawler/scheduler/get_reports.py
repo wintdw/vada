@@ -13,107 +13,60 @@ from handler.mysql import get_google_ad_crawl_info
 google_ad_crawl = Counter(
     "google_ad_crawl",
     "Total number of crawls",
-    ["crawl_id", "account_email", "vada_uid"],
+    ["account_email", "vada_uid"],
 )
 google_ad_crawl_success = Counter(
     "google_ad_crawl_success",
     "Total number of successful crawls",
-    ["crawl_id", "account_email", "vada_uid"],
+    ["account_email", "vada_uid"],
 )
 google_ad_crawl_latency = Histogram(
     "google_ad_crawl_latency_seconds",
     "Latency of Google Ad crawls in seconds",
-    ["crawl_id", "account_email", "vada_uid"],
+    ["account_email", "vada_uid"],
 )
-
-
-async def scheduled_fetch_google_reports(
-    refresh_token: str,
-    index_name: str,
-    crawl_id: str,
-    vada_uid: str = "",
-    account_email: str = "",
-):
-    """
-    Function to call the fetch_google_reports function for a specific Google Ad account.
-    """
-    logging.info(
-        f"[Scheduler] Starting scheduled fetch of Google Ads reports for {index_name}"
-    )
-    try:
-        google_ad_crawl.labels(
-            crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
-        ).inc()
-
-        # Calculate dates
-        end_date = datetime.now().strftime("%Y-%m-%d")
-        start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-
-        if vada_uid and account_email:
-            mappings = {
-                "vada_uid": vada_uid,
-                "account_email": account_email,
-            }
-        else:
-            mappings = None
-
-        with google_ad_crawl_latency.labels(
-            crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
-        ).time():
-            await asyncio.wait_for(
-                fetch_google_reports(
-                    refresh_token=refresh_token,
-                    start_date=start_date,
-                    end_date=end_date,
-                    persist=True,
-                    es_index=index_name,
-                    mappings=mappings,
-                ),  # type: ignore
-                timeout=600,
-            )
-
-        google_ad_crawl_success.labels(
-            crawl_id=crawl_id, vada_uid=vada_uid, account_email=account_email
-        ).inc()
-        logging.info(
-            f"[Scheduler] Successfully fetched Google Ads reports for {index_name}"
-        )
-    except Exception as e:
-        logging.error(
-            f"[Scheduler] Error fetching Google Ads reports for {index_name}: {str(e)}",
-            exc_info=True,
-        )
 
 
 async def add_google_ad_crawl_job(
     scheduler: AsyncIOScheduler,
     refresh_token: str,
     index_name: str,
-    crawl_id: str,
     job_id: str,
     vada_uid: str = "",
     account_email: str = "",
     crawl_interval: int = 720,
 ):
-    # Run it for the first time
-    await scheduled_fetch_google_reports(
+    now = datetime.now().strftime("%Y-%m-%d")
+    day_ago = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    if vada_uid and account_email:
+        mappings = {
+            "vada_uid": vada_uid,
+            "account_email": account_email,
+        }
+    else:
+        mappings = None
+
+    await fetch_google_reports(
         refresh_token=refresh_token,
-        index_name=index_name,
-        crawl_id=crawl_id,
-        vada_uid=vada_uid,
-        account_email=account_email,
+        start_date=thirty_days_ago,
+        end_date=now,
+        persist=True,
+        es_index=index_name,
+        mappings=mappings,
     )
 
-    # Update the job if parameters have changed
     scheduler.add_job(
-        scheduled_fetch_google_reports,
+        fetch_google_reports,
         trigger=IntervalTrigger(minutes=crawl_interval),
         kwargs={
             "refresh_token": refresh_token,
-            "index_name": index_name,
-            "crawl_id": crawl_id,
-            "vada_uid": vada_uid,
-            "account_email": account_email,
+            "start_date": day_ago,
+            "end_date": now,
+            "persist": True,
+            "es_index": index_name,
+            "mappings": mappings,
         },
         id=job_id,
         name=f"Fetch Google Ads Reports for Email: {account_email}, Index: {index_name} every {crawl_interval} minutes",
@@ -162,7 +115,6 @@ async def init_scheduler():
                         scheduler,
                         refresh_token,
                         index_name,
-                        crawl_id,
                         job_id,
                         vada_uid,
                         account_email,
@@ -179,7 +131,6 @@ async def init_scheduler():
                     scheduler,
                     refresh_token,
                     index_name,
-                    crawl_id,
                     job_id,
                     vada_uid,
                     account_email,
