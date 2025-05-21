@@ -1,8 +1,8 @@
 CREATE TABLE `CrawlInfo` (
   `id` int NOT NULL AUTO_INCREMENT,
   `crawl_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `account_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `account_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `account_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `account_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `vada_uid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `index_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `crawl_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
