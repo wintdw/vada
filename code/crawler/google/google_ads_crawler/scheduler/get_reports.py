@@ -106,7 +106,7 @@ async def init_scheduler():
                 existing_kwargs = existing_job.kwargs
 
                 if (
-                    existing_kwargs["index_name"] != index_name
+                    existing_kwargs["es_index"] != index_name
                     or existing_kwargs["refresh_token"] != refresh_token
                     or existing_trigger.interval.total_seconds() != crawl_interval * 60
                 ):
