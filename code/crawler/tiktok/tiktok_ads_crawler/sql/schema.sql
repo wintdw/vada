@@ -16,7 +16,8 @@ CREATE TABLE `CrawlInfo` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `crawl_id` (`crawl_id`)
+  UNIQUE KEY `crawl_id` (`crawl_id`),
+  UNIQUE KEY `unique_account_vada` (`account_id`,`vada_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `CrawlHistory` (
