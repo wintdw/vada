@@ -9,8 +9,6 @@ class CrawlHistory(BaseModel):
     crawl_error: str = ""
     crawl_duration: int = 0
     crawl_data_number: int = 0
-    crawl_from_date: datetime | None = None
-    crawl_to_date: datetime | None = None
 
 class CrawlHistoryResponse(BaseModel):
     status: int

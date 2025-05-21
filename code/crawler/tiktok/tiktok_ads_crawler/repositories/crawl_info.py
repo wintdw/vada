@@ -12,8 +12,8 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
                 INSERT INTO `CrawlInfo`
                     (crawl_id, account_id, account_email, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
-                    crawl_interval, crawl_from_date, crawl_to_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    crawl_interval)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, 
                 (
                     crawl_info.crawl_id,
@@ -24,9 +24,7 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
                     crawl_info.crawl_type,
                     crawl_info.access_token,
                     crawl_info.refresh_token,
-                    crawl_info.crawl_interval,
-                    crawl_info.crawl_from_date,
-                    crawl_info.crawl_to_date
+                    crawl_info.crawl_interval
                 )
             )
             await connection.commit()
@@ -39,7 +37,7 @@ async def select_crawl_info_by_crawl_id(crawl_id: str) -> CrawlInfo | None:
                 """
                 SELECT crawl_id, account_id, account_email, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
-                    access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
+                    access_token_updated_at, crawl_interval,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`
                 WHERE crawl_id = %s
@@ -59,7 +57,7 @@ async def select_crawl_info_by_next_crawl_time() -> list[CrawlInfo]:
                 """
                 SELECT crawl_id, account_id, account_email, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
-                    access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
+                    access_token_updated_at, crawl_interval,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`
                 WHERE next_crawl_time < NOW() AND crawl_type = 'tiktok_business_ads'
@@ -75,7 +73,7 @@ async def select_crawl_info() -> list[CrawlInfo]:
                 """
                 SELECT crawl_id, account_id, account_email, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
-                    access_token_updated_at, crawl_interval, crawl_from_date, crawl_to_date,
+                    access_token_updated_at, crawl_interval,
                     last_crawl_time, next_crawl_time
                 FROM `CrawlInfo`
                 """
@@ -91,8 +89,6 @@ async def update_crawl_info(crawl_id: str, crawl_info: CrawlInfo) -> CrawlInfo:
                 UPDATE `CrawlInfo`
                 SET access_token_updated_at = %s,
                     crawl_interval = %s,
-                    crawl_from_date = %s,
-                    crawl_to_date = %s,
                     last_crawl_time = %s,
                     next_crawl_time = %s
                 WHERE crawl_id = %s
@@ -100,8 +96,6 @@ async def update_crawl_info(crawl_id: str, crawl_info: CrawlInfo) -> CrawlInfo:
                 (
                     crawl_info.access_token_updated_at,
                     crawl_info.crawl_interval,
-                    crawl_info.crawl_from_date,
-                    crawl_info.crawl_to_date,
                     crawl_info.last_crawl_time,
                     crawl_info.next_crawl_time,
                     crawl_id

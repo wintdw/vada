@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from tools import get_logger
 from models import CrawlHistory, CrawlInfoResponse
@@ -17,16 +17,13 @@ async def post_schedule_crawl(crawl_id: str = None):
         history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=item.crawl_id, crawl_from_date=item.crawl_from_date, crawl_to_date=item.crawl_to_date))
+            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=item.crawl_id))
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
 
-            crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, item.crawl_from_date.strftime('%Y-%m-%d'), item.crawl_to_date.strftime('%Y-%m-%d'))
+            crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
             logger.info(crawl_response)
-
-            item.crawl_from_date = item.crawl_to_date
-            item.crawl_to_date = item.crawl_to_date + timedelta(minutes=item.crawl_interval)
 
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)

@@ -12,8 +12,6 @@ class CrawlInfo(BaseModel):
     refresh_token: str = ""
     access_token_updated_at: datetime | None = None
     crawl_interval: int = 1440
-    crawl_from_date: datetime 
-    crawl_to_date: datetime 
     last_crawl_time: datetime | None = None
     next_crawl_time: datetime | None = None
 
