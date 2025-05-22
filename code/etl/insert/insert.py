@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from etl.insert.model.insert import InsertRequest
 from etl.insert.handler.processor import get_es_processor
-from etl.libs.vadadoc import VadaDocument
+from etl.insert.model.vadadoc import VadaDocument
 
 from libs.connectors.async_es import AsyncESProcessor, ESException
 from libs.utils.es_field_types import (
