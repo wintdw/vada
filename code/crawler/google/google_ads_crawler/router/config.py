@@ -6,4 +6,4 @@ router = APIRouter()
 
 @router.get("/ingest/partner/google/ad/config")
 async def expose_config():
-    return {"mappings": index_mappings_data}
+    return {"mappings": index_mappings_data["mappings"]}
