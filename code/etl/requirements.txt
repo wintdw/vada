@@ -1,4 +1,5 @@
 python-dateutil
+pydantic_settings
 pyjwt
 asyncio
 uvicorn

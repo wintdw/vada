@@ -7,7 +7,7 @@ This module is for processing jsonl and pushing to ES index
 import logging
 import traceback
 import asyncio
-from fastapi import FastAPI, Request, HTTPException, status, Depends  # type: ignore
+from fastapi import FastAPI, Request, HTTPException, status  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
 from pydantic import BaseModel  # type: ignore
@@ -51,8 +51,10 @@ def check_health_sync(es_processor: AsyncESProcessor):
 
 
 @app.get("/health")
-async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor)):
+async def check_health():
     """Check the health of the Elasticsearch cluster."""
+    es_processor: AsyncESProcessor = get_es_processor()
+
     response = await asyncio.get_event_loop().run_in_executor(
         health_check_executor, check_health_sync, es_processor
     )
@@ -65,10 +67,9 @@ async def check_health(es_processor: AsyncESProcessor = Depends(get_es_processor
 
 
 # This function can deal with duplicate messages
+# It's being used for facebook crawler, deprecated!
 @app.post("/jsonl")
-async def receive_jsonl(
-    request: Request, es_processor: AsyncESProcessor = Depends(get_es_processor)
-) -> JSONResponse:
+async def receive_jsonl(request: Request) -> JSONResponse:
     """
     Main function to process jsonl received from HTTP endpoint
 
@@ -81,6 +82,8 @@ async def receive_jsonl(
     Returns:
         JSONResponse: number of consumed messages
     """
+    es_processor: AsyncESProcessor = get_es_processor()
+
     try:
         body = await request.body()
         json_lines = body.decode("utf-8").splitlines()
@@ -154,15 +157,12 @@ class InsertRequest(BaseModel):
 
 # This function can deal with duplicate messages
 @app.post("/json")
-async def insert_json(
-    request: InsertRequest, es_processor: AsyncESProcessor = Depends(get_es_processor)
-) -> JSONResponse:
+async def insert_json(request: InsertRequest) -> JSONResponse:
     """
     Main function to process JSON data received from HTTP endpoint
 
     Args:
         request (InsertRequest): Request body containing meta information and data
-        es_processor (AsyncESProcessor): Elasticsearch processor dependency
 
     Raises:
         HTTPException: when problems arise
@@ -170,6 +170,8 @@ async def insert_json(
     Returns:
         JSONResponse: number of consumed messages
     """
+    es_processor: AsyncESProcessor = get_es_processor()
+
     try:
         status_msg = "success"
         index_name = request.meta.get("index_name")
@@ -218,7 +220,11 @@ async def insert_json(
             )
 
         return JSONResponse(
-            content={"status": status_msg, "detail": index_response["detail"]}
+            content={
+                "status": status_msg,
+                "mappings": mappings,
+                "detail": index_response["detail"],
+            }
         )
     except ESException as es_exc:
         logging.error("Elasticsearch exception: %s", es_exc)

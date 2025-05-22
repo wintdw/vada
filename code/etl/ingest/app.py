@@ -1,17 +1,17 @@
 # pylint: disable=import-error,wrong-import-position
 
-import os
 import logging
-from fastapi import FastAPI, Depends, HTTPException, status  # type: ignore
+import asyncio
+from fastapi import FastAPI, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
-from libs.connectors.async_kafka import AsyncKafkaProcessor
+from etl.libs.insert_client import InsertClient
+from etl.ingest.model.ingest import IngestRequest
+from etl.ingest.model.setting import settings
+
 from libs.connectors.mappings import MappingsClient
 
-from etl.libs.processor import get_kafka_processor, get_mappings_client
-from etl.ingest.handler.process import process
-from etl.ingest.model.ingest import IngestRequest
 
 app = FastAPI()
 # asyncio.get_event_loop().set_debug(True)
@@ -20,15 +20,13 @@ logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
-APP_ENV = os.getenv("APP_ENV")
+set_mappings_lock = asyncio.Lock()
 
 
 @app.get("/health")
-async def check_health(
-    mappings_client: MappingsClient = Depends(get_mappings_client),
-):
+async def check_health():
     """Check the health of Mappings service."""
+    mappings_client = MappingsClient(settings.MAPPINGS_BASEURL)
     mappings_response = await mappings_client.check_health()
 
     if mappings_response["status"] < 400:
@@ -43,11 +41,7 @@ async def check_health(
 
 
 @app.post("/v1/json")
-async def handle_json(
-    request: IngestRequest,
-    kafka_processor: AsyncKafkaProcessor = Depends(get_kafka_processor),
-    mappings_client: MappingsClient = Depends(get_mappings_client),
-):
+async def handle_json(request: IngestRequest):
     """Accept JSON data with meta information and data array.
 
     Format:
@@ -60,29 +54,26 @@ async def handle_json(
         "data": List[Dict]
     }
     """
-    try:
-        response = await process(
-            kafka_processor=kafka_processor,
-            mappings_client=mappings_client,
-            data=request.data,
-            app_env=APP_ENV,
-            user_id=request.meta.user_id,
-            index_name=request.meta.index_name,
-            index_friendly_name=request.meta.index_friendly_name,
+    user_id = request.meta.get("user_id")
+    index_name = request.meta.get("index_name")
+    index_friendly_name = request.meta.get("index_friendly_name", None)
+    documents = request.data
+
+    async with InsertClient(settings.INSERT_BASEURL) as insert_client:
+        # Example usage
+        insert_response = await insert_client.insert_json(index_name, documents)
+
+    mappings_client = MappingsClient(settings.MAPPINGS_BASEURL)
+
+    # Do once at a time
+    async with set_mappings_lock:
+        mappings_reponse = await mappings_client.copy_mappings(
+            user_id, index_name, index_friendly_name
         )
 
-        return JSONResponse(content=response)
-
-    except RuntimeError as run_err:
-        logging.error("Runtime error: %s", str(run_err))
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(run_err)
-        )
-    except Exception as e:
-        logging.error("Error processing request: %s", str(e), exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error processing request: {str(e)}",
-        )
-    finally:
-        await kafka_processor.close()
+    return JSONResponse(
+        content={
+            "insert": insert_response,
+            "mappings": mappings_reponse,
+        }
+    )
