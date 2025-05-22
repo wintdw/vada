@@ -69,7 +69,6 @@ scrape_configs:
         - https://acl.vadata.vn/health
         - https://dev-qe.vadata.vn/health
         - http://insert-dev.internal.vadata.vn/health
-        - http://process-dev.internal.vadata.vn/health
         - http://mappings-dev.internal.vadata.vn/health
         # VTAD
         - https://vtad.vn
@@ -78,7 +77,6 @@ scrape_configs:
         - https://api-vtad.vadata.vn/acl/health
         - http://qe-vtad.internal.vadata.vn/health
         - http://insert-vtad.internal.vadata.vn/health
-        - http://process-vtad.internal.vadata.vn/health
         - http://mappings-vtad.internal.vadata.vn/health
         # APP
         - https://app.vadata.vn
@@ -87,7 +85,6 @@ scrape_configs:
         - https://api-app.vadata.vn/acl/health
         - http://qe-app.internal.vadata.vn/health
         - http://insert-app.internal.vadata.vn/health
-        - http://process-app.internal.vadata.vn/health
         - http://mappings-app.internal.vadata.vn/health
         # INF
         - https://gr.vadata.vn/api/health
