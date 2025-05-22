@@ -62,6 +62,9 @@ async def handle_json(request: IngestRequest):
     async with InsertClient(settings.INSERT_BASEURL) as insert_client:
         # Example usage
         insert_response = await insert_client.insert_json(index_name, documents)
+        logging.info(
+            f"Inserted {len(documents)} documents into index {index_name} for user {user_id}: {insert_response}"
+        )
 
     mappings_client = MappingsClient(settings.MAPPINGS_BASEURL)
 
@@ -69,6 +72,9 @@ async def handle_json(request: IngestRequest):
     async with set_mappings_lock:
         mappings_reponse = await mappings_client.copy_mappings(
             user_id, index_name, index_friendly_name
+        )
+        logging.info(
+            f"Copied mappings for index {index_name} for user {user_id}: {mappings_reponse}"
         )
 
     return JSONResponse(

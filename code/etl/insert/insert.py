@@ -7,7 +7,7 @@ This module is for processing jsonl and pushing to ES index
 import logging
 import traceback
 import asyncio
-from fastapi import FastAPI, Request, HTTPException, status  # type: ignore
+from fastapi import FastAPI, Request, HTTPException  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
 
@@ -106,13 +106,12 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         logging.info("Field types: %s", field_types)
         # We expect all the messages received in one chunk will be in the same index
         # so we take only the first message to get the index name
+        vada_doc = VadaDocument(json_lines[0])
         index_name = vada_doc.get_index_name()
 
         if not index_name:
             logging.error("Missing index name: %s", vada_doc.get_doc())
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing index name"
-            )
+            raise HTTPException(status_code=400, detail="Missing index name")
 
         # Create index mappings if not exist
         mappings_response = await es_processor.create_mappings(index_name, mappings)
@@ -120,7 +119,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             status_msg = "mappings failure"
             logging.error("Failed to create mappings: %s", mappings_response["detail"])
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=500,
                 detail=mappings_response["detail"],
             )
 
@@ -131,7 +130,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             status_msg = "index failure"
             logging.error("Failed to index documents: %s", index_response["detail"])
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=500,
                 detail=index_response["detail"],
             )
 
@@ -144,7 +143,7 @@ async def receive_jsonl(request: Request) -> JSONResponse:
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        raise HTTPException(status_code=500) from e
     finally:
         await es_processor.close()
 
@@ -173,7 +172,7 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
         if not index_name:
             logging.error("Missing index name in meta data")
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 detail="Missing index name in meta data",
             )
 
@@ -198,7 +197,7 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
             status_msg = "mappings failure"
             logging.error("Failed to create mappings: %s", mappings_response["detail"])
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=500,
                 detail=mappings_response["detail"],
             )
 
@@ -209,7 +208,7 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
             status_msg = "index failure"
             logging.error("Failed to index documents: %s", index_response["detail"])
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=500,
                 detail=index_response["detail"],
             )
 
@@ -231,6 +230,6 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
     except Exception as e:
         error_trace = traceback.format_exc()
         logging.error("Exception: %s\nTraceback: %s", e, error_trace)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        raise HTTPException(status_code=500) from e
     finally:
         await es_processor.close()
