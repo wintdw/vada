@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio  # Add this import at the top
 from fastapi import FastAPI  # type: ignore
 
 from router import auth, account, report, metric, config
@@ -26,13 +27,28 @@ app.include_router(metric.router)
 app.state.flows = flows
 
 
-@app.on_event("startup")
-async def startup_event():
+async def init_scheduler_background():
     scheduler = await init_scheduler()
     scheduler.start()
-    app.state.scheduler = scheduler  # Store scheduler in app.state
+    app.state.scheduler = scheduler
+
+
+@app.on_event("startup")
+async def startup_event():
+    # Create background task for scheduler initialization
+    app.state.scheduler_task = asyncio.create_task(init_scheduler_background())
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    app.state.scheduler.shutdown()  # Access scheduler from app.state
+    # 1. Stop the scheduler if it exists
+    if hasattr(app.state, "scheduler"):
+        app.state.scheduler.shutdown()
+
+    # 2. Cancel the background initialization task
+    if hasattr(app.state, "scheduler_task"):
+        app.state.scheduler_task.cancel()  # Request cancellation
+        try:
+            await app.state.scheduler_task  # Wait for task to complete
+        except asyncio.CancelledError:
+            pass  # Suppress the cancellation error
