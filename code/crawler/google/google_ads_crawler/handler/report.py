@@ -10,7 +10,7 @@ from dependency.google_ad_client import get_google_ads_client
 from .metric import METRIC_FIELDS
 from .query import build_report_query
 from .account import get_all_account_hierarchies, get_non_manager_accounts
-from .persist import post_processing, create_crm_mappings
+from .persist import post_processing
 
 
 def get_metrics_from_row(metrics_obj) -> Dict:
@@ -183,7 +183,6 @@ async def fetch_google_reports(
     end_date: str,
     persist: bool,
     es_index: str = "",
-    mappings: Dict | None = None,
 ):
     # Validate date formats
     if start_date and end_date:
@@ -217,21 +216,6 @@ async def fetch_google_reports(
                 es_index,
                 insert_response,
             )
-
-    # Handle mappings for CRM
-    if mappings:
-        vada_uid = mappings.get("vada_uid", "")
-        account_email = mappings.get("account_email", "")
-
-        mapping_response = await create_crm_mappings(
-            vada_uid=vada_uid, index_name=es_index, account_email=account_email
-        )
-        logging.info(
-            "Sending to CRM mapping service. Index: %s. UID: %s. Response: %s",
-            es_index,
-            vada_uid,
-            mapping_response,
-        )
 
     # Build response with hierarchy information
     response_data = {

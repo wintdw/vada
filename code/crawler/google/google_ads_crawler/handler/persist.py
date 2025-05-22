@@ -2,7 +2,6 @@ import aiohttp  # type: ignore
 from typing import Dict, List
 
 from model.setting import settings
-from model.index_mappings import index_mappings_data
 
 
 def add_insert_metadata(reports: List, index_name: str) -> Dict:
@@ -32,56 +31,9 @@ async def send_to_insert_service(data: Dict, insert_service_baseurl: str) -> Dic
             return {"status": response.status, "detail": await response.text()}
 
 
-async def create_crm_mappings(
-    index_name: str, vada_uid: str, account_email: str
-) -> Dict:
-    """Copy CRM mappings from the mappings service
-    Args:
-        index_name: Name of the index to copy mappings for
-        vada_uid: Vada user ID
-        account_email: Account email of the Google account - for friendly name
-    """
-
-    async def create_crm_mappings_handler(
-        user_id: str,
-        index_name: str,
-        index_friendly_name: str,
-        mappings: Dict,
-        id_field: str = "",
-        agg_field: str = "",
-        time_field: str = "",
-    ) -> Dict:
-        url = f"{settings.MAPPINGS_BASE_URL}/crm/mappings"
-
-        payload = {
-            "user_id": user_id,
-            "index_name": index_name,
-            "index_friendly_name": index_friendly_name,
-            "mappings": mappings,
-            "id_field": id_field,
-            "agg_field": agg_field,
-            "time_field": time_field,
-        }
-        async with aiohttp.ClientSession() as session:
-            async with session.put(url, json=payload) as response:
-                return await response.json()
-
-    response = await create_crm_mappings_handler(
-        user_id=vada_uid,
-        index_name=index_name,
-        index_friendly_name=f"Google Ads - {account_email}",
-        mappings=index_mappings_data["mappings"],
-        id_field="customer_id",
-        agg_field="customer_id",
-        time_field="date",
-    )
-    return response
-
-
 ### The main function to process and send reports
 async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
     """Produce data to insert service
-    then use mapping to create CRM index
 
     Args:
         raw_reports: List of report data to be processed and sent
