@@ -1,6 +1,6 @@
 import os
 
-from etl.ingest.model.setting import settings
+from etl.insert.model.setting import settings
 
 from libs.connectors.async_es import AsyncESProcessor
 

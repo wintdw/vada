@@ -12,8 +12,9 @@ from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
 
 from etl.insert.model.insert import InsertRequest
+from etl.insert.handler.processor import get_es_processor
 from etl.libs.vadadoc import VadaDocument
-from etl.libs.processor import get_es_processor
+
 from libs.connectors.async_es import AsyncESProcessor, ESException
 from libs.utils.es_field_types import (
     determine_es_field_types,
