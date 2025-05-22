@@ -35,12 +35,8 @@ services:
     environment:
       PORT: "8001"
       APP_ENV: vtad
-      JWT_TOKEN_SECRET_FILE: /run/secrets/jwt
-      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      ELASTIC_PASSWD_FILE: /run/secrets/es
-      ELASTIC_USER: elastic
-      ELASTIC_URL: http://es-vtad.internal.vadata.vn
       MAPPINGS_BASEURL: http://mappings-vtad.internal.vadata.vn
+      INSERT_BASEURL: http://insert-vtad.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     secrets:
@@ -48,24 +44,3 @@ services:
       - jwt
     ports:
       - "8001:8001"
-  
-  process:
-    build:
-      context: ..
-      dockerfile: etl/Dockerfile.process
-    image: process:latest
-    container_name: process
-    restart: always
-    environment:
-      PORT: "8002"
-      APP_ENV: vtad
-      ELASTIC_PASSWD_FILE: /run/secrets/es
-      ELASTIC_USER: elastic
-      ELASTIC_URL: http://es-vtad.internal.vadata.vn
-      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-    secrets:
-      - es
-    ports:
-      - "8002:8002"

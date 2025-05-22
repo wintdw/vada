@@ -55,14 +55,8 @@ services:
     environment:
       PORT: "8001"
       APP_ENV: dev
-      JWT_TOKEN_SECRET_FILE: /run/secrets/jwt
-      KAFKA_BROKER_URL: kafka.ilb.vadata.vn:9092
-      ELASTIC_PASSWD_FILE: /run/secrets/es
-      ELASTIC_USER: elastic
-      ELASTIC_URL: http://demo.internal.vadata.vn:9200
       MAPPINGS_BASEURL: http://mappings-dev.internal.vadata.vn
       INSERT_BASEURL: http://insert-dev.internal.vadata.vn
-
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
     secrets:
