@@ -10,9 +10,8 @@ import asyncio
 from fastapi import FastAPI, Request, HTTPException, status  # type: ignore
 from fastapi.responses import JSONResponse  # type: ignore
 from concurrent.futures import ThreadPoolExecutor
-from pydantic import BaseModel  # type: ignore
-from typing import List, Dict, Any
 
+from etl.insert.model.insert import InsertRequest
 from etl.libs.vadadoc import VadaDocument
 from etl.libs.processor import get_es_processor
 from libs.connectors.async_es import AsyncESProcessor, ESException
@@ -147,12 +146,6 @@ async def receive_jsonl(request: Request) -> JSONResponse:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     finally:
         await es_processor.close()
-
-
-##### NEW FORMAT
-class InsertRequest(BaseModel):
-    meta: Dict[str, str]
-    data: List[Dict[str, Any]]
 
 
 # This function can deal with duplicate messages
