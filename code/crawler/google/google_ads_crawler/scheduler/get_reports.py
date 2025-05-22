@@ -40,21 +40,12 @@ async def add_google_ad_crawl_job(
     day_ago = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
-    if vada_uid and account_email:
-        mappings = {
-            "vada_uid": vada_uid,
-            "account_email": account_email,
-        }
-    else:
-        mappings = None
-
     await fetch_google_reports(
         refresh_token=refresh_token,
         start_date=thirty_days_ago,
         end_date=now,
         persist=True,
         es_index=index_name,
-        mappings=mappings,
     )
 
     scheduler.add_job(
@@ -66,7 +57,6 @@ async def add_google_ad_crawl_job(
             "end_date": now,
             "persist": True,
             "es_index": index_name,
-            "mappings": mappings,
         },
         id=job_id,
         name=f"Fetch Google Ads Reports for Email: {account_email}, Index: {index_name} every {crawl_interval} minutes",
