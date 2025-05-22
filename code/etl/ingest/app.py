@@ -54,9 +54,9 @@ async def handle_json(request: IngestRequest):
         "data": List[Dict]
     }
     """
-    user_id = request.meta.get("user_id")
-    index_name = request.meta.get("index_name")
-    index_friendly_name = request.meta.get("index_friendly_name", None)
+    user_id = request.meta.user_id
+    index_name = request.meta.index_name
+    index_friendly_name = request.meta.index_friendly_name
     documents = request.data
 
     async with InsertClient(settings.INSERT_BASEURL) as insert_client:
