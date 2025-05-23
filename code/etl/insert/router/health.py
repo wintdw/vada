@@ -1,3 +1,4 @@
+import os
 import asyncio
 import logging
 from concurrent.futures import ProcessPoolExecutor
@@ -17,6 +18,7 @@ health_check_executor = ProcessPoolExecutor(max_workers=1)
 # so it's not blocked by the main process
 def check_health_sync(es_processor: AsyncESProcessor):
     """Check the health of the Elasticsearch cluster synchronously."""
+    logging.debug("Health check process started (PID: %d)", os.getpid())
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:

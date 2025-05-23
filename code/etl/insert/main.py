@@ -8,7 +8,7 @@ import logging
 import asyncio
 from fastapi import FastAPI  # type: ignore
 
-from router import json, jsonl, health
+from etl.insert.router import json, jsonl, health
 
 
 app = FastAPI()
