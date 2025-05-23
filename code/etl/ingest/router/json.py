@@ -12,12 +12,12 @@ from libs.connectors.mappings import MappingsClient
 
 
 router = APIRouter()
+# Need to change to distributed lock for multiple instances
+SET_MAPPINGS_LOCK = asyncio.Lock()
 
 
 @router.post("/v1/json")
-async def handle_json(
-    request: IngestRequest, set_mappings_lock: asyncio.Lock
-) -> JSONResponse:
+async def handle_json(request: IngestRequest) -> JSONResponse:
     """Accept JSON data with meta information and data array.
 
     Format:
@@ -45,7 +45,7 @@ async def handle_json(
     mappings_client = MappingsClient(settings.MAPPINGS_BASEURL)
 
     # Do once at a time
-    async with set_mappings_lock:
+    async with SET_MAPPINGS_LOCK:
         mappings_reponse = await mappings_client.copy_mappings(
             user_id, index_name, index_friendly_name
         )
