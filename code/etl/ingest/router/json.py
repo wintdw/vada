@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from fastapi.responses import APIRouter, JSONResponse  # type: ignore
+from fastapi import APIRouter  # type: ignore
+from fastapi.responses import JSONResponse  # type: ignore
 
 # custom libs
 from etl.libs.insert_client import InsertClient
