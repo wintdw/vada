@@ -1,8 +1,14 @@
 import logging
 from datetime import datetime, timedelta
-
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
+from apscheduler.events import (  # type: ignore
+    EVENT_JOB_EXECUTED,
+    EVENT_JOB_ERROR,
+    EVENT_JOB_MISSED,
+    EVENT_JOB_SUBMITTED,
+    JobExecutionEvent,
+)
 
 from handler.report import fetch_google_reports
 from handler.mysql import get_google_ad_crawl_info
@@ -52,6 +58,39 @@ async def add_google_ad_crawl_job(
 
 async def init_scheduler():
     scheduler = AsyncIOScheduler()
+
+    def job_execution_listener(event: JobExecutionEvent):
+        """Listen for job execution events"""
+        if event.exception:
+            job = scheduler.get_job(event.job_id)
+            job_name = job.name if job else event.job_id
+            logging.error(
+                f"[Scheduler] Job {job_name} failed with error: {event.exception}",
+                exc_info=event.traceback,
+            )
+        else:
+            job = scheduler.get_job(event.job_id)
+            job_name = job.name if job else event.job_id
+            logging.info(f"[Scheduler] Job {job_name} executed successfully")
+
+    def job_missed_listener(event):
+        """Listen for missed job events"""
+        job = scheduler.get_job(event.job_id)
+        job_name = job.name if job else event.job_id
+        logging.warning(
+            f"[Scheduler] Job {job_name} missed scheduled run at {event.scheduled_run_time}"
+        )
+
+    def job_submitted_listener(event):
+        """Listen for job submission events"""
+        job = scheduler.get_job(event.job_id)
+        job_name = job.name if job else event.job_id
+        logging.info(f"[Scheduler] Job {job_name} submitted for execution")
+
+    # Add listeners for different events
+    scheduler.add_listener(job_execution_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    scheduler.add_listener(job_missed_listener, EVENT_JOB_MISSED)
+    scheduler.add_listener(job_submitted_listener, EVENT_JOB_SUBMITTED)
 
     async def update_jobs():
         # Fetch Google Ad crawl info
