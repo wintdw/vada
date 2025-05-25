@@ -60,7 +60,7 @@ async def ingest_partner_facebook_ad_auth(vada_uid: str):
     return RedirectResponse(url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id=822555046472581&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ffacebook%2Fad%2Fcallback&state={vada_uid}&scope=email,public_profile,ads_management,business_management")
 
 @router.get("/ingest/partner/facebook/ad/callback", tags=["Connector"])
-async def ingest_partner_facebook_ad_callback(vada_uid: str, access_token: str):
+async def ingest_partner_facebook_ad_callback(state: str, code: str):
     from services import (
         send_to_crawler_service,
         fetch_user_info,
@@ -68,14 +68,14 @@ async def ingest_partner_facebook_ad_callback(vada_uid: str, access_token: str):
     )
 
     try:
-        user_info = await fetch_user_info(access_token=access_token)
+        user_info = await fetch_user_info(access_token=code)
         logger.info(user_info)
 
-        index_name = f"data_fbad_default_{vada_uid}"
+        index_name = f"data_fbad_default_{state}"
         response = await send_to_crawler_service(
             data={
                 f"{user_info.get("id")}": {
-                    "token": f"{access_token}",
+                    "token": f"{code}",
                     "destinations": [
                         {
                             "fb_type": "fb_ad",
@@ -88,12 +88,12 @@ async def ingest_partner_facebook_ad_callback(vada_uid: str, access_token: str):
         )
         logger.info(response)
 
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {user_info.get("name")}"})
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {user_info.get("email") or user_info.get("name")}"})
 
         mappings_response = await create_crm_fb_mappings(
             index_name=index_name,
             vada_uid=user_info.get("id"),
-            account_email=user_info["name"],
+            account_email=user_info.get("email") or user_info.get("name"),
         )
         logger.info(mappings_response)
 
@@ -103,4 +103,4 @@ async def ingest_partner_facebook_ad_callback(vada_uid: str, access_token: str):
             status_code=500,
             detail="Internal Server Error"
         )
-    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info.get("id")}&index_name={index_name}&{encoded_friendly_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info.get("id")}&account_email={user_info.get("email") or user_info.get("name")}&index_name={index_name}&{encoded_friendly_name}")

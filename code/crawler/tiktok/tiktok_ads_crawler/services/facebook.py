@@ -30,7 +30,7 @@ async def fetch_user_info( access_token: str, id: str = "me") -> dict:
         raise ValueError("Access token is required to fetch user info.")
     
     user = User(fbid=id, api=FacebookAdsApi.init(access_token=access_token))
-    return user.api_get()
+    return user.api_get(fields=['id', 'name', 'email'])
 
 async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
     """
