@@ -40,12 +40,8 @@ async def exchange_code_for_access_token(code):
         'redirect_uri': settings.FACEBOOK_REDIRECT_URI,
         'code': code
     }
-    response = await get(token_url, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        return data['access_token']
-    else:
-        raise Exception(f"Error exchanging code: {response.text}")
+    response_json = await get(token_url, params=params)
+    return response_json.get('access_token')
 
 async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
     """
