@@ -40,7 +40,7 @@ async def exchange_code_for_access_token(code):
         'redirect_uri': settings.FACEBOOK_REDIRECT_URI,
         'code': code
     }
-    response = get(token_url, params=params)
+    response = await get(token_url, params=params)
     if response.status_code == 200:
         data = response.json()
         return data['access_token']
