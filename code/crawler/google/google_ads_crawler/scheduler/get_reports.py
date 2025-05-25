@@ -32,9 +32,8 @@ async def add_google_ad_crawl_job(
     refresh_token: str,
     index_name: str,
     job_id: str,
-    vada_uid: str = "",
-    account_email: str = "",
-    crawl_interval: int = 720,
+    account_email: str,
+    crawl_interval: int,
 ):
     now = datetime.now().strftime("%Y-%m-%d")
     day_ago = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -80,7 +79,7 @@ async def init_scheduler():
 
         for info in google_ad_info:
             crawl_id = info["crawl_id"]
-            vada_uid = info["vada_uid"]
+            # vada_uid = info["vada_uid"]
             account_email = info["account_email"]
             index_name = info["index_name"]
             refresh_token = info["refresh_token"]
@@ -102,13 +101,12 @@ async def init_scheduler():
                 ):
                     # Update the job with new parameters
                     await add_google_ad_crawl_job(
-                        scheduler,
-                        refresh_token,
-                        index_name,
-                        job_id,
-                        vada_uid,
-                        account_email,
-                        crawl_interval,
+                        scheduler=scheduler,
+                        refresh_token=refresh_token,
+                        index_name=index_name,
+                        job_id=job_id,
+                        account_email=account_email,
+                        crawl_interval=crawl_interval,
                     )
                 # job unchanged
                 else:
@@ -118,13 +116,12 @@ async def init_scheduler():
             else:
                 # Add a new job
                 await add_google_ad_crawl_job(
-                    scheduler,
-                    refresh_token,
-                    index_name,
-                    job_id,
-                    vada_uid,
-                    account_email,
-                    crawl_interval,
+                    scheduler=scheduler,
+                    refresh_token=refresh_token,
+                    index_name=index_name,
+                    job_id=job_id,
+                    account_email=account_email,
+                    crawl_interval=crawl_interval,
                 )
 
             # Remove the old job from current_jobs
