@@ -1,30 +1,11 @@
 import logging
-import asyncio
 from datetime import datetime, timedelta
-from prometheus_client import Counter, Histogram  # type: ignore
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.report import fetch_google_reports
 from handler.mysql import get_google_ad_crawl_info
-
-
-google_ad_crawl = Counter(
-    "google_ad_crawl",
-    "Total number of crawls",
-    ["account_email", "vada_uid"],
-)
-google_ad_crawl_success = Counter(
-    "google_ad_crawl_success",
-    "Total number of successful crawls",
-    ["account_email", "vada_uid"],
-)
-google_ad_crawl_latency = Histogram(
-    "google_ad_crawl_latency_seconds",
-    "Latency of Google Ad crawls in seconds",
-    ["account_email", "vada_uid"],
-)
 
 
 async def add_google_ad_crawl_job(
@@ -44,7 +25,7 @@ async def add_google_ad_crawl_job(
         start_date=thirty_days_ago,
         end_date=now,
         persist=True,
-        es_index=index_name,
+        index_name=index_name,
     )
 
     scheduler.add_job(

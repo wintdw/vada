@@ -2,6 +2,7 @@ import logging
 import asyncio
 from typing import Dict, List
 from datetime import datetime
+from prometheus_client import Counter, Histogram  # type: ignore
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
@@ -11,6 +12,23 @@ from .metric import METRIC_FIELDS
 from .query import build_report_query
 from .account import get_all_account_hierarchies, get_non_manager_accounts
 from .persist import post_processing
+
+
+google_ad_crawl = Counter(
+    "google_ad_crawl",
+    "Total number of crawls",
+    ["account_email", "vada_uid"],
+)
+google_ad_crawl_success = Counter(
+    "google_ad_crawl_success",
+    "Total number of successful crawls",
+    ["account_email", "vada_uid"],
+)
+google_ad_crawl_latency = Histogram(
+    "google_ad_crawl_latency_seconds",
+    "Latency of Google Ad crawls in seconds",
+    ["account_email", "vada_uid"],
+)
 
 
 def get_metrics_from_row(metrics_obj) -> Dict:
@@ -182,7 +200,9 @@ async def fetch_google_reports(
     start_date: str,
     end_date: str,
     persist: bool,
-    es_index: str = "",
+    index_name: str = "",
+    account_email: str = "na",
+    vada_uid: str = "na",
 ):
     # Validate date formats
     if start_date and end_date:
@@ -193,6 +213,10 @@ async def fetch_google_reports(
     else:
         start_date = datetime.now().date().strftime("%Y-%m-%d")
         end_date = start_date
+
+    # Prometheus metrics
+    start_time = datetime.now()
+    google_ad_crawl.labels(account_email=account_email, vada_uid=vada_uid).inc()
 
     # Initialize client
     ga_client = await get_google_ads_client(refresh_token)
@@ -209,11 +233,11 @@ async def fetch_google_reports(
 
     # Process and send reports to insert service if any ads
     if ad_reports:
-        if persist and es_index:
-            insert_response = await post_processing(ad_reports, es_index)
+        if persist and index_name:
+            insert_response = await post_processing(ad_reports, index_name)
             logging.info(
                 "Sending to Insert service. Index: %s. Response: %s",
-                es_index,
+                index_name,
                 insert_response,
             )
 
@@ -236,5 +260,12 @@ async def fetch_google_reports(
         },
     }
     logging.info(f"Returning {len(ad_reports)} reports")
+
+    # Prometheus metrics
+    google_ad_crawl_success.labels(account_email=account_email, vada_uid=vada_uid).inc()
+    latency = (datetime.now() - start_time).total_seconds()
+    google_ad_crawl_latency.labels(
+        account_email=account_email, vada_uid=vada_uid
+    ).observe(latency)
 
     return response_data

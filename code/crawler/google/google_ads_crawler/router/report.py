@@ -18,9 +18,15 @@ async def fetch_google_reports_router(
     end_date: str = Query(
         "", description="End date in YYYY-MM-DD format", example="2025-04-30"
     ),
-    persist: bool = Query(
-        False,
-        description="Persist data to insert service",
+    persist: bool = Query(False, description="Persist data to insert service"),
+    index_name: str = Query(
+        "", description="Index name for Elasticsearch", example="google_ads_reports"
+    ),
+    vada_uid: str = Query(
+        "na", description="Vada UID for tracking", example="1234567890"
+    ),
+    account_email: str = Query(
+        "na", description="Account email for tracking", example="abc@example.com"
     ),
 ):
     """Fetch Google Ads reports using provided credentials
@@ -46,16 +52,23 @@ async def fetch_google_reports_router(
     """
     body = await request.json()
     refresh_token = body.get("refresh_token")
-    index_name = body.get("index_name")
 
     if not refresh_token:
         raise HTTPException(status_code=400, detail="Missing refresh_token")
-    if not index_name:
-        raise HTTPException(status_code=400, detail="Missing index_name")
+    if persist and not index_name:
+        raise HTTPException(
+            status_code=400, detail="Index name is required when persist is True"
+        )
 
     try:
         response_data = await fetch_google_reports(
-            refresh_token, start_date, end_date, persist, index_name
+            refresh_token=refresh_token,
+            start_date=start_date,
+            end_date=end_date,
+            persist=persist,
+            index_name=index_name,
+            vada_uid=vada_uid,
+            account_email=account_email,
         )
 
         return JSONResponse(content=response_data, status_code=200)

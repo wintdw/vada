@@ -127,9 +127,11 @@ async def get_account_hierarchy(
     # Remove level restriction to allow deeper nesting
     cc_query = build_customer_client_query("customer_client.level <= 1")
 
-    unprocessed_customer_ids = [(root_account_id, None)]  # (customer_id, parent_id)
+    unprocessed_customer_ids: List[tuple[str, str | None]] = [
+        (root_account_id, None)
+    ]  # (customer_id, parent_id)
     customer_ids_to_children = {}
-    root_customer_client = None
+    root_customer_client = {}
     processed_ids = set()  # Track processed IDs to prevent cycles
 
     logging.debug(f"├── Starting BFS traversal with root: {root_account_id}")
@@ -168,7 +170,7 @@ async def get_account_hierarchy(
 
                 # Handle root account
                 if customer_client.level == 0:
-                    if root_customer_client is None:
+                    if not root_customer_client:
                         root_customer_client = {
                             "customer_id": str(customer_client.id),
                             "descriptive_name": customer_client.descriptive_name,
@@ -237,7 +239,6 @@ async def get_account_hierarchy(
         )
     else:
         logging.warning(f"└── No root account found for {root_customer_client}")
-        return None
 
     logging.info(f"=== Completed Account Hierarchy for {root_account_id} ===")
     return root_customer_client
