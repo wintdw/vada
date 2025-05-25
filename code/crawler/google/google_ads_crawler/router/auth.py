@@ -136,7 +136,7 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
             vada_uid=vada_uid,
             index_name=index_name,
             refresh_token=refresh_token,
-            crawl_interval=1440,
+            crawl_interval=720,
         )
         logging.debug("Stored Google Ads crawl info: %s", crawl_info)
 
