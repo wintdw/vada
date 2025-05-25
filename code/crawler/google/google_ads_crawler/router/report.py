@@ -57,7 +57,7 @@ async def fetch_google_reports_router(
         raise HTTPException(status_code=400, detail="Missing refresh_token")
     if persist and not index_name:
         raise HTTPException(
-            status_code=400, detail="Index name is required when persist is True"
+            status_code=400, detail="Index name is required when persist is enabled"
         )
 
     try:
