@@ -21,9 +21,13 @@ async def post_schedule_crawl(crawl_id: str = None):
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
-
-            crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
-            logger.info(crawl_response)
+            
+            if not item.last_crawl_time:
+                crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
+                logger.info(crawl_response)
+            else:
+                crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
+                logger.info(crawl_response)
 
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)
