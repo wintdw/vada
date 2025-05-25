@@ -1,5 +1,3 @@
-import json
-
 from tools import post
 from tools.settings import settings
 

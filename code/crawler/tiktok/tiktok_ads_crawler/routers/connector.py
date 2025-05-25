@@ -67,3 +67,49 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):
     return RedirectResponse(url=f"https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state={vada_uid}&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ftiktok%2Fad%2Fcallback")
+
+@router.get("/ingest/partner/facebook/ad/auth", tags=["Connector"])
+async def ingest_partner_facebook_ad_auth(vada_uid: str, access_token: str):
+    from services import (
+        send_to_crawler_service,
+        fetch_user_info,
+        create_crm_fb_mappings
+    )
+
+    try:
+        user_info = await fetch_user_info(access_token=access_token)
+        logger.info(user_info)
+
+        index_name = f"data_fbad_default_{vada_uid}"
+        response = await send_to_crawler_service(
+            data={
+                f"{user_info.get("id")}": {
+                    "token": f"{access_token}",
+                    "destinations": [
+                        {
+                            "fb_type": "fb_ad",
+                            "type": "elasticsearch",
+                            "index": f"{index_name}",
+                        }
+                    ]
+                }
+            }
+        )
+        logger.info(response)
+
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {user_info.get("name")}"})
+
+        mappings_response = await create_crm_fb_mappings(
+            index_name=index_name,
+            vada_uid=user_info.get("id"),
+            account_email=user_info["name"],
+        )
+        logger.info(mappings_response)
+
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Internal Server Error"
+        )
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info.get("id")}&index_name={index_name}&{encoded_friendly_name}")

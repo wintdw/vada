@@ -7,9 +7,9 @@ class Settings(BaseSettings):
     TIKTOK_BIZ_SECRET: str = os.getenv("TIKTOK_BIZ_SECRET")
     FACEBOOK_APP_ID: str = os.getenv("FACEBOOK_APP_ID")
     FACEBOOK_APP_SECRET: str = os.getenv("FACEBOOK_APP_SECRET")
-    FACEBOOK_ACCESS_TOKEN: str = os.getenv("FACEBOOK_ACCESS_TOKEN")
     INSERT_SERVICE_URL: str = os.getenv("INSERT_SERVICE_URL")
     CONNECTOR_CALLBACK_URL: str = os.getenv("CONNECTOR_CALLBACK_URL")
     MAPPINGS_BASE_URL: str = os.getenv("MAPPINGS_BASE_URL")
+    CRAWLER_SERVICE_URL: str = os.getenv("CRAWLER_SERVICE_URL")
 
 settings = Settings()

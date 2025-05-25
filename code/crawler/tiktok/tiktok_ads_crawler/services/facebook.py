@@ -3,13 +3,34 @@ from facebook_business.adobjects.adaccountuser import AdAccountUser
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.ad import Ad
 from facebook_business.adobjects.adsinsights import AdsInsights
+from facebook_business.adobjects.user import User
 
 import logging
 from tools.settings import settings
-from tools import get_logger
+from tools import get_logger, post
 
 logger = get_logger(__name__, logging.INFO)
 
+async def send_to_crawler_service(data: dict):
+    request_json = await post(url=f"{settings.CRAWLER_SERVICE_URL}/crawl?init=1&init-days=30&schedule=1", json=data)
+    return request_json
+
+async def fetch_user_info( access_token: str, id: str = "me") -> dict:
+    """
+    Fetch user information from Facebook API using the provided user ID and access token.
+
+    Args:
+        id (str): User ID.
+        access_token (str): Facebook API access token.
+
+    Returns:
+        dict: User information.
+    """
+    if not access_token:
+        raise ValueError("Access token is required to fetch user info.")
+    
+    user = User(fbid=id, api=FacebookAdsApi.init(access_token=access_token))
+    return user.api_get()
 
 async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
     """
@@ -236,7 +257,7 @@ async def fetch_ads_for_accounts(ad_accounts: list[AdAccount]):
             )
 
 
-async def crawl_facebook_ads(access_token: str = settings.FACEBOOK_ACCESS_TOKEN):
+async def crawl_facebook_ads(access_token: str = ""):
     """
     Crawl Facebook ads data.
 
