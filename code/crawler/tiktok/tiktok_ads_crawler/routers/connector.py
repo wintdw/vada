@@ -53,29 +53,33 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):
-    return RedirectResponse(url=f"https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state={vada_uid}&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ftiktok%2Fad%2Fcallback")
+    return RedirectResponse(url=f"https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state={vada_uid}&redirect_uri={settings.TIKTOK_BIZ_REDIRECT_URI}")
 
 @router.get("/ingest/partner/facebook/ad/auth", tags=["Connector"])
 async def ingest_partner_facebook_ad_auth(vada_uid: str):
-    return RedirectResponse(url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id=822555046472581&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ffacebook%2Fad%2Fcallback&state={vada_uid}&scope=email,public_profile,ads_management,business_management")
+    return RedirectResponse(url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id=822555046472581&redirect_uri={settings.FACEBOOK_REDIRECT_URI}&state={vada_uid}&scope=email,public_profile,ads_management,business_management")
 
 @router.get("/ingest/partner/facebook/ad/callback", tags=["Connector"])
 async def ingest_partner_facebook_ad_callback(state: str, code: str):
     from services import (
         send_to_crawler_service,
         fetch_user_info,
-        create_crm_fb_mappings
+        create_crm_fb_mappings,
+        exchange_code_for_access_token
     )
 
     try:
-        user_info = await fetch_user_info(access_token=code)
+        access_token = await exchange_code_for_access_token(code=code)
+        logger.info(access_token)
+
+        user_info = await fetch_user_info(access_token=access_token)
         logger.info(user_info)
 
         index_name = f"data_fbad_default_{state}"
         response = await send_to_crawler_service(
             data={
                 f"{user_info.get("id")}": {
-                    "token": f"{code}",
+                    "token": f"{access_token}",
                     "destinations": [
                         {
                             "fb_type": "fb_ad",

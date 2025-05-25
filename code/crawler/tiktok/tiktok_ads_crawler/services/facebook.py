@@ -7,7 +7,7 @@ from facebook_business.adobjects.user import User
 
 import logging
 from tools.settings import settings
-from tools import get_logger, post
+from tools import get_logger, post, get
 
 logger = get_logger(__name__, logging.INFO)
 
@@ -31,6 +31,21 @@ async def fetch_user_info( access_token: str, id: str = "me") -> dict:
     
     user = User(fbid=id, api=FacebookAdsApi.init(access_token=access_token))
     return user.api_get(fields=['id', 'name', 'email'])
+
+async def exchange_code_for_access_token(code):
+    token_url = f'{settings.FACEBOOK_GRAPH_API_URL}/oauth/access_token'
+    params = {
+        'client_id': settings.FACEBOOK_APP_ID,
+        'client_secret': settings.FACEBOOK_APP_SECRET,
+        'redirect_uri': settings.FACEBOOK_REDIRECT_URI,
+        'code': code
+    }
+    response = get(token_url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data['access_token']
+    else:
+        raise Exception(f"Error exchanging code: {response.text}")
 
 async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
     """

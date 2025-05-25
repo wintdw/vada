@@ -19,12 +19,19 @@ services:
       MYSQL_USER: crawler
       MYSQL_DB: crawler_dev
       MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
+
       TIKTOK_BIZ_API_URL: https://business-api.tiktok.com/open_api/v1.3
       TIKTOK_BIZ_APP_ID: 7480814660439146497
       TIKTOK_BIZ_SECRET: 6fd63e3c5a39cffd0dd2d73c872840008b587148
+      TIKTOK_BIZ_REDIRECT_URI: https://api-dev.vadata.vn/ingest/partner/tiktok/ad/callback
+
       INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn
+
       FACEBOOK_APP_ID: 822555046472581
       FACEBOOK_APP_SECRET: 1d63cc46243d28b50b0da5a6e2eefbcc
+      FACEBOOK_GRAPH_API_URL: https://graph.facebook.com/v22.0
+      FACEBOOK_REDIRECT_URI: https://api-dev.vadata.vn/ingest/partner/facebook/ad/callback
+
       CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
       MAPPINGS_BASE_URL: http://mappings-dev.internal.vadata.vn
       CRAWLER_SERVICE_URL: http://vada-demo0:9206
