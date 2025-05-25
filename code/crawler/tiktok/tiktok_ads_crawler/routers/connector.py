@@ -56,7 +56,11 @@ async def ingest_partner_tiktok_ad_auth(vada_uid: str):
     return RedirectResponse(url=f"https://business-api.tiktok.com/portal/auth?app_id=7480814660439146497&state={vada_uid}&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ftiktok%2Fad%2Fcallback")
 
 @router.get("/ingest/partner/facebook/ad/auth", tags=["Connector"])
-async def ingest_partner_facebook_ad_auth(vada_uid: str, access_token: str):
+async def ingest_partner_tiktok_ad_auth(vada_uid: str):
+    return RedirectResponse(url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id=822555046472581&redirect_uri=https%3A%2F%2Fapi-dev.vadata.vn%2Fingest%2Fpartner%2Ffacebook%2Fad%2Fcallback&state={vada_uid}&scope=email,public_profile,ads_management,business_management")
+
+@router.get("/ingest/partner/facebook/ad/callback", tags=["Connector"])
+async def ingest_partner_facebook_ad_callback(vada_uid: str, access_token: str):
     from services import (
         send_to_crawler_service,
         fetch_user_info,
