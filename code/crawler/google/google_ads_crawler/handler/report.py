@@ -1,7 +1,7 @@
 import logging
 import asyncio
 from typing import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from prometheus_client import Counter, Histogram  # type: ignore
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
@@ -197,9 +197,9 @@ async def get_reports(
 
 async def fetch_google_reports(
     refresh_token: str,
-    start_date: str,
-    end_date: str,
     persist: bool,
+    start_date: str = (datetime.now() - timedelta(days=1)).date().strftime("%Y-%m-%d"),
+    end_date: str = datetime.now().date().strftime("%Y-%m-%d"),
     index_name: str = "",
     account_email: str = "na",
     vada_uid: str = "na",
@@ -210,9 +210,6 @@ async def fetch_google_reports(
         end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
         if start_dt > end_dt:
             raise ValueError("start_date cannot be later than end_date")
-    else:
-        start_date = datetime.now().date().strftime("%Y-%m-%d")
-        end_date = start_date
 
     # Prometheus metrics
     start_time = datetime.now()
