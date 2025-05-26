@@ -2,7 +2,6 @@ import os
 import logging
 import aiomysql  # type: ignore
 import uuid
-from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from typing import List, Dict
 
@@ -94,14 +93,6 @@ async def set_google_ad_crawl_info(
     """
     crawl_id = str(uuid.uuid4())
 
-    # Calculate crawl_from_date and crawl_to_date
-    crawl_from_date = (datetime.now() - timedelta(days=365)).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    crawl_to_date = (datetime.now() + timedelta(days=3650)).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-
     # Check if the record exists
     query_check = """
         SELECT crawl_id, account_id, account_email, vada_uid, index_name, refresh_token, crawl_interval
@@ -112,7 +103,7 @@ async def set_google_ad_crawl_info(
     query = """
         INSERT INTO CrawlInfo (
             crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, refresh_token,
-            crawl_interval, crawl_from_date, crawl_to_date
+            crawl_interval
         ) VALUES (%s, %s, %s, %s, %s, %s, "", %s, %s, %s, %s)
     """
 
@@ -135,8 +126,6 @@ async def set_google_ad_crawl_info(
                             crawl_type,
                             refresh_token,
                             crawl_interval,
-                            crawl_from_date,
-                            crawl_to_date,
                         ),
                     )
                     await connection.commit()
