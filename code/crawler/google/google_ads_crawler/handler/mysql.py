@@ -102,9 +102,9 @@ async def set_google_ad_crawl_info(
 
     query = """
         INSERT INTO CrawlInfo (
-            crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, refresh_token,
-            crawl_interval
-        ) VALUES (%s, %s, %s, %s, %s, %s, "", %s, %s, %s, %s)
+            crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, 
+            refresh_token, crawl_interval
+        ) VALUES (%s, %s, %s, %s, %s, %s, "", %s, %s)
     """
 
     try:
