@@ -1919,7 +1919,7 @@ async def ingest_partner_tiktok_ad_config():
                 }
                 }
             }
-        }}
+        }
     }
 
 @router.get("/ingest/partner/facebook/ad/config", tags=["Connector"])
