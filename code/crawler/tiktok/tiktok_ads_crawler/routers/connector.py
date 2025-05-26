@@ -196,7 +196,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -224,7 +224,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -255,7 +255,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -326,7 +326,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -363,7 +363,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -391,7 +391,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -516,7 +516,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -547,7 +547,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -613,7 +613,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -623,7 +623,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -644,7 +644,7 @@ async def ingest_partner_tiktok_ad_config():
                     "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "eager_global_ordinals": true,
+                        "eager_global_ordinals": True,
                         "ignore_above": 256
                     }
                     }
@@ -889,7 +889,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -899,7 +899,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -909,7 +909,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -919,7 +919,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1062,7 +1062,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1072,7 +1072,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1257,7 +1257,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1288,7 +1288,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1307,7 +1307,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1357,7 +1357,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1382,7 +1382,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1440,7 +1440,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1493,7 +1493,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1613,7 +1613,7 @@ async def ingest_partner_tiktok_ad_config():
                         "fields": {
                         "keyword": {
                             "type": "keyword",
-                            "eager_global_ordinals": true,
+                            "eager_global_ordinals": True,
                             "ignore_above": 256
                         }
                         }
@@ -1718,7 +1718,7 @@ async def ingest_partner_tiktok_ad_config():
                     "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "eager_global_ordinals": true,
+                        "eager_global_ordinals": True,
                         "ignore_above": 256
                     }
                     }
@@ -1854,7 +1854,7 @@ async def ingest_partner_tiktok_ad_config():
                     "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "eager_global_ordinals": true,
+                        "eager_global_ordinals": True,
                         "ignore_above": 256
                     }
                     }
@@ -1864,7 +1864,7 @@ async def ingest_partner_tiktok_ad_config():
                     "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "eager_global_ordinals": true,
+                        "eager_global_ordinals": True,
                         "ignore_above": 256
                     }
                     }
@@ -1919,15 +1919,14 @@ async def ingest_partner_tiktok_ad_config():
                 }
                 }
             }
-        }
+        }}
     }
 
 @router.get("/ingest/partner/facebook/ad/config", tags=["Connector"])
 async def ingest_partner_facebook_ad_config():
     return {
-        "mappings":         {
-            "mappings": {
-                "_doc": {
+        "mappings": {
+            "_doc": {
                 "properties": {
                     "_vada": {
                     "properties": {
@@ -5345,4 +5344,3 @@ async def ingest_partner_facebook_ad_config():
                 }
             }
         }
-    }
