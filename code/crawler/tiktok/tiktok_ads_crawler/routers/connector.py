@@ -113,7 +113,6 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
 async def ingest_partner_tiktok_ad_config():
     return {
         "mappings": {
-            "_doc": {
                 "dynamic": "true",
                 "dynamic_date_formats": [
                 "strict_date_optional_time",
@@ -1917,7 +1916,6 @@ async def ingest_partner_tiktok_ad_config():
                 "vta_purchase": {
                     "type": "long"
                 }
-                }
             }
         }
     }
@@ -1926,9 +1924,8 @@ async def ingest_partner_tiktok_ad_config():
 async def ingest_partner_facebook_ad_config():
     return {
         "mappings": {
-            "_doc": {
-                "properties": {
-                    "_vada": {
+            "properties": {
+                "_vada": {
                     "properties": {
                         "ingest": {
                         "properties": {
@@ -5340,7 +5337,6 @@ async def ingest_partner_facebook_ad_config():
                     "updated_time": {
                     "type": "date"
                     }
-                }
                 }
             }
         }
