@@ -6,7 +6,7 @@ CREATE TABLE `CrawlInfo` (
   `vada_uid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `index_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `crawl_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `access_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `access_token` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `refresh_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `access_token_updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `refresh_token_updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

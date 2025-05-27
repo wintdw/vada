@@ -11,8 +11,8 @@ from tools import get_logger, post, get
 
 logger = get_logger(__name__, logging.INFO)
 
-async def send_to_crawler_service(data: dict):
-    request_json = await post(url=f"{settings.CRAWLER_SERVICE_URL}/crawl?init=1&init-days=30&schedule=1", json=data)
+async def send_to_crawler_service(client_id: str, data: dict):
+    request_json = await post(url=f"{settings.CRAWLER_SERVICE_URL}/crawl?init=1&init-days=30&schedule=1&client-id={client_id}", json=data)
     return request_json
 
 async def fetch_user_info( access_token: str, id: str = "me") -> dict:

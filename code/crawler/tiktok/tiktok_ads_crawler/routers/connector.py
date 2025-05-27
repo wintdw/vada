@@ -88,6 +88,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
         logger.info(crawl_info)
 
         response = await send_to_crawler_service(
+            client_id=crawl_info.index_name,
             data={
                 f"{crawl_info.index_name}": {
                     "token": f"{crawl_info.access_token}",
