@@ -9,7 +9,7 @@ from scheduler.get_reports import init_scheduler
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 app = FastAPI(title="Google Ads Crawler")

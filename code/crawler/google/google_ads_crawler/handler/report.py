@@ -211,6 +211,11 @@ async def fetch_google_reports(
         if start_dt > end_dt:
             raise ValueError("start_date cannot be later than end_date")
 
+    logging.info(
+        f"Fetching Google Ads reports from {start_date} to {end_date} "
+        f"for account {account_email} (Vada UID: {vada_uid})"
+    )
+
     # Prometheus metrics
     start_time = datetime.now()
     google_ad_crawl.labels(account_email=account_email, vada_uid=vada_uid).inc()
