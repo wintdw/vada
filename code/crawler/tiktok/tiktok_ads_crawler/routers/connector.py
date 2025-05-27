@@ -6,13 +6,15 @@ from urllib.parse import urlencode
 from tools import get_logger
 from tools.settings import settings
 
+from repositories import insert_crawl_info
+from models import CrawlInfo
+
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
 @router.get("/ingest/partner/tiktok/ad/callback", tags=["Connector"])
 async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
-    from repositories import insert_crawl_info
-    from models import CrawlInfo
+
     from services import (
         tiktok_biz_get_access_token,
         tiktok_biz_get_user_info,
@@ -75,16 +77,25 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
         user_info = await fetch_user_info(access_token=access_token)
         logger.info(user_info)
 
-        index_name = f"data_fbad_default_{state}"
+        crawl_info = await insert_crawl_info(CrawlInfo(
+            account_id=user_info["id"],
+            account_email=user_info["email"] or user_info["name"],
+            vada_uid=state,
+            access_token=access_token,
+            index_name=f"data_fbad_default_{state}",
+            crawl_type="facebook_business_ads"
+        ))
+        logger.info(crawl_info)
+
         response = await send_to_crawler_service(
             data={
-                f"{user_info.get("id")}": {
-                    "token": f"{access_token}",
+                f"{crawl_info.index_name}": {
+                    "token": f"{crawl_info.access_token}",
                     "destinations": [
                         {
                             "fb_type": "fb_ad",
                             "type": "elasticsearch",
-                            "index": f"{index_name}",
+                            "index": f"{crawl_info.index_name}",
                         }
                     ]
                 }
@@ -92,12 +103,12 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
         )
         logger.info(response)
 
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {user_info.get("email") or user_info.get("name")}"})
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {crawl_info.account_email}"})
 
         mappings_response = await create_crm_fb_mappings(
-            index_name=index_name,
-            vada_uid=user_info.get("id"),
-            account_email=user_info.get("email") or user_info.get("name"),
+            index_name=crawl_info.index_name,
+            vada_uid=crawl_info.vada_uid,
+            account_email=crawl_info.account_email,
         )
         logger.info(mappings_response)
 
@@ -107,7 +118,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
             status_code=500,
             detail="Internal Server Error"
         )
-    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info.get("id")}&account_email={user_info.get("email") or user_info.get("name")}&index_name={index_name}&{encoded_friendly_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={crawl_info.account_id}&account_email={crawl_info.account_email}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
 
 @router.get("/ingest/partner/tiktok/ad/config", tags=["Connector"])
 async def ingest_partner_tiktok_ad_config():
