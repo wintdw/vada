@@ -57,7 +57,6 @@ async def add_google_ad_crawl_job(
         logging.error(
             f"[Scheduler] Error adding Google Ads Reports job for Email: {account_email}, Index: {index_name}: {str(e)}"
         )
-        raise e
 
 
 async def init_scheduler():
