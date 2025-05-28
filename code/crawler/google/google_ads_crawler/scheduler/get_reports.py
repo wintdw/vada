@@ -19,39 +19,45 @@ async def add_google_ad_crawl_job(
     now = datetime.now().strftime("%Y-%m-%d")
     thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
-    # Crawl immediately for the first time
-    await fetch_google_reports(
-        refresh_token=refresh_token,
-        start_date=thirty_days_ago,
-        end_date=now,
-        persist=True,
-        index_name=index_name,
-        vada_uid=vada_uid,
-        account_email=account_email,
-    )
+    try:
+        # Crawl immediately for the first time
+        await fetch_google_reports(
+            refresh_token=refresh_token,
+            start_date=thirty_days_ago,
+            end_date=now,
+            persist=True,
+            index_name=index_name,
+            vada_uid=vada_uid,
+            account_email=account_email,
+        )
 
-    # The first job will crawl T-1 -> T0 with 2h interval
-    scheduler.add_job(
-        fetch_google_reports,
-        trigger=IntervalTrigger(minutes=crawl_interval),
-        kwargs={
-            "refresh_token": refresh_token,
-            "persist": True,
-            "index_name": index_name,
-            "vada_uid": vada_uid,
-            "account_email": account_email,
-        },
-        id=job_id,
-        name=f"Fetch Google Ads Reports for Email: {account_email}, Index: {index_name} every {crawl_interval} minutes",
-        replace_existing=True,
-        misfire_grace_time=30,
-        max_instances=1,
-    )
-    # We may create another job for crawling ealier T with longer interval
+        # The first job will crawl T-1 -> T0 with 2h interval
+        scheduler.add_job(
+            fetch_google_reports,
+            trigger=IntervalTrigger(minutes=crawl_interval),
+            kwargs={
+                "refresh_token": refresh_token,
+                "persist": True,
+                "index_name": index_name,
+                "vada_uid": vada_uid,
+                "account_email": account_email,
+            },
+            id=job_id,
+            name=f"Fetch Google Ads Reports for Email: {account_email}, Index: {index_name} every {crawl_interval} minutes",
+            replace_existing=True,
+            misfire_grace_time=30,
+            max_instances=1,
+        )
+        # We may create another job for crawling ealier T with longer interval
 
-    logging.info(
-        f"[Scheduler] Added Google Ads Reports job for Email: {account_email}, Index: {index_name} every {crawl_interval} minutes"
-    )
+        logging.info(
+            f"[Scheduler] Added Google Ads Reports job for Email: {account_email}, Index: {index_name} every {crawl_interval} minutes"
+        )
+    except Exception as e:
+        logging.error(
+            f"[Scheduler] Error adding Google Ads Reports job for Email: {account_email}, Index: {index_name}: {str(e)}"
+        )
+        raise e
 
 
 async def init_scheduler():

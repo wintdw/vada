@@ -89,7 +89,7 @@ async def set_google_ad_crawl_info(
     crawl_interval: int = 1440,
 ) -> Dict:
     """
-    Inserts a new record into the CrawlInfo table.
+    Inserts a new record into the CrawlInfo table or updates the refresh token if the record exists.
     """
     crawl_id = str(uuid.uuid4())
 
@@ -100,11 +100,17 @@ async def set_google_ad_crawl_info(
         WHERE account_id = %s AND vada_uid = %s
     """
 
-    query = """
+    query_insert = """
         INSERT INTO CrawlInfo (
             crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, 
             refresh_token, crawl_interval
         ) VALUES (%s, %s, %s, %s, %s, %s, "", %s, %s)
+    """
+
+    query_update = """
+        UPDATE CrawlInfo
+        SET refresh_token = %s
+        WHERE account_id = %s AND vada_uid = %s
     """
 
     try:
@@ -116,7 +122,7 @@ async def set_google_ad_crawl_info(
                 # If the record does not exist, insert it
                 if not result:
                     await cursor.execute(
-                        query,
+                        query_insert,
                         (
                             crawl_id,
                             account_id,
@@ -131,15 +137,21 @@ async def set_google_ad_crawl_info(
                     await connection.commit()
                     logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
                 else:
+                    # Update the refresh token if the record exists
+                    await cursor.execute(
+                        query_update,
+                        (refresh_token, account_id, vada_uid),
+                    )
+                    await connection.commit()
                     logging.info(
-                        f"Record already exists for account_id: {account_id} and vada_uid: {vada_uid}"
+                        f"Updated refresh token for account_id: {account_id} and vada_uid: {vada_uid}"
                     )
                     crawl_id = result["crawl_id"]
                     account_id = result["account_id"]
                     account_email = result["account_email"]
                     vada_uid = result["vada_uid"]
                     index_name = result["index_name"]
-                    refresh_token = result["refresh_token"]
+                    refresh_token = refresh_token  # Updated refresh token
                     crawl_interval = result["crawl_interval"]
 
         return {
@@ -153,5 +165,5 @@ async def set_google_ad_crawl_info(
         }
 
     except Exception as e:
-        logging.error(f"Error inserting Google Ad crawl info: {str(e)}")
+        logging.error(f"Error inserting or updating Google Ad crawl info: {str(e)}")
         return {}

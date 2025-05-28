@@ -198,18 +198,16 @@ async def get_reports(
 async def fetch_google_reports(
     refresh_token: str,
     persist: bool,
-    start_date: str = (datetime.now() - timedelta(days=1)).date().strftime("%Y-%m-%d"),
-    end_date: str = datetime.now().date().strftime("%Y-%m-%d"),
+    start_date: str = "",
+    end_date: str = "",
     index_name: str = "",
-    account_email: str = "na",
-    vada_uid: str = "na",
+    account_email: str = "",
+    vada_uid: str = "",
 ):
     # Validate date formats
-    if start_date and end_date:
-        start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
-        end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
-        if start_dt > end_dt:
-            raise ValueError("start_date cannot be later than end_date")
+    if not start_date or not end_date:
+        start_date = (datetime.now() - timedelta(days=1)).date().strftime("%Y-%m-%d")
+        end_date = datetime.now().date().strftime("%Y-%m-%d")
 
     logging.info(
         f"Fetching Google Ads reports from {start_date} to {end_date} "
