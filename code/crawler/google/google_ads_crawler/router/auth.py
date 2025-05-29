@@ -129,7 +129,7 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
         # Store the refresh token in the database
         account_id = user_info["id"]
         account_email = user_info["email"]
-        index_name = f"data_ggad_default_{user_info['id']}"
+        index_name = f"data_ggad_{user_info['id']}"
         crawl_info = await set_crawl_info(
             account_id=account_id,
             account_email=account_email,

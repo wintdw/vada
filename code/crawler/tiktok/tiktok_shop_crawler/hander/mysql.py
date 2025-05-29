@@ -78,9 +78,9 @@ async def set_crawl_info(
     account_email: str,
     vada_uid: str,
     index_name: str,
-    crawl_type: str = "",
-    refresh_token: str = "",
-    access_token: str = "",
+    crawl_type: str,
+    refresh_token: str,
+    access_token: str,
     crawl_interval: int = 1440,
 ) -> Dict:
     """
