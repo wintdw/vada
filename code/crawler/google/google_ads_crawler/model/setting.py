@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings  # type: ignore
 
 
@@ -12,6 +14,13 @@ class Settings(BaseSettings):
     MYSQL_USER: str
     MYSQL_DB: str
     MYSQL_PASSWD_FILE: str
+
+    @property
+    def MYSQL_PASSWD(self) -> str:
+        if self.MYSQL_PASSWD_FILE and os.path.isfile(self.MYSQL_PASSWD_FILE):
+            with open(self.MYSQL_PASSWD_FILE, "r") as file:
+                return file.read().strip()
+        return ""
 
 
 settings = Settings()

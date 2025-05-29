@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings  # type: ignore
 
 
@@ -18,6 +20,13 @@ class Settings(BaseSettings):
     def TIKTOK_SHOP_APP_SECRET(self) -> str:
         with open(self.TIKTOK_SHOP_APP_SECRET_FILE, "r") as f:
             return f.read().strip()
+
+    @property
+    def MYSQL_PASSWD(self) -> str:
+        if self.MYSQL_PASSWD_FILE and os.path.isfile(self.MYSQL_PASSWD_FILE):
+            with open(self.MYSQL_PASSWD_FILE, "r") as file:
+                return file.read().strip()
+        return ""
 
 
 settings = Settings()

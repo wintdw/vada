@@ -34,10 +34,10 @@ async def get_mysql_cursor(connection):
         await cursor.close()
 
 
-async def get_google_ad_crawl_info() -> List[Dict]:
+async def get_tiktok_shop_crawl_info() -> List[Dict]:
     """
     Selects index_name, access_token, and crawl_interval from CrawlInfo table
-    where crawl_type is 'google_ad'.
+    where crawl_type is 'tiktok_shop'.
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries containing the selected information.
@@ -45,7 +45,7 @@ async def get_google_ad_crawl_info() -> List[Dict]:
     query = """
         SELECT *
         FROM CrawlInfo
-        WHERE crawl_type = 'google_ad'
+        WHERE crawl_type = 'tiktok_shop'
     """
 
     try:
@@ -68,17 +68,17 @@ async def get_google_ad_crawl_info() -> List[Dict]:
         ]
 
     except Exception as e:
-        logging.error(f"Error fetching Google Ad crawl info: {str(e)}")
+        logging.error(f"Error fetching Tiktok Shop crawl info: {str(e)}")
         return []
 
 
-async def set_google_ad_crawl_info(
+async def set_tiktok_shop_crawl_info(
     account_id: str,
     account_email: str,
     vada_uid: str,
     index_name: str,
     refresh_token: str,
-    crawl_type: str = "google_ad",
+    crawl_type: str = "tiktok_shop",
     crawl_interval: int = 1440,
 ) -> Dict:
     """
