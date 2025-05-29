@@ -4,7 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.report import fetch_google_reports
-from handler.mysql import get_google_ad_crawl_info
+from handler.mysql import get_crawl_info
 
 
 async def add_google_ad_crawl_job(
@@ -64,7 +64,7 @@ async def init_scheduler():
 
     async def update_jobs():
         # Fetch Google Ad crawl info
-        google_ad_info = await get_google_ad_crawl_info()
+        google_ad_info = await get_crawl_info("google_ad")
         current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in google_ad_info:

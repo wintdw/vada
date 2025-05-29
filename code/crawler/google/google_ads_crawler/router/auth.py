@@ -9,7 +9,7 @@ from google_auth_oauthlib.flow import Flow  # type: ignore
 from fastapi.responses import RedirectResponse  # type: ignore
 
 from model.setting import settings
-from handler.mysql import set_google_ad_crawl_info
+from handler.mysql import set_crawl_info
 from dependency.google_ad_client import (
     get_flows,
     get_app_secret_file,
@@ -130,11 +130,13 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
         account_id = user_info["id"]
         account_email = user_info["email"]
         index_name = f"data_ggad_default_{user_info['id']}"
-        crawl_info = await set_google_ad_crawl_info(
+        crawl_info = await set_crawl_info(
             account_id=account_id,
             account_email=account_email,
             vada_uid=vada_uid,
             index_name=index_name,
+            crawl_type="google_ad",
+            access_token="",
             refresh_token=refresh_token,
             crawl_interval=120,
         )
