@@ -89,6 +89,9 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             content={"status": status_msg, "detail": index_response["detail"]}
         )
 
+    except ValueError as ve:
+        logging.error("ValueError: %s", ve)
+        raise HTTPException(status_code=400, detail=str(ve))
     except HTTPException:
         raise
     except Exception as e:

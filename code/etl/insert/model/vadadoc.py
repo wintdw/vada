@@ -16,29 +16,44 @@ class VadaDocument:
         return self.doc
 
     def get_index_name(self) -> str:
-        index_name = (
-            self.doc.get("_vada", {})
-            .get("ingest", {})
-            .get("destination", {})
-            .get("index", "")
-        )
-        return index_name
+        try:
+            index_name = (
+                self.doc.get("_vada", {})
+                .get("ingest", {})
+                .get("destination", {})
+                .get("index", "")
+            )
+            return index_name
+        except AttributeError:
+            raise ValueError(
+                f"Document does not contain a valid _vada field: {self.doc}"
+            )
 
     def get_index_friendly_name(self) -> str:
-        index_friendly_name = (
-            self.doc.get("_vada", {})
-            .get("ingest", {})
-            .get("destination", {})
-            .get("index_friendly_name", "")
-        )
-        return index_friendly_name
+        try:
+            index_friendly_name = (
+                self.doc.get("_vada", {})
+                .get("ingest", {})
+                .get("destination", {})
+                .get("index_friendly_name", "")
+            )
+            return index_friendly_name
+        except AttributeError:
+            raise ValueError(
+                f"Document does not contain a valid _vada field: {self.doc}"
+            )
 
     def get_user_id(self) -> str:
-        user_id = self.doc.get("_vada", {}).get("ingest", {}).get("user_id", "")
-        return user_id
+        try:
+            user_id = self.doc.get("_vada", {}).get("ingest", {}).get("user_id", "")
+            return user_id
+        except AttributeError:
+            raise ValueError(
+                f"Document does not contain a valid _vada field: {self.doc}"
+            )
 
     def populate_ingestor_metadata(
-        self, user_id: str, index_name: str, index_friendly_name: str = None
+        self, user_id: str, index_name: str, index_friendly_name: str = ""
     ):
         """
         This method is exclusively used by the ingestor to populate the _vada field.
