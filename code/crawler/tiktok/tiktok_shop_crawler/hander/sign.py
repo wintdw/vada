@@ -1,36 +1,49 @@
 import hmac
 import hashlib
 
+from typing import Optional
+from urllib.parse import urlparse, parse_qsl
 
-def sign(path: str, query_params: dict, app_secret: str) -> str:
+
+def cal_sign(
+    url: str,
+    app_secret: str,
+    body: Optional[bytes] = b"",
+    content_type: str = "",
+) -> str:
     """
-    Generate a cryptographic HMAC-SHA256 signature for TikTok Shop API.
+    Generate the TikTok Shop API signature.
 
-    Args:
-        path (str): The API path, e.g., '/authorization/202309/shops'
-        query_params (dict): Dictionary of query parameters
-        app_secret (str): TikTok Shop App secret
-
-    Returns:
-        str: HMAC-SHA256 hex digest signature
+    :param url: Full request URL including query string.
+    :param app_secret: TikTok Shop app secret.
+    :param body: Request body as raw bytes (only for POST/PUT).
+    :param content_type: Content-Type header (e.g. application/json).
+    :return: HMAC-SHA256 signature string.
     """
-    # Step 1: Sort query parameter names alphabetically
-    sorted_params = dict(sorted(query_params.items()))
+    parsed_url = urlparse(url)
+    path = parsed_url.path
 
-    # Step 2: Concatenate the sorted parameter names and values
-    concatenated_params = "".join(f"{k}{v}" for k, v in sorted_params.items())
+    # Parse and filter query parameters
+    query_params = {
+        k: v
+        for k, v in parse_qsl(parsed_url.query)
+        if k not in ("sign", "access_token")
+    }
 
-    # Step 3: Append to the path
-    base_string = f"{path}{concatenated_params}"
+    # Sort and concatenate query parameters
+    sorted_params = "".join(f"{k}{v}" for k, v in sorted(query_params.items()))
+    base_string = f"{path}{sorted_params}"
 
-    # Step 4: Prepend and append the secret
+    # Append body if not multipart
+    if content_type.lower() != "multipart/form-data" and body:
+        base_string += body.decode("utf-8")
+
+    # Final string to sign
     to_sign = f"{app_secret}{base_string}{app_secret}"
 
-    # Step 5: HMAC-SHA256 encode
-    signature = hmac.new(
+    # HMAC-SHA256 hash
+    return hmac.new(
         key=app_secret.encode("utf-8"),
         msg=to_sign.encode("utf-8"),
         digestmod=hashlib.sha256,
     ).hexdigest()
-
-    return signature

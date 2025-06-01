@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     TIKTOK_SHOP_APP_KEY: str
     TIKTOK_SHOP_APP_SECRET_FILE: str
     TIKTOK_SHOP_AUTH_BASEURL: str
+    TIKTOK_SHOP_API_BASEURL: str
 
     @property
     def TIKTOK_SHOP_APP_SECRET(self) -> str:
