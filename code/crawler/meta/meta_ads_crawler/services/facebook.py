@@ -33,11 +33,11 @@ async def fetch_user_info( access_token: str, id: str = "me") -> dict:
     return user.api_get(fields=['id', 'name', 'email'])
 
 async def exchange_code_for_access_token(code):
-    token_url = f'{settings.FACEBOOK_GRAPH_API_URL}/oauth/access_token'
+    token_url = f'{settings.META_GRAPH_API_URL}/oauth/access_token'
     params = {
-        'client_id': settings.FACEBOOK_APP_ID,
-        'client_secret': settings.FACEBOOK_APP_SECRET,
-        'redirect_uri': settings.FACEBOOK_REDIRECT_URI,
+        'client_id': settings.META_APP_ID,
+        'client_secret': settings.META_APP_SECRET,
+        'redirect_uri': settings.META_REDIRECT_URI,
         'code': code
     }
     response_json = await get(token_url, params=params)
@@ -54,8 +54,8 @@ async def fetch_ad_accounts(access_token: str) -> list[AdAccount]:
         list[AdAccount]: List of ad accounts.
     """
     ads_api = FacebookAdsApi.init(
-        app_id=settings.FACEBOOK_APP_ID,
-        app_secret=settings.FACEBOOK_APP_SECRET,
+        app_id=settings.META_APP_ID,
+        app_secret=settings.META_APP_SECRET,
         access_token=access_token,
     )
     aau = AdAccountUser("me", api=ads_api)
