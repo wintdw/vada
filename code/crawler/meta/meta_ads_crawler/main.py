@@ -23,4 +23,3 @@ async def check_health():
 
 app.include_router(crawl_info.router)
 app.include_router(connector.router)
-app.include_router(schedule.router)
