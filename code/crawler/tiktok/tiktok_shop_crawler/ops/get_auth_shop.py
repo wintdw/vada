@@ -6,7 +6,6 @@ import hmac
 import hashlib
 import logging
 from typing import Dict, Any, Optional
-from urllib.parse import urlparse, parse_qsl, urlencode
 
 
 logging.basicConfig(
@@ -29,7 +28,8 @@ BASE_URL = creds.get("BASE_URL", "https://open-api.tiktokglobalshop.com")
 
 
 def cal_sign(
-    url: str,
+    path: str,
+    params: Dict[str, Any],
     app_secret: str,
     body: Optional[bytes] = b"",
     content_type: str = "",
@@ -37,24 +37,20 @@ def cal_sign(
     """
     Generate the TikTok Shop API signature.
 
-    :param url: Full request URL including query string.
+    :param path: API path, e.g. "/api/orders/search".
+    :param params: Query parameters (excluding 'sign' and 'access_token').
     :param app_secret: TikTok Shop app secret.
-    :param body: Request body as raw bytes (only for POST/PUT).
-    :param content_type: Content-Type header (e.g. application/json).
+    :param body: Request body as raw bytes (used for POST/PUT).
+    :param content_type: Content-Type header.
     :return: HMAC-SHA256 signature string.
     """
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-
-    # Parse and filter query parameters
-    query_params = {
-        k: v
-        for k, v in parse_qsl(parsed_url.query)
-        if k not in ("sign", "access_token")
+    # Filter out 'sign' and 'access_token' if included
+    filtered_params = {
+        k: v for k, v in params.items() if k not in ("sign", "access_token")
     }
 
     # Sort and concatenate query parameters
-    sorted_params = "".join(f"{k}{v}" for k, v in sorted(query_params.items()))
+    sorted_params = "".join(f"{k}{v}" for k, v in sorted(filtered_params.items()))
     base_string = f"{path}{sorted_params}"
 
     # Append body if not multipart
@@ -85,12 +81,8 @@ async def get_authorized_shop(access_token: str) -> Dict:
 
     headers = {"x-tts-access-token": access_token, "Content-Type": "application/json"}
 
-    # Construct URL for signing
-    query_string = "&".join(f"{k}={v}" for k, v in params.items())
-    url_with_params = f"{BASE_URL}{path}?{query_string}"
-
     # Calculate signature
-    sign = cal_sign(url_with_params, APP_SECRET)
+    sign = cal_sign(path, params, APP_SECRET)
     params["sign"] = sign
 
     url = f"{BASE_URL}{path}"
@@ -124,7 +116,12 @@ async def get_order_list(
     base_url = f"{BASE_URL}{path}"
 
     all_orders = []
-    cursor = ""
+
+    payload = {
+        "create_time_from": create_time_from,
+        "create_time_to": create_time_to,
+        "page_size": page_size,
+    }
 
     async with aiohttp.ClientSession() as session:
         while True:
@@ -136,53 +133,76 @@ async def get_order_list(
                 "access_token": access_token,
             }
 
-            # Prepare payload body
-            payload = {
-                "create_time_from": create_time_from,
-                "create_time_to": create_time_to,
-                "page_size": page_size,
-            }
-            if cursor:
-                payload["cursor"] = cursor
-
-            # Build URL without sign
-            query_string = urlencode(params)
-            request_url = f"{base_url}?{query_string}"
-
-            # Content type header
-            content_type = "application/json"
-            headers = {"Content-Type": content_type}
-
             # Calculate the signature using your cal_sign
-            sign_value = cal_sign(
-                url=request_url,
+            params["sign"] = cal_sign(
+                path=path,
+                params=params,
                 app_secret=APP_SECRET,
                 body=json.dumps(payload).encode("utf-8"),
-                content_type=content_type,
             )
 
-            # Add sign param and rebuild final URL
-            params["sign"] = sign_value
-            final_url = f"{base_url}?{urlencode(params)}"
-
             # Make POST request
-            async with session.post(
-                final_url, json=payload, headers=headers
-            ) as response:
+            async with session.post(base_url, params=params, json=payload) as response:
                 data = await response.json()
-                logging.info("Response:", data)
+                logging.info(f"Response: {data}")
 
                 if data.get("code") == 0:
                     orders = data["data"]["order_list"]
                     all_orders.extend(orders)
-                    cursor = data["data"].get("next_cursor")
-                    print(data["data"]["more"])
-                    if not data["data"].get("more"):
+
+                    # Paging
+                    if data["data"].get("more"):
+                        cursor = data["data"].get("next_cursor", "")
+                        payload["cursor"] = cursor
+                        logging.info(f"More orders available, next cursor: {cursor}")
+                    else:
+                        logging.info("No more orders available.")
                         break
                 else:
                     raise Exception(f"Error: {data.get('message')}")
 
-    return {"orders": all_orders}
+    return {"shop_id": shop_id, "total": len(all_orders), "orders": all_orders}
+
+
+async def get_order_detail(
+    access_token: str,
+    shop_id: str,
+    order_id_list: list[str],
+) -> Dict[str, Any]:
+    """
+    Fetch detailed information for a list of orders from TikTok Shop API.
+    """
+    path = "/api/orders/detail/query"
+    base_url = f"{BASE_URL}{path}"
+
+    payload = {"order_id_list": order_id_list}
+
+    async with aiohttp.ClientSession() as session:
+        # Prepare query parameters (excluding sign)
+        params = {
+            "shop_id": shop_id,
+            "app_key": APP_KEY,
+            "timestamp": int(time.time()),
+            "access_token": access_token,
+        }
+
+        # Calculate the signature using your cal_sign
+        params["sign"] = cal_sign(
+            path=path,
+            params=params,
+            app_secret=APP_SECRET,
+            body=json.dumps(payload).encode("utf-8"),
+        )
+
+        # Make POST request
+        async with session.post(base_url, params=params, json=payload) as response:
+            data = await response.json()
+            logging.info(f"Response: {data}")
+
+            if data.get("code") == 0:
+                return data["data"]
+            else:
+                raise Exception(f"Error: {data.get('message')}")
 
 
 async def main():
@@ -192,13 +212,21 @@ async def main():
     orders = await get_order_list(
         access_token=ACCESS_TOKEN,
         shop_id=shop_info["id"],
-        create_time_from=int(time.time()) - 864000,  # Last 24 hours
+        create_time_from=int(time.time()) - 86400,  # Last 24 hours
         create_time_to=int(time.time()),
-        page_size=100,
     )
     logging.info(
         "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
     )
+
+    # Fetch order details for the first two orders
+    order_id_list = [order["order_id"] for order in orders["orders"][:2]]
+    order_details = await get_order_detail(
+        access_token=ACCESS_TOKEN,
+        shop_id=shop_info["id"],
+        order_id_list=order_id_list,
+    )
+    logging.info("Order Details: %s", json.dumps(order_details, indent=2))
 
 
 if __name__ == "__main__":
