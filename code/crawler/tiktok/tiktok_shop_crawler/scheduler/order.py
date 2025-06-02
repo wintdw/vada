@@ -110,7 +110,7 @@ async def init_scheduler():
             if job_id in current_jobs:
                 del current_jobs[job_id]
 
-        # Remove jobs that are no longer in the google_ad_info
+        # Remove jobs that are no longer in the crawl_info
         for job_id in current_jobs:
             # dont remove update_jobs
             if job_id != "update_jobs":
