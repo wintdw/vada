@@ -32,7 +32,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
 
         crawl_info = await upsert_crawl_info(CrawlInfo(
             account_id=user_info["id"],
-            account_email=user_info["email"] or user_info["name"],
+            account_name=user_info["name"],
             vada_uid=state,
             access_token=access_token,
             index_name=f"data_fbad_{state}",
@@ -57,7 +57,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
         )
         logger.info(response)
 
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {crawl_info.account_email}"})
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {crawl_info.account_name}"})
 
     except Exception as e:
         logger.exception(e)
@@ -65,7 +65,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
             status_code=500,
             detail="Internal Server Error"
         )
-    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={crawl_info.account_id}&account_email={crawl_info.account_email}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={crawl_info.account_id}&account_name={crawl_info.account_name}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
 
 @router.get("/ingest/partner/facebook/ad/config", tags=["Connector"])
 async def ingest_partner_facebook_ad_config():

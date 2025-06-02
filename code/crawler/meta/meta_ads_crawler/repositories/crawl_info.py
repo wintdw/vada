@@ -10,7 +10,7 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
             await cursor.execute(
                 """
                 INSERT INTO `CrawlInfo`
-                    (crawl_id, account_id, account_email, vada_uid,
+                    (crawl_id, account_id, account_name, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
                     crawl_interval)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -18,7 +18,7 @@ async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
                 (
                     crawl_info.crawl_id,
                     crawl_info.account_id,
-                    crawl_info.account_email,
+                    crawl_info.account_name,
                     crawl_info.vada_uid,
                     crawl_info.index_name,
                     crawl_info.crawl_type,
@@ -35,7 +35,7 @@ async def select_crawl_info_by_crawl_id(crawl_id: str) -> CrawlInfo | None:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                SELECT crawl_id, account_id, account_email, vada_uid,
+                SELECT crawl_id, account_id, account_name, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
                     access_token_updated_at, refresh_token_updated_at,
                     crawl_interval, last_crawl_time, next_crawl_time
@@ -55,7 +55,7 @@ async def select_crawl_info_by_next_crawl_time() -> list[CrawlInfo]:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                SELECT crawl_id, account_id, account_email, vada_uid,
+                SELECT crawl_id, account_id, account_name, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
                     access_token_updated_at, refresh_token_updated_at,
                     crawl_interval, last_crawl_time, next_crawl_time
@@ -71,7 +71,7 @@ async def select_crawl_info() -> list[CrawlInfo]:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                SELECT crawl_id, account_id, account_email, vada_uid,
+                SELECT crawl_id, account_id, account_name, vada_uid,
                     index_name, crawl_type, access_token, refresh_token,
                     access_token_updated_at, refresh_token_updated_at,
                     crawl_interval, last_crawl_time, next_crawl_time
@@ -87,8 +87,8 @@ async def update_crawl_info(crawl_id: str, crawl_info: CrawlInfo) -> CrawlInfo:
             await cursor.execute(
                 """
                 UPDATE `CrawlInfo`
-                SET acount_id = %s,
-                    account_email = %s,
+                SET account_id = %s,
+                    account_name = %s,
                     vada_uid = %s,
                     index_name = %s,
                     crawl_type = %s,
@@ -103,7 +103,7 @@ async def update_crawl_info(crawl_id: str, crawl_info: CrawlInfo) -> CrawlInfo:
                 """,
                 (
                     crawl_info.account_id,
-                    crawl_info.account_email,
+                    crawl_info.account_name,
                     crawl_info.vada_uid,
                     crawl_info.index_name,
                     crawl_info.crawl_type,
@@ -175,7 +175,7 @@ async def upsert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
                 await cursor.execute(
                     """
                     INSERT INTO `CrawlInfo`
-                        (crawl_id, account_id, account_email, vada_uid,
+                        (crawl_id, account_id, account_name, vada_uid,
                         index_name, crawl_type, access_token, refresh_token,
                         crawl_interval)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -183,7 +183,7 @@ async def upsert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
                     (
                         crawl_info.crawl_id,
                         crawl_info.account_id,
-                        crawl_info.account_email,
+                        crawl_info.account_name,
                         crawl_info.vada_uid,
                         crawl_info.index_name,
                         crawl_info.crawl_type,

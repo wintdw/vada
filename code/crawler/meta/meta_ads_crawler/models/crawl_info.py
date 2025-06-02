@@ -4,7 +4,7 @@ from datetime import datetime
 class CrawlInfo(BaseModel):
     crawl_id: str | None = None
     account_id: str
-    account_email: str
+    account_name: str
     vada_uid: str
     index_name: str
     crawl_type: str

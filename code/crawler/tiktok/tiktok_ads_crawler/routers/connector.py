@@ -28,7 +28,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         
         crawl_info = await upsert_crawl_info(CrawlInfo(
             account_id=user_info["core_user_id"],
-            account_email=user_info["email"],
+            account_name=user_info["display_name"],
             vada_uid=state,
             access_token=access_token.get("access_token"),
             index_name=f"data_tiktokad_{state}",
@@ -36,21 +36,14 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         ))
         logger.info(crawl_info)
 
-        mappings_response = await create_crm_mappings(
-            index_name=crawl_info.index_name,
-            vada_uid=state,
-            account_email=user_info["email"],
-        )
-        logger.info(mappings_response)
-
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads {user_info['email']}"})
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads {crawl_info.account_name}"})
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
             status_code=500,
             detail="Internal Server Error"
         )
-    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_email={user_info["email"]}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_name={crawl_info.account_name}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):
