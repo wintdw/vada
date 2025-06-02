@@ -44,7 +44,8 @@ async def add_tiktok_shop_crawl_job(
         )
     except Exception as e:
         logging.error(
-            f"[Scheduler] Error adding TikTokShop Order job for Shop: {account_name}, Index: {index_name}: {str(e)}"
+            f"[Scheduler] Error adding TikTokShop Order job for Shop: {account_name}, Index: {index_name}: {str(e)}",
+            exc_info=True,
         )
 
 

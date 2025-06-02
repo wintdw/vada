@@ -61,4 +61,4 @@ services:
       TIKTOK_SHOP_APP_KEY: 6c6qtr3533gu3
       TIKTOK_SHOP_APP_SECRET_FILE: /run/secrets/tiktok_shop_app_secret
       TIKTOK_SHOP_AUTH_BASEURL: https://auth.tiktok-shops.com
-      TIKTOK_SHOP_API_BASEURL: https://open-api.tiktokglobalshop.com"
+      TIKTOK_SHOP_API_BASEURL: https://open-api.tiktokglobalshop.com
