@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from tools import get_logger
 from tools.settings import settings
 
-from repositories import insert_crawl_info
+from repositories import upsert_crawl_info
 from models import CrawlInfo
 
 router = APIRouter()
@@ -30,12 +30,12 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
         user_info = await fetch_user_info(access_token=access_token)
         logger.info(user_info)
 
-        crawl_info = await insert_crawl_info(CrawlInfo(
+        crawl_info = await upsert_crawl_info(CrawlInfo(
             account_id=user_info["id"],
             account_email=user_info["email"] or user_info["name"],
             vada_uid=state,
             access_token=access_token,
-            index_name=f"data_fbad_default_{state}",
+            index_name=f"data_fbad_{state}",
             crawl_type="facebook_business_ads"
         ))
         logger.info(crawl_info)
