@@ -128,11 +128,11 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
 
         # Store the refresh token in the database
         account_id = user_info["id"]
-        account_email = user_info["email"]
+        account_name = user_info["email"]
         index_name = f"data_ggad_{user_info['id']}"
         crawl_info = await set_crawl_info(
             account_id=account_id,
-            account_email=account_email,
+            account_name=account_name,
             vada_uid=vada_uid,
             index_name=index_name,
             crawl_type="google_ad",
@@ -144,7 +144,7 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
 
         # Redirect to the final URL
         friendly_index_name = f"Google Ads - {user_info['email']}"
-        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&account_email={account_email}&index_name={index_name}&friendly_index_name={friendly_index_name}"
+        fe_redirect_url = f"{settings.CALLBACK_FINAL_URL}?account_id={account_id}&account_name={account_name}&index_name={index_name}&friendly_index_name={friendly_index_name}"
         return RedirectResponse(url=fe_redirect_url, status_code=302)
 
     except Exception as e:

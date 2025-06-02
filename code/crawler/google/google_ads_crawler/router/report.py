@@ -25,7 +25,7 @@ async def fetch_google_reports_router(
     vada_uid: str = Query(
         "na", description="Vada UID for tracking", example="1234567890"
     ),
-    account_email: str = Query(
+    account_name: str = Query(
         "na", description="Account email for tracking", example="abc@example.com"
     ),
 ):
@@ -68,7 +68,7 @@ async def fetch_google_reports_router(
             persist=persist,
             index_name=index_name,
             vada_uid=vada_uid,
-            account_email=account_email,
+            account_name=account_name,
         )
 
         return JSONResponse(content=response_data, status_code=200)

@@ -2,7 +2,7 @@ import aiohttp  # type: ignore
 import time
 import json
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from model.setting import settings
 from .sign import cal_sign
@@ -73,7 +73,7 @@ async def get_order_list(
 async def get_order_detail(
     access_token: str,
     shop_id: str,
-    order_id_list: list[str],
+    order_id_list: List[str],
 ) -> Dict[str, Any]:
     """
     Fetch detailed information for a list of orders from TikTok Shop API.

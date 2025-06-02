@@ -19,15 +19,23 @@ class Settings(BaseSettings):
 
     @property
     def TIKTOK_SHOP_APP_SECRET(self) -> str:
-        with open(self.TIKTOK_SHOP_APP_SECRET_FILE, "r") as f:
-            return f.read().strip()
+        if self.TIKTOK_SHOP_APP_SECRET_FILE and os.path.isfile(
+            self.TIKTOK_SHOP_APP_SECRET_FILE
+        ):
+            with open(self.TIKTOK_SHOP_APP_SECRET_FILE, "r") as f:
+                return f.read().strip()
+        else:
+            raise ValueError(
+                "TIKTOK_SHOP_APP_SECRET_FILE is not set or file does not exist."
+            )
 
     @property
     def MYSQL_PASSWD(self) -> str:
         if self.MYSQL_PASSWD_FILE and os.path.isfile(self.MYSQL_PASSWD_FILE):
             with open(self.MYSQL_PASSWD_FILE, "r") as file:
                 return file.read().strip()
-        return ""
+        else:
+            raise ValueError("MYSQL_PASSWD_FILE is not set or file does not exist.")
 
 
 settings = Settings()

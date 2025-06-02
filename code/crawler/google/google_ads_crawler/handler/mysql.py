@@ -57,7 +57,7 @@ async def get_crawl_info(crawl_type: str) -> List[Dict]:
             {
                 "crawl_id": row["crawl_id"],
                 "account_id": row["account_id"],
-                "account_email": row["account_email"],
+                "account_name": row["account_name"],
                 "vada_uid": row["vada_uid"],
                 "index_name": row["index_name"],
                 "crawl_type": row["crawl_type"],
@@ -75,7 +75,7 @@ async def get_crawl_info(crawl_type: str) -> List[Dict]:
 
 async def set_crawl_info(
     account_id: str,
-    account_email: str,
+    account_name: str,
     vada_uid: str,
     index_name: str,
     crawl_type: str,
@@ -91,7 +91,7 @@ async def set_crawl_info(
     # Check if the record exists
     query_check = """
         SELECT 
-            crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, 
+            crawl_id, account_id, H, vada_uid, index_name, crawl_type, access_token, 
             refresh_token, crawl_interval
         FROM CrawlInfo
         WHERE account_id = %s AND vada_uid = %s
@@ -99,7 +99,7 @@ async def set_crawl_info(
 
     query_insert = """
         INSERT INTO CrawlInfo (
-            crawl_id, account_id, account_email, vada_uid, index_name, crawl_type, access_token, 
+            crawl_id, account_id, account_name, vada_uid, index_name, crawl_type, access_token, 
             refresh_token, crawl_interval
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
@@ -125,7 +125,7 @@ async def set_crawl_info(
                         (
                             crawl_id,
                             account_id,
-                            account_email,
+                            account_name,
                             vada_uid,
                             index_name,
                             crawl_type,
@@ -148,7 +148,7 @@ async def set_crawl_info(
                     )
                     crawl_id = result["crawl_id"]
                     account_id = result["account_id"]
-                    account_email = result["account_email"]
+                    account_name = result["account_name"]
                     vada_uid = result["vada_uid"]
                     index_name = result["index_name"]
                     crawl_type = result["crawl_type"]
@@ -159,7 +159,7 @@ async def set_crawl_info(
         return {
             "crawl_id": crawl_id,
             "account_id": account_id,
-            "account_email": account_email,
+            "account_name": account_name,
             "vada_uid": vada_uid,
             "index_name": index_name,
             "crawl_type": crawl_type,

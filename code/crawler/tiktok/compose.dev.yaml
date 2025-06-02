@@ -38,7 +38,7 @@ services:
       MAPPINGS_BASE_URL: http://mappings-dev.internal.vadata.vn
       CRAWLER_SERVICE_URL: http://vada-demo0:9206
 
-  tiktok_ads_crawler:
+  tiktok_shop_crawler:
     build:
       context: ./tiktok_shop_crawler
       dockerfile: Dockerfile
@@ -46,7 +46,7 @@ services:
     container_name: tiktok_shop_crawler
     restart: always
     ports:
-      - "8147:8147"
+      - "8148:8148"
     secrets:
       - mysql_crawler
       - tiktok_shop_app_secret
