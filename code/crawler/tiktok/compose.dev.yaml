@@ -28,15 +28,8 @@ services:
       TIKTOK_BIZ_REDIRECT_URI: https://api-dev.vadata.vn/ingest/partner/tiktok/ad/callback
 
       INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn
-
-      FACEBOOK_APP_ID: 822555046472581
-      FACEBOOK_APP_SECRET: 1d63cc46243d28b50b0da5a6e2eefbcc
-      FACEBOOK_GRAPH_API_URL: https://graph.facebook.com/v22.0
-      FACEBOOK_REDIRECT_URI: https://api-dev.vadata.vn/ingest/partner/facebook/ad/callback
-
+      
       CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
-      MAPPINGS_BASE_URL: http://mappings-dev.internal.vadata.vn
-      CRAWLER_SERVICE_URL: http://vada-demo0:9206
 
   tiktok_shop_crawler:
     build:

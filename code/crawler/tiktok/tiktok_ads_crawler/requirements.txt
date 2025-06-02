@@ -8,4 +8,3 @@ pydantic-settings
 fastapi-utils
 typing-inspect
 prometheus-client
-facebook_business

@@ -8,8 +8,7 @@ from routers import (
     crawl_history,
     crawl_info,
     connector,
-    schedule,
-    facebook
+    schedule
 )
 
 app = FastAPI()
@@ -50,4 +49,3 @@ app.include_router(crawl_history.router)
 app.include_router(crawl_info.router)
 app.include_router(connector.router)
 app.include_router(schedule.router)
-app.include_router(facebook.router)

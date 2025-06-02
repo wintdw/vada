@@ -17,7 +17,6 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
     from services import (
         tiktok_biz_get_access_token,
         tiktok_biz_get_user_info,
-        create_crm_mappings
     )
 
     try:
