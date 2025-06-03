@@ -49,7 +49,7 @@ services:
       MYSQL_DB: crawler_dev
       MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
 
-      INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn
+      INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn
 
       TIKTOK_SHOP_APP_KEY: 6c6qtr3533gu3
       TIKTOK_SHOP_APP_SECRET_FILE: /run/secrets/tiktok_shop_app_secret
