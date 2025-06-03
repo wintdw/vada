@@ -23,14 +23,24 @@ async def add_tiktok_shop_crawl_job(
     try:
         # Crawl immediately for the first time
         await fetch_detailed_orders(
-            access_token=access_token, start_date=thirty_days_ago, end_date=now
+            access_token=access_token,
+            start_date=thirty_days_ago,
+            end_date=now,
+            index_name=index_name,
+            vada_uid=vada_uid,
+            account_name=account_name,
         )
 
         # The first job will crawl T-1 -> T0 with 2h interval
         scheduler.add_job(
             fetch_detailed_orders,
             trigger=IntervalTrigger(minutes=crawl_interval),
-            kwargs={"access_token": access_token},
+            kwargs={
+                "access_token": access_token,
+                "index_name": index_name,
+                "vada_uid": vada_uid,
+                "account_name": account_name,
+            },
             id=job_id,
             name=f"Fetch TikTokShop Order for Shop: {account_name}, Index: {index_name} every {crawl_interval} minutes",
             replace_existing=True,
@@ -76,8 +86,9 @@ async def init_scheduler():
                 existing_kwargs = existing_job.kwargs
 
                 if (
+                    # allow changes of interval, access_token, index_name
                     existing_kwargs["index_name"] != index_name
-                    or existing_kwargs["refresh_token"] != refresh_token
+                    or existing_kwargs["access_token"] != access_token
                     or existing_trigger.interval.total_seconds() != crawl_interval * 60
                 ):
                     # Update the job with new parameters

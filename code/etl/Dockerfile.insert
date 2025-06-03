@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y tzdata && \
 COPY etl/requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
 COPY .. /app
-CMD uvicorn etl.insert.main:app --host 0.0.0.0 --port $PORT --workers 1
+CMD uvicorn etl.insert.main:app --host 0.0.0.0 --port $PORT --workers 2

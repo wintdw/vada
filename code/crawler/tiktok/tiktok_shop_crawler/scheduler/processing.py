@@ -7,7 +7,12 @@ from handler.order_apis import get_order_list, get_order_detail
 
 
 async def fetch_detailed_orders(
-    access_token: str, start_date: str = "", end_date: str = ""
+    access_token: str,
+    start_date: str = "",
+    end_date: str = "",
+    index_name: str = "",
+    vada_uid: str = "",
+    account_name: str = "",
 ):
     shop_info = await get_authorized_shop(access_token)
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
