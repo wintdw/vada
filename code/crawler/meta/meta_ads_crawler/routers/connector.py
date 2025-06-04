@@ -35,7 +35,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
             account_name=user_info["name"],
             vada_uid=state,
             access_token=access_token,
-            index_name=f"data_fbad_{state}",
+            index_name=f"data_fbad_{user_info["name"]}",
             crawl_type="facebook_business_ads"
         ))
         logger.info(crawl_info)
@@ -57,7 +57,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
         )
         logger.info(response)
 
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads {crawl_info.account_name}"})
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Facebook Ads - {crawl_info.account_name}"})
 
     except Exception as e:
         logger.exception(e)

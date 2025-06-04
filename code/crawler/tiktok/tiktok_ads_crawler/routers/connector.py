@@ -35,7 +35,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         ))
         logger.info(crawl_info)
 
-        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads {crawl_info.account_name}"})
+        encoded_friendly_name = urlencode({"friendly_index_name": f"Tiktok Ads - {crawl_info.account_name}"})
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
