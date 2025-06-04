@@ -30,7 +30,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             account_name=user_info["display_name"],
             vada_uid=state,
             access_token=access_token.get("access_token"),
-            index_name=f"data_tiktokad_{state}",
+            index_name=f"data_tiktokad_{user_info['core_user_id']}",
             crawl_type="tiktok_business_ads"
         ))
         logger.info(crawl_info)
