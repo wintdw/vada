@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     MYSQL_DB: str
     MYSQL_PASSWD_FILE: str
 
-    INSERT_SERVICE_URL: str
+    INSERT_SERVICE_BASEURL: str
 
     TIKTOK_SHOP_APP_KEY: str
     TIKTOK_SHOP_APP_SECRET_FILE: str
