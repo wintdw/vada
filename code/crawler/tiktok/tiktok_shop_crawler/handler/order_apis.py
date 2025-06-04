@@ -110,11 +110,15 @@ async def get_order_detail(
             # Make POST request
             async with session.post(base_url, params=params, json=payload) as response:
                 data = await response.json()
-                logging.info(f"Response for chunk {i // chunk_size + 1}: {data}")
+                # logging.info(f"Response for chunk {i // chunk_size + 1}: {data}")
 
                 if data.get("code") == 0:
                     all_order_details.extend(data["data"]["order_list"])
                 else:
+                    logging.error(
+                        f"Error fetching order details for chunk {i // chunk_size + 1}: {data.get('message')}",
+                        exc_info=True,
+                    )
                     raise Exception(f"Error: {data.get('message')}")
 
     return all_order_details

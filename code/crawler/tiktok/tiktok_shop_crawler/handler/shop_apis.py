@@ -21,10 +21,6 @@ async def get_authorized_shop(access_token: str) -> Dict:
 
     headers = {"x-tts-access-token": access_token, "Content-Type": "application/json"}
 
-    # Construct URL for signing
-    query_string = "&".join(f"{k}={v}" for k, v in params.items())
-    url_with_params = f"{settings.TIKTOK_SHOP_API_BASEURL}{path}?{query_string}"
-
     # Calculate signature
     sign = cal_sign(
         path=path, params=params, app_secret=settings.TIKTOK_SHOP_APP_SECRET
