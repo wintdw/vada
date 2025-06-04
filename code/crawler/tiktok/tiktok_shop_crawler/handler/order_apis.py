@@ -85,10 +85,18 @@ async def get_order_detail(
 
     all_order_details = []
 
+    # Calculate the total number of chunks
+    total_chunks = (len(order_id_list) + chunk_size - 1) // chunk_size
+    logging.info(f"Total chunks to process: {total_chunks}")
+
     # Split the order_id_list into chunks of size <= chunk_size
-    for i in range(0, len(order_id_list), chunk_size):
+    for chunk_index, i in enumerate(range(0, len(order_id_list), chunk_size), start=1):
         chunk = order_id_list[i : i + chunk_size]
         payload = {"order_id_list": chunk}
+
+        logging.info(
+            f"Processing chunk {chunk_index}/{total_chunks} with {len(chunk)} orders."
+        )
 
         async with aiohttp.ClientSession() as session:
             # Prepare query parameters (excluding sign)
@@ -110,15 +118,16 @@ async def get_order_detail(
             # Make POST request
             async with session.post(base_url, params=params, json=payload) as response:
                 data = await response.json()
-                # logging.info(f"Response for chunk {i // chunk_size + 1}: {data}")
+                # logging.info(f"Response for chunk {chunk_index}: {data}")
 
                 if data.get("code") == 0:
                     all_order_details.extend(data["data"]["order_list"])
                 else:
                     logging.error(
-                        f"Error fetching order details for chunk {i // chunk_size + 1}: {data.get('message')}",
+                        f"Error fetching order details for chunk {chunk_index}: {data.get('message')}",
                         exc_info=True,
                     )
                     raise Exception(f"Error: {data.get('message')}")
 
+    logging.info(f"Finished processing all {total_chunks} chunks.")
     return all_order_details
