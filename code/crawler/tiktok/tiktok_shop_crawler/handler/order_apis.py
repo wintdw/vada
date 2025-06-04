@@ -74,7 +74,7 @@ async def get_order_detail(
     access_token: str,
     shop_id: str,
     order_id_list: List[str],
-) -> Dict[str, Any]:
+) -> List[Dict]:
     """
     Fetch detailed information for a list of orders from TikTok Shop API.
     """
@@ -106,6 +106,6 @@ async def get_order_detail(
             logging.info(f"Response: {data}")
 
             if data.get("code") == 0:
-                return data["data"]
+                return data["data"]["order_list"]
             else:
                 raise Exception(f"Error: {data.get('message')}")

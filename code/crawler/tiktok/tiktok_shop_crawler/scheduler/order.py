@@ -18,7 +18,7 @@ async def add_tiktok_shop_crawl_job(
     crawl_interval: int,
 ):
     now = datetime.now().strftime("%Y-%m-%d")
-    thirty_days_ago = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+    thirty_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
 
     try:
         # Crawl immediately for the first time

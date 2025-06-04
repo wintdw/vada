@@ -200,7 +200,7 @@ async def get_order_detail(
             logging.info(f"Response: {data}")
 
             if data.get("code") == 0:
-                return data["data"]
+                return data["data"]["order_list"]
             else:
                 raise Exception(f"Error: {data.get('message')}")
 
@@ -219,8 +219,8 @@ async def main():
         "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
     )
 
-    # Fetch order details for the first two orders
-    order_id_list = [order["order_id"] for order in orders["orders"][:2]]
+    # Fetch order details for the first order
+    order_id_list = [order["order_id"] for order in orders["orders"][:1]]
     order_details = await get_order_detail(
         access_token=ACCESS_TOKEN,
         shop_id=shop_info["id"],

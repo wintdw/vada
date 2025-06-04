@@ -4,11 +4,11 @@ from typing import Dict, List
 from model.setting import settings
 
 
-def add_insert_metadata(reports: List, index_name: str) -> Dict:
-    return {"meta": {"index_name": index_name}, "data": reports}
+def add_insert_metadata(records: List, index_name: str) -> Dict:
+    return {"meta": {"index_name": index_name}, "data": records}
 
 
-def enrich_report(report: Dict, doc_id: str) -> Dict:
+def enrich_record(record: Dict, doc_id: str) -> Dict:
     metadata = {
         "_vada": {
             "ingest": {
@@ -16,7 +16,7 @@ def enrich_report(report: Dict, doc_id: str) -> Dict:
             }
         }
     }
-    return report | metadata
+    return record | metadata
 
 
 async def send_to_insert_service(data: Dict) -> Dict:
@@ -29,37 +29,35 @@ async def send_to_insert_service(data: Dict) -> Dict:
             return {"status": response.status, "detail": await response.text()}
 
 
-### The main function to process and send reports
-async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
+### The main function to process and send records
+async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
     """Produce data to insert service
 
     Args:
-        raw_reports: List of report data to be processed and sent
+        raw_data: List of data to be processed and sent
 
     Returns:
         Dict: Response from insert service
     """
 
-    # Enrich each report with metadata
-    enriched_reports = []
-    for report in raw_reports:
+    # Enrich each record with metadata
+    enriched_records = []
+    for record in raw_data:
         # Create unique doc ID using ad.id + ad_group.id + campaign.id + date
         doc_id = ".".join(
             [
-                str(report.get("customer_id", "")),
-                str(report.get("campaign", {}).get("id", "")),
-                str(report.get("ad_group", {}).get("id", "")),
-                str(report.get("ad_group_ad", {}).get("ad_id", "")),
-                str(report.get("date", "")),
+                record.get("create_time", ""),
+                record.get("buyer_uid", ""),
+                record.get("order_id", ""),
             ]
         )
-        enriched_report = enrich_report(report, doc_id)
-        enriched_reports.append(enriched_report)
+        enriched_record = enrich_record(record, doc_id)
+        enriched_records.append(enriched_record)
 
     # Add insert metadata wrapper
-    enriched_report_data = add_insert_metadata(enriched_reports, index_name)
+    enriched_record_data = add_insert_metadata(enriched_records, index_name)
 
     # Send to insert service
-    response = await send_to_insert_service(enriched_report_data)
+    response = await send_to_insert_service(enriched_record_data)
 
     return response

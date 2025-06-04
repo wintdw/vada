@@ -1,9 +1,11 @@
 import json
 import logging
+from typing import List, Dict
 from datetime import datetime, timedelta
 
 from handler.shop_apis import get_authorized_shop
 from handler.order_apis import get_order_list, get_order_detail
+from handler.persist import post_processing
 
 
 async def fetch_detailed_orders(
@@ -13,7 +15,7 @@ async def fetch_detailed_orders(
     index_name: str = "",
     vada_uid: str = "",
     account_name: str = "",
-):
+) -> List[Dict]:
     shop_info = await get_authorized_shop(access_token)
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
 
@@ -41,11 +43,20 @@ async def fetch_detailed_orders(
         "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
     )
 
-    # Fetch order details for the first two orders
-    order_id_list = [order["order_id"] for order in orders["orders"][:2]]
+    # Fetch order details for all orders
+    order_id_list = [order["order_id"] for order in orders["orders"]]
+    if not order_id_list:
+        logging.info("No orders found for the specified date range.")
+        return []
+
     order_details = await get_order_detail(
         access_token=access_token,
         shop_id=shop_info["id"],
         order_id_list=order_id_list,
     )
-    logging.info("Order Details: %s", json.dumps(order_details, indent=2))
+    logging.info("Sample order details: %s", order_details[:1])
+
+    insert_response = await post_processing(order_details, index_name)
+    logging.info("Insert response: %s", insert_response)
+
+    return order_details

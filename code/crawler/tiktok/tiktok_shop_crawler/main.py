@@ -7,7 +7,7 @@ from scheduler.order import init_scheduler
 
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 app = FastAPI(title="Tiktok Shop Crawler")
