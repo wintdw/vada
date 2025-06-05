@@ -46,7 +46,7 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
         # Create unique doc ID using create_time, id, and user_id
         doc_id = ".".join(
             [
-                record.get("create_time", ""),
+                str(record.get("create_time", "")),
                 record.get("id", ""),
                 record.get("user_id", ""),
             ]

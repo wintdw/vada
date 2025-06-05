@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI  # type: ignore
 
 from router import auth
-from scheduler.order import init_scheduler
+from scheduler.main import init_scheduler
 
 
 logging.basicConfig(

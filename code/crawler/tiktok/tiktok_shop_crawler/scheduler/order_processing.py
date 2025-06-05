@@ -8,7 +8,7 @@ from handler.order_apis import get_order_list
 from handler.persist import post_processing
 
 
-async def fetch_all_orders(
+async def scheduled_fetch_all_orders(
     access_token: str,
     start_date: str = "",
     end_date: str = "",

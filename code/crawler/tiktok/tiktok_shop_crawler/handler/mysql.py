@@ -75,16 +75,17 @@ async def get_crawl_info(crawl_type: str) -> List[Dict]:
 
 async def set_crawl_info(
     account_id: str,
-    account_name: str,
     vada_uid: str,
-    index_name: str,
-    crawl_type: str,
-    refresh_token: str,
-    access_token: str,
+    account_name: str = "",
+    index_name: str = "",
+    crawl_type: str = "",
+    refresh_token: str = "",
+    access_token: str = "",
     crawl_interval: int = 1440,
 ) -> Dict:
     """
     Inserts a new record into the CrawlInfo table or updates the refresh token if the record exists.
+    account_id and vada_uid are used to identify the record. The pair must be unique.
     """
     crawl_id = str(uuid.uuid4())
 
@@ -135,7 +136,9 @@ async def set_crawl_info(
                         ),
                     )
                     await connection.commit()
-                    logging.info(f"Inserted crawl info for crawl_id: {crawl_id}")
+                    logging.info(
+                        f"Inserted crawl info for account_name: {account_name} and vada_uid: {vada_uid}"
+                    )
                 else:
                     # Update the refresh token if the record exists
                     await cursor.execute(
@@ -144,7 +147,7 @@ async def set_crawl_info(
                     )
                     await connection.commit()
                     logging.info(
-                        f"Updated refresh token for account_id: {account_id} and vada_uid: {vada_uid}"
+                        f"Updated refresh token for account_name: {account_name} and vada_uid: {vada_uid}"
                     )
                     crawl_id = result["crawl_id"]
                     account_id = result["account_id"]
