@@ -21,7 +21,7 @@ async def add_tiktok_shop_refresh_job(
         # Schedule the token refresh job
         scheduler.add_job(
             scheduled_refresh_token,
-            trigger=IntervalTrigger(minutes=60),  # Refresh every hour
+            trigger=IntervalTrigger(minutes=4320),  # Refresh every 3d
             kwargs={
                 "refresh_token": refresh_token,
                 "vada_uid": vada_uid,
@@ -118,30 +118,30 @@ async def init_scheduler():
             crawl_job_id = f"crawl_order_{crawl_id}"
             refresh_job_id = f"refresh_token_{crawl_id}"
 
-            await add_tiktok_shop_refresh_job(
-                scheduler=scheduler,
-                refresh_token=refresh_token,
-                job_id=refresh_job_id,
-                vada_uid=vada_uid,
-                account_id=account_id,
-                account_name=account_name,
-            )
-
-            await add_tiktok_shop_crawl_job(
-                scheduler=scheduler,
-                access_token=access_token,
-                index_name=index_name,
-                job_id=crawl_job_id,
-                vada_uid=vada_uid,
-                account_id=account_id,
-                account_name=account_name,
-                crawl_interval=crawl_interval,
-            )
-
-            # Remove the old job from current_jobs
-            if crawl_job_id in current_jobs:
+            if crawl_job_id not in current_jobs:
+                await add_tiktok_shop_refresh_job(
+                    scheduler=scheduler,
+                    refresh_token=refresh_token,
+                    job_id=refresh_job_id,
+                    vada_uid=vada_uid,
+                    account_id=account_id,
+                    account_name=account_name,
+                )
+            else:
                 del current_jobs[crawl_job_id]
-            if refresh_job_id in current_jobs:
+
+            if refresh_job_id not in current_jobs:
+                await add_tiktok_shop_crawl_job(
+                    scheduler=scheduler,
+                    access_token=access_token,
+                    index_name=index_name,
+                    job_id=crawl_job_id,
+                    vada_uid=vada_uid,
+                    account_id=account_id,
+                    account_name=account_name,
+                    crawl_interval=crawl_interval,
+                )
+            else:
                 del current_jobs[refresh_job_id]
 
         # Remove jobs that are no longer in the crawl_info
