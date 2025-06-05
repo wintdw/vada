@@ -8,7 +8,7 @@ from handler.order_apis import get_order_list, get_order_detail
 from handler.persist import post_processing
 
 
-async def fetch_detailed_orders(
+async def fetch_all_orders(
     access_token: str,
     start_date: str = "",
     end_date: str = "",
@@ -19,13 +19,14 @@ async def fetch_detailed_orders(
     shop_info = await get_authorized_shop(access_token)
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
 
+    # end_date shoud be the next day
     if not start_date or not end_date:
         start_date = (datetime.now() - timedelta(days=1)).date().strftime("%Y-%m-%d")
-        end_date = datetime.now().date().strftime("%Y-%m-%d")
+        end_date = (datetime.now() + timedelta(days=1)).date().strftime("%Y-%m-%d")
 
     # Convert start_date and end_date to Unix timestamps
-    create_time_from = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
-    create_time_to = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
+    create_time_ge = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
+    create_time_lt = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
 
     logging.info(
         "Fetching orders from %s to %s for shop ID: %s",
@@ -33,30 +34,22 @@ async def fetch_detailed_orders(
         end_date,
         shop_info["id"],
     )
-    orders = await get_order_list(
+    order_reponse = await get_order_list(
         access_token=access_token,
-        shop_id=shop_info["id"],
-        create_time_from=create_time_from,
-        create_time_to=create_time_to,
+        shop_cipher=shop_info["cipher"],
+        create_time_ge=create_time_ge,
+        create_time_lt=create_time_lt,
     )
-    logging.info(
-        "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
-    )
+    logging.info(order_reponse)
+
+    orders = order_reponse.get("orders", [])
 
     # Fetch order details for all orders
-    order_id_list = [order["order_id"] for order in orders["orders"]]
-    if not order_id_list:
+    if not orders:
         logging.info("No orders found for the specified date range.")
         return []
 
-    order_details = await get_order_detail(
-        access_token=access_token,
-        shop_id=shop_info["id"],
-        order_id_list=order_id_list,
-    )
-    logging.info("Sample order details: %s", order_details[:1])
-
-    insert_response = await post_processing(order_details, index_name)
+    insert_response = await post_processing(orders, index_name)
     logging.info("Insert response: %s", insert_response)
 
-    return order_details
+    return orders

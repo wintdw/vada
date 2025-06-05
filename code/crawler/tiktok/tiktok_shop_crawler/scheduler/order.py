@@ -5,7 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.mysql import get_crawl_info
-from .processing import fetch_detailed_orders
+from .processing import fetch_all_orders
 
 
 async def add_tiktok_shop_crawl_job(
@@ -17,14 +17,14 @@ async def add_tiktok_shop_crawl_job(
     account_name: str,
     crawl_interval: int,
 ):
-    now = datetime.now().strftime("%Y-%m-%d")
-    thirty_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+    now = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    ninety_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
 
     try:
         # Crawl immediately for the first time
-        await fetch_detailed_orders(
+        await fetch_all_orders(
             access_token=access_token,
-            start_date=thirty_days_ago,
+            start_date=ninety_days_ago,
             end_date=now,
             index_name=index_name,
             vada_uid=vada_uid,
@@ -33,7 +33,7 @@ async def add_tiktok_shop_crawl_job(
 
         # The first job will crawl T-1 -> T0 with 2h interval
         scheduler.add_job(
-            fetch_detailed_orders,
+            fetch_all_orders,
             trigger=IntervalTrigger(minutes=crawl_interval),
             kwargs={
                 "access_token": access_token,
