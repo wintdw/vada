@@ -104,64 +104,84 @@ async def get_authorized_shop(access_token: str) -> Dict:
 
 async def get_order_list(
     access_token: str,
-    shop_id: str,
-    create_time_from: int,
-    create_time_to: int,
+    shop_cipher: str,
+    create_time_ge: int,
+    create_time_lt: int,
     page_size: int = 100,
 ) -> Dict[str, Any]:
     """
-    Fetch the order list from TikTok Shop API with paging.
+    Fetch the order list from the new TikTok Shop API (202309 version) with paging.
     """
-    path = "/api/orders/search"
+    api_version = "202309"
+    path = f"/order/{api_version}/orders/search"
     base_url = f"{BASE_URL}{path}"
 
     all_orders = []
-
-    payload = {
-        "create_time_from": create_time_from,
-        "create_time_to": create_time_to,
-        "page_size": page_size,
-    }
+    page_token = ""
 
     async with aiohttp.ClientSession() as session:
         while True:
-            # Prepare query parameters (excluding sign)
-            params = {
-                "shop_id": shop_id,
+            timestamp = int(time.time())
+
+            # Prepare query parameters
+            query_params = {
                 "app_key": APP_KEY,
-                "timestamp": int(time.time()),
-                "access_token": access_token,
+                "shop_cipher": shop_cipher,
+                "timestamp": timestamp,
+                "page_size": page_size,
             }
 
-            # Calculate the signature using your cal_sign
-            params["sign"] = cal_sign(
+            if page_token:
+                query_params["page_token"] = page_token
+
+            # JSON body (filter conditions)
+            payload = {
+                "create_time_ge": create_time_ge,
+                "create_time_lt": create_time_lt,
+                # "update_time_ge": create_time_ge,  # Optional
+                # "update_time_lt": create_time_lt,  # Optional
+                # "shipping_type": "TIKTOK",        # Optional
+                # "buyer_user_id": "7213489962827123654",  # Optional
+                # "is_buyer_request_cancel": False,
+                # "warehouse_ids": ["7000714532876273888", "7000714532876273666"]
+            }
+
+            # Sign calculation
+            query_params["sign"] = cal_sign(
                 path=path,
-                params=params,
+                params=query_params,
                 app_secret=APP_SECRET,
                 body=json.dumps(payload).encode("utf-8"),
+                content_type="application/json",
             )
 
-            # Make POST request
-            async with session.post(base_url, params=params, json=payload) as response:
+            headers = {
+                "x-tts-access-token": access_token,
+                "content-type": "application/json",
+            }
+
+            async with session.post(
+                base_url, params=query_params, json=payload, headers=headers
+            ) as response:
                 data = await response.json()
                 logging.info(f"Response: {data}")
 
                 if data.get("code") == 0:
-                    orders = data["data"]["order_list"]
+                    orders = data["data"]["orders"]
                     all_orders.extend(orders)
 
-                    # Paging
-                    if data["data"].get("more"):
-                        cursor = data["data"].get("next_cursor", "")
-                        payload["cursor"] = cursor
-                        logging.info(f"More orders available, next cursor: {cursor}")
+                    page_token = data["data"].get("next_page_token")
+                    if page_token:
+                        logging.info(
+                            f"More orders available, next page_token: {page_token}"
+                        )
                     else:
                         logging.info("No more orders available.")
                         break
                 else:
                     raise Exception(f"Error: {data.get('message')}")
 
-    return {"shop_id": shop_id, "total": len(all_orders), "orders": all_orders}
+    return {"total": len(all_orders), "orders": all_orders}
 
 
 async def get_order_detail(
@@ -211,9 +231,9 @@ async def main():
 
     orders = await get_order_list(
         access_token=ACCESS_TOKEN,
-        shop_id=shop_info["id"],
-        create_time_from=int(time.time()) - 86400,  # Last 24 hours
-        create_time_to=int(time.time()),
+        shop_cipher=shop_info["cipher"],
+        create_time_ge=int(time.time()) - 86400,  # Last 24 hours
+        create_time_lt=int(time.time()),
     )
     logging.info(
         "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
