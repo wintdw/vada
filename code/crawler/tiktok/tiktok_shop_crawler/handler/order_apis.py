@@ -92,56 +92,60 @@ async def get_order_list(
 
 async def get_order_detail(
     access_token: str,
-    shop_id: str,
-    order_id_list: List[str],
-    chunk_size: int = 40,  # Maximum number of order IDs per request
+    shop_cipher: str,
+    order_ids: List[str],
+    chunk_size: int = 40,
 ) -> List[Dict]:
     """
-    Fetch detailed information for a list of orders from TikTok Shop API.
-    Handles cases where the order_id_list exceeds the API limit by chunking the list.
+    Fetch order details using the new TikTok Shop API (202309 version).
+    Supports chunking for large order lists.
     """
-    path = "/api/orders/detail/query"
+    api_version = "202309"
+    path = f"/order/{api_version}/orders"
     base_url = f"{settings.TIKTOK_SHOP_API_BASEURL}{path}"
 
-    all_order_details = []
+    all_order_details: List[Dict] = []
 
-    # Calculate the total number of chunks
-    total_chunks = (len(order_id_list) + chunk_size - 1) // chunk_size
+    # Break the order_id_list into chunks
+    total_chunks = (len(order_ids) + chunk_size - 1) // chunk_size
     logging.info(f"Total chunks to process: {total_chunks}")
 
-    # Split the order_id_list into chunks of size <= chunk_size
-    for chunk_index, i in enumerate(range(0, len(order_id_list), chunk_size), start=1):
-        chunk = order_id_list[i : i + chunk_size]
-        payload = {"order_id_list": chunk}
+    async with aiohttp.ClientSession() as session:
+        for chunk_index, i in enumerate(range(0, len(order_ids), chunk_size), start=1):
+            chunk = order_ids[i : i + chunk_size]
+            ids_str = ",".join(chunk)
+            timestamp = int(time.time())
 
-        logging.info(
-            f"Processing chunk {chunk_index}/{total_chunks} with {len(chunk)} orders."
-        )
-
-        async with aiohttp.ClientSession() as session:
-            # Prepare query parameters (excluding sign)
-            params = {
-                "shop_id": shop_id,
+            query_params = {
                 "app_key": settings.TIKTOK_SHOP_APP_KEY,
-                "timestamp": int(time.time()),
-                "access_token": access_token,
+                "shop_cipher": shop_cipher,
+                "timestamp": timestamp,
+                "ids": ids_str,
             }
 
-            # Calculate the signature using your cal_sign
-            params["sign"] = cal_sign(
+            # Sign calculation (no body, GET request)
+            query_params["sign"] = cal_sign(
                 path=path,
-                params=params,
+                params=query_params,
                 app_secret=settings.TIKTOK_SHOP_APP_SECRET,
-                body=json.dumps(payload).encode("utf-8"),
+                content_type="application/json",
             )
 
-            # Make POST request
-            async with session.post(base_url, params=params, json=payload) as response:
+            headers = {
+                "x-tts-access-token": access_token,
+                "content-type": "application/json",
+            }
+
+            logging.info(f"Fetching order detail chunk {chunk_index}/{total_chunks}.")
+
+            async with session.get(
+                base_url, params=query_params, headers=headers
+            ) as response:
                 data = await response.json()
                 # logging.info(f"Response for chunk {chunk_index}: {data}")
 
                 if data.get("code") == 0:
-                    all_order_details.extend(data["data"]["order_list"])
+                    all_order_details.extend(data["data"]["orders"])
                 else:
                     logging.error(
                         f"Error fetching order details for chunk {chunk_index}: {data.get('message')}",

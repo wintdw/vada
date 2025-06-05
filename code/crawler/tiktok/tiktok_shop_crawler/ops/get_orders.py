@@ -5,7 +5,7 @@ import time
 import hmac
 import hashlib
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 
 logging.basicConfig(
@@ -186,43 +186,69 @@ async def get_order_list(
 
 async def get_order_detail(
     access_token: str,
-    shop_id: str,
-    order_id_list: list[str],
-) -> Dict[str, Any]:
+    shop_cipher: str,
+    order_ids: List[str],
+    chunk_size: int = 40,
+) -> List[Dict]:
     """
-    Fetch detailed information for a list of orders from TikTok Shop API.
+    Fetch order details using the new TikTok Shop API (202309 version).
+    Supports chunking for large order lists.
     """
-    path = "/api/orders/detail/query"
+    api_version = "202309"
+    path = f"/order/{api_version}/orders"
     base_url = f"{BASE_URL}{path}"
 
-    payload = {"order_id_list": order_id_list}
+    all_order_details: List[Dict] = []
+
+    # Break the order_id_list into chunks
+    total_chunks = (len(order_ids) + chunk_size - 1) // chunk_size
+    logging.info(f"Total chunks to process: {total_chunks}")
 
     async with aiohttp.ClientSession() as session:
-        # Prepare query parameters (excluding sign)
-        params = {
-            "shop_id": shop_id,
-            "app_key": APP_KEY,
-            "timestamp": int(time.time()),
-            "access_token": access_token,
-        }
+        for chunk_index, i in enumerate(range(0, len(order_ids), chunk_size), start=1):
+            chunk = order_ids[i : i + chunk_size]
+            ids_str = ",".join(chunk)
+            timestamp = int(time.time())
 
-        # Calculate the signature using your cal_sign
-        params["sign"] = cal_sign(
-            path=path,
-            params=params,
-            app_secret=APP_SECRET,
-            body=json.dumps(payload).encode("utf-8"),
-        )
+            query_params = {
+                "app_key": APP_KEY,
+                "shop_cipher": shop_cipher,
+                "timestamp": timestamp,
+                "ids": ids_str,
+            }
 
-        # Make POST request
-        async with session.post(base_url, params=params, json=payload) as response:
-            data = await response.json()
-            logging.info(f"Response: {data}")
+            # Sign calculation (no body, GET request)
+            query_params["sign"] = cal_sign(
+                path=path,
+                params=query_params,
+                app_secret=APP_SECRET,
+                content_type="application/json",
+            )
 
-            if data.get("code") == 0:
-                return data["data"]["order_list"]
-            else:
-                raise Exception(f"Error: {data.get('message')}")
+            headers = {
+                "x-tts-access-token": access_token,
+                "content-type": "application/json",
+            }
+
+            logging.info(f"Fetching order detail chunk {chunk_index}/{total_chunks}.")
+
+            async with session.get(
+                base_url, params=query_params, headers=headers
+            ) as response:
+                data = await response.json()
+                # logging.info(f"Response for chunk {chunk_index}: {data}")
+
+                if data.get("code") == 0:
+                    all_order_details.extend(data["data"]["orders"])
+                else:
+                    logging.error(
+                        f"Error fetching order details for chunk {chunk_index}: {data.get('message')}",
+                        exc_info=True,
+                    )
+                    raise Exception(f"Error: {data.get('message')}")
+
+    logging.info(f"Finished processing all {total_chunks} chunks.")
+    return all_order_details
 
 
 async def main():
@@ -239,14 +265,14 @@ async def main():
         "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
     )
 
-    # Fetch order details for the first order
-    order_id_list = [order["order_id"] for order in orders["orders"][:1]]
-    order_details = await get_order_detail(
-        access_token=ACCESS_TOKEN,
-        shop_id=shop_info["id"],
-        order_id_list=order_id_list,
-    )
-    logging.info("Order Details: %s", json.dumps(order_details, indent=2))
+    # # Fetch order details for the first order
+    # order_id_list = [order["id"] for order in orders["orders"][:1]]
+    # order_details = await get_order_detail(
+    #     access_token=ACCESS_TOKEN,
+    #     shop_cipher=shop_info["cipher"],
+    #     order_ids=order_id_list,
+    # )
+    # logging.info("Order Details: %s", json.dumps(order_details, indent=2))
 
 
 if __name__ == "__main__":
