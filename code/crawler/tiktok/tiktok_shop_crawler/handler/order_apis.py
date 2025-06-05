@@ -155,3 +155,52 @@ async def get_order_detail(
 
     logging.info(f"Finished processing all {total_chunks} chunks.")
     return all_order_details
+
+
+async def get_price_detail(
+    access_token: str,
+    shop_cipher: str,
+    order_id: str,
+) -> Dict:
+    """
+    Fetch price detail of a specific order using TikTok Shop API (202407 version).
+    """
+    api_version = "202407"
+    path = f"/order/{api_version}/orders/{order_id}/price_detail"
+    base_url = f"{settings.TIKTOK_SHOP_API_BASEURL}{path}"
+    timestamp = int(time.time())
+
+    # Prepare query parameters
+    query_params = {
+        "app_key": settings.TIKTOK_SHOP_APP_KEY,
+        "timestamp": timestamp,
+        "shop_cipher": shop_cipher,
+    }
+
+    # Sign calculation (GET request, no body)
+    query_params["sign"] = cal_sign(
+        path=path,
+        params=query_params,
+        app_secret=settings.TIKTOK_SHOP_APP_SECRET,
+        content_type="application/json",
+    )
+
+    headers = {
+        "x-tts-access-token": access_token,
+        "content-type": "application/json",
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            base_url, params=query_params, headers=headers
+        ) as response:
+            data = await response.json()
+
+            if data.get("code") == 0:
+                return data["data"]
+            else:
+                logging.error(
+                    f"Failed to fetch price detail for order {order_id}: {data}",
+                    exc_info=True,
+                )
+                raise Exception(f"Error: {data.get('message')}")

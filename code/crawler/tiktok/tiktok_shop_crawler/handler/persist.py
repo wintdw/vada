@@ -43,12 +43,12 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
     # Enrich each record with metadata
     enriched_records = []
     for record in raw_data:
-        # Create unique doc ID using ad.id + ad_group.id + campaign.id + date
+        # Create unique doc ID using create_time, id, and user_id
         doc_id = ".".join(
             [
                 record.get("create_time", ""),
-                record.get("buyer_uid", ""),
-                record.get("order_id", ""),
+                record.get("id", ""),
+                record.get("user_id", ""),
             ]
         )
         enriched_record = enrich_record(record, doc_id)

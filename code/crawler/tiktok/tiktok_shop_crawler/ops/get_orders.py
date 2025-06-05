@@ -184,71 +184,53 @@ async def get_order_list(
     return {"total": len(all_orders), "orders": all_orders}
 
 
-async def get_order_detail(
+async def get_price_detail(
     access_token: str,
     shop_cipher: str,
-    order_ids: List[str],
-    chunk_size: int = 40,
-) -> List[Dict]:
+    order_id: str,
+) -> Dict:
     """
-    Fetch order details using the new TikTok Shop API (202309 version).
-    Supports chunking for large order lists.
+    Fetch price detail of a specific order using TikTok Shop API (202407 version).
     """
-    api_version = "202309"
-    path = f"/order/{api_version}/orders"
+    api_version = "202407"
+    path = f"/order/{api_version}/orders/{order_id}/price_detail"
     base_url = f"{BASE_URL}{path}"
+    timestamp = int(time.time())
 
-    all_order_details: List[Dict] = []
+    # Prepare query parameters
+    query_params = {
+        "app_key": APP_KEY,
+        "timestamp": timestamp,
+        "shop_cipher": shop_cipher,
+    }
 
-    # Break the order_id_list into chunks
-    total_chunks = (len(order_ids) + chunk_size - 1) // chunk_size
-    logging.info(f"Total chunks to process: {total_chunks}")
+    # Sign calculation (GET request, no body)
+    query_params["sign"] = cal_sign(
+        path=path,
+        params=query_params,
+        app_secret=APP_SECRET,
+        content_type="application/json",
+    )
+
+    headers = {
+        "x-tts-access-token": access_token,
+        "content-type": "application/json",
+    }
 
     async with aiohttp.ClientSession() as session:
-        for chunk_index, i in enumerate(range(0, len(order_ids), chunk_size), start=1):
-            chunk = order_ids[i : i + chunk_size]
-            ids_str = ",".join(chunk)
-            timestamp = int(time.time())
+        async with session.get(
+            base_url, params=query_params, headers=headers
+        ) as response:
+            data = await response.json()
 
-            query_params = {
-                "app_key": APP_KEY,
-                "shop_cipher": shop_cipher,
-                "timestamp": timestamp,
-                "ids": ids_str,
-            }
-
-            # Sign calculation (no body, GET request)
-            query_params["sign"] = cal_sign(
-                path=path,
-                params=query_params,
-                app_secret=APP_SECRET,
-                content_type="application/json",
-            )
-
-            headers = {
-                "x-tts-access-token": access_token,
-                "content-type": "application/json",
-            }
-
-            logging.info(f"Fetching order detail chunk {chunk_index}/{total_chunks}.")
-
-            async with session.get(
-                base_url, params=query_params, headers=headers
-            ) as response:
-                data = await response.json()
-                # logging.info(f"Response for chunk {chunk_index}: {data}")
-
-                if data.get("code") == 0:
-                    all_order_details.extend(data["data"]["orders"])
-                else:
-                    logging.error(
-                        f"Error fetching order details for chunk {chunk_index}: {data.get('message')}",
-                        exc_info=True,
-                    )
-                    raise Exception(f"Error: {data.get('message')}")
-
-    logging.info(f"Finished processing all {total_chunks} chunks.")
-    return all_order_details
+            if data.get("code") == 0:
+                return data["data"]
+            else:
+                logging.error(
+                    f"Failed to fetch price detail for order {order_id}: {data}",
+                    exc_info=True,
+                )
+                raise Exception(f"Error: {data.get('message')}")
 
 
 async def main():
@@ -273,6 +255,19 @@ async def main():
     #     order_ids=order_id_list,
     # )
     # logging.info("Order Details: %s", json.dumps(order_details, indent=2))
+
+    for order in orders["orders"]:
+        order_id = order["id"]
+        price_detail = await get_price_detail(
+            access_token=ACCESS_TOKEN,
+            shop_cipher=shop_info["cipher"],
+            order_id=order_id,
+        )
+        logging.info(
+            "Price Detail for Order %s: %s",
+            order_id,
+            json.dumps(price_detail, indent=2),
+        )
 
 
 if __name__ == "__main__":
