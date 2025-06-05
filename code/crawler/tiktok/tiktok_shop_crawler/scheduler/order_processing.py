@@ -14,6 +14,7 @@ async def scheduled_fetch_all_orders(
     end_date: str = "",
     index_name: str = "",
     vada_uid: str = "",
+    account_id: str = "",
     account_name: str = "",
 ) -> List[Dict]:
     shop_info = await get_authorized_shop(access_token)

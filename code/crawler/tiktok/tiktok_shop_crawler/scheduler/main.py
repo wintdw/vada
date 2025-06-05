@@ -14,26 +14,31 @@ async def add_tiktok_shop_refresh_job(
     refresh_token: str,
     job_id: str,
     vada_uid: str,
-    account_name: str,
+    account_id: str,
+    account_name: str = "",
 ):
     try:
         # Schedule the token refresh job
         scheduler.add_job(
             scheduled_refresh_token,
             trigger=IntervalTrigger(minutes=60),  # Refresh every hour
-            kwargs={"refresh_token": refresh_token},
+            kwargs={
+                "refresh_token": refresh_token,
+                "vada_uid": vada_uid,
+                "account_id": account_id,
+            },
             id=job_id,
-            name=f"Refresh TikTokShop Token for Shop: {account_name} for Vada UID: {vada_uid}",
+            name=f"Refresh TikTokShop Token for Shop: {account_name} ({account_id}) for Vada UID: {vada_uid}",
             replace_existing=True,
             misfire_grace_time=30,
             max_instances=1,
         )
         logging.info(
-            f"[Scheduler] Added TikTokShop Token refresh job for Shop: {account_name} for Vada UID: {vada_uid}"
+            f"[Scheduler] Added TikTokShop Token refresh job for Shop: {account_name} ({account_id}) for Vada UID: {vada_uid}"
         )
     except Exception as e:
         logging.error(
-            f"[Scheduler] Error adding TikTokShop Token refresh job for Shop: {account_name} for Vada UID: {vada_uid}: {str(e)}",
+            f"[Scheduler] Error adding TikTokShop Token refresh job for Shop: {account_name} ({account_id}) for Vada UID: {vada_uid}: {str(e)}",
             exc_info=True,
         )
 
@@ -44,6 +49,7 @@ async def add_tiktok_shop_crawl_job(
     index_name: str,
     job_id: str,
     vada_uid: str,
+    account_id: str,
     account_name: str,
     crawl_interval: int,
 ):
@@ -58,6 +64,7 @@ async def add_tiktok_shop_crawl_job(
             end_date=now,
             index_name=index_name,
             vada_uid=vada_uid,
+            account_id=account_id,
             account_name=account_name,
         )
 
@@ -69,6 +76,7 @@ async def add_tiktok_shop_crawl_job(
                 "access_token": access_token,
                 "index_name": index_name,
                 "vada_uid": vada_uid,
+                "account_id": account_id,
                 "account_name": account_name,
             },
             id=job_id,
@@ -100,6 +108,7 @@ async def init_scheduler():
         for info in crawl_info:
             crawl_id = info["crawl_id"]
             vada_uid = info["vada_uid"]
+            account_id = info["account_id"]
             account_name = info["account_name"]
             index_name = info["index_name"]
             access_token = info["access_token"]
@@ -114,6 +123,7 @@ async def init_scheduler():
                 refresh_token=refresh_token,
                 job_id=refresh_job_id,
                 vada_uid=vada_uid,
+                account_id=account_id,
                 account_name=account_name,
             )
 
@@ -123,6 +133,7 @@ async def init_scheduler():
                 index_name=index_name,
                 job_id=crawl_job_id,
                 vada_uid=vada_uid,
+                account_id=account_id,
                 account_name=account_name,
                 crawl_interval=crawl_interval,
             )
