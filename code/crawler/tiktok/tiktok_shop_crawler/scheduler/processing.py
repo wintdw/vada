@@ -4,7 +4,7 @@ from typing import List, Dict
 from datetime import datetime, timedelta
 
 from handler.shop_apis import get_authorized_shop
-from handler.order_apis import get_order_list, get_order_detail
+from handler.order_apis import get_order_list
 from handler.persist import post_processing
 
 
