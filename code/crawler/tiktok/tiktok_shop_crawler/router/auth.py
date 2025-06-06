@@ -10,7 +10,7 @@ from handler.mysql import set_crawl_info
 router = APIRouter()
 
 
-@router.get("/ingest/partner/google/ad/auth")
+@router.get("/ingest/partner/tiktok/shop/auth")
 async def get_auth(
     code: str = Query(..., description="Authorization code from TikTok Shop"),
     vada_uid: str = Query(..., description="Vada UID requesting the authorization"),
