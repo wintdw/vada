@@ -54,4 +54,6 @@ services:
       TIKTOK_SHOP_APP_KEY: 6c6qtr3533gu3
       TIKTOK_SHOP_APP_SECRET_FILE: /run/secrets/tiktok_shop_app_secret
       TIKTOK_SHOP_AUTH_BASEURL: https://auth.tiktok-shops.com
+      TIKTOK_SHOP_AUTH_LINK: https://services.tiktokshop.com/open/authorize?service_id=7358037259238688517
+      TIKTOK_SHOP_AUTH_CALLBACK: https://qa.vadata.vn/callback.html
       TIKTOK_SHOP_API_BASEURL: https://open-api.tiktokglobalshop.com
