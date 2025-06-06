@@ -2,7 +2,7 @@ import asyncio
 import logging
 from fastapi import FastAPI  # type: ignore
 
-from router import auth
+from router import auth, config
 from scheduler.main import init_scheduler
 
 
@@ -13,6 +13,7 @@ logging.basicConfig(
 app = FastAPI(title="Tiktok Shop Crawler")
 
 app.include_router(auth.router)
+app.include_router(config.router)
 
 
 async def init_scheduler_background():
