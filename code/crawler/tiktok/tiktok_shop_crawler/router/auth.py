@@ -14,13 +14,13 @@ router = APIRouter()
 
 @router.get("/ingest/partner/tiktok/shop/auth")
 async def get_auth_url(
-    state: str = Query(..., description="Vada UID requesting the authorization")
+    vada_uid: str = Query(..., description="Vada UID requesting the authorization")
 ) -> RedirectResponse:
     """
     Generate and return a TikTok Shop OAuth authorization URL.
     The user will be redirected to this URL to authorize the application.
     """
-    auth_url = settings.TIKTOK_SHOP_AUTH_LINK + "&state=" + state
+    auth_url = settings.TIKTOK_SHOP_AUTH_LINK + "&state=" + vada_uid
     logging.info(f"Generated TikTok Shop Auth URL: {auth_url}")
 
     return RedirectResponse(url=auth_url, status_code=302)
