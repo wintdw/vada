@@ -121,7 +121,7 @@ async def update_crawl_info(crawl_id: str, crawl_info: CrawlInfo) -> CrawlInfo:
             crawl_info.crawl_id = crawl_id
             return crawl_info
 
-async def remove_crawl_info(crawl_id: str) -> int:
+async def remove_crawl_info_by_crawl_id(crawl_id: str) -> int:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
@@ -130,6 +130,19 @@ async def remove_crawl_info(crawl_id: str) -> int:
                 WHERE crawl_id = %s
                 """,
                 (crawl_id)
+            )
+            await connection.commit()
+            return cursor.rowcount
+
+async def remove_crawl_info_by_index_name(index_name: str) -> int:
+    async with get_mysql_connection() as connection:
+        async with get_mysql_cursor(connection) as cursor:
+            await cursor.execute(
+                """
+                DELETE FROM `CrawlInfo`
+                WHERE index_name = %s
+                """,
+                (index_name)
             )
             await connection.commit()
             return cursor.rowcount

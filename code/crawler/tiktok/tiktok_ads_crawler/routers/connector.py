@@ -5,15 +5,14 @@ from urllib.parse import urlencode
 from tools import get_logger
 from tools.settings import settings
 
-from repositories import upsert_crawl_info
-from models import CrawlInfo
-
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
 @router.get("/ingest/partner/tiktok/ad/callback", tags=["Connector"])
 async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
 
+    from repositories import upsert_crawl_info
+    from models import CrawlInfo
     from services import (
         tiktok_biz_get_access_token,
         tiktok_biz_get_user_info,
@@ -42,7 +41,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             status_code=500,
             detail="Internal Server Error"
         )
-    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info["core_user_id"]}&account_name={crawl_info.account_name}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
+    return RedirectResponse(url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info['core_user_id']}&account_name={crawl_info.account_name}&index_name={crawl_info.index_name}&{encoded_friendly_name}")
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):

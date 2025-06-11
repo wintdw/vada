@@ -33,7 +33,7 @@ async def post_crawl_info(crawl_info: CrawlInfo):
     )
 
 @router.get("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
-async def get_crawl_info(crawl_id: str):
+async def get_crawl_info_by_crawl_id(crawl_id: str):
     from repositories import select_crawl_info_by_crawl_id
 
     try:
@@ -109,12 +109,12 @@ async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
             data=crawl_info
         )
 
-@router.delete("/v1/crawl/{crawl_info}/info", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["CrawlInfo"])
+@router.delete("/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["CrawlInfo"])
 async def delete_crawl_info(crawl_id: str):
-    from repositories import remove_crawl_info
+    from repositories import remove_crawl_info_by_crawl_id
 
     try:
-        row_count = await remove_crawl_info(crawl_id)
+        row_count = await remove_crawl_info_by_crawl_id(crawl_id)
     except Exception as e:
         logger.exception(e)
         raise HTTPException(
