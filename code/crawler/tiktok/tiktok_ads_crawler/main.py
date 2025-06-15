@@ -8,7 +8,8 @@ from routers import (
     crawl_info,
     connector,
     schedule,
-    index
+    index,
+    metrics
 )
 
 app = FastAPI()
@@ -40,3 +41,4 @@ app.include_router(crawl_info.router)
 app.include_router(connector.router)
 app.include_router(schedule.router)
 app.include_router(index.router)
+app.include_router(metrics.router)
