@@ -1,11 +1,23 @@
 from fastapi import APIRouter
 from datetime import datetime, timedelta
+from prometheus_client import Counter, Histogram  # type: ignore
 
 from tools import get_logger
 from models import CrawlHistory, CrawlInfoResponse
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
+
+tiktok_ad_crawl = Counter(
+    "tiktok_ad_crawl",
+    "Total number of crawls",
+    ["account_name", "vada_uid"],
+)
+tiktok_ad_crawl_success = Counter(
+    "tiktok_ad_crawl_success",
+    "Total number of successful crawls",
+    ["account_name", "vada_uid"],
+)
 
 @router.post("/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_crawl(crawl_id: str = None):
@@ -22,12 +34,16 @@ async def post_schedule_crawl(crawl_id: str = None):
 
             history_id = crawl_history.history_id
             
+            tiktok_ad_crawl.labels(account_name=item.account_name, vada_uid=item.vada_uid).inc()
+
             if not item.last_crawl_time:
                 crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
                 logger.info(crawl_response)
             else:
                 crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
                 logger.info(crawl_response)
+
+            tiktok_ad_crawl_success.labels(account_name=item.account_name, vada_uid=item.vada_uid).inc()
 
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)

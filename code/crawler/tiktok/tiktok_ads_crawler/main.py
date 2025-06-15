@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 from fastapi.responses import JSONResponse
-from prometheus_client import make_asgi_app
 
 from routers import (
     tiktok,
@@ -14,9 +13,6 @@ from routers import (
 
 app = FastAPI()
 
-metrics_app = make_asgi_app()
-app.mount("/metrics", metrics_app)
-
 @app.on_event("startup")
 @repeat_every(seconds=60)  # Executes every 1 minute
 async def periodic_task() -> None:
@@ -24,13 +20,6 @@ async def periodic_task() -> None:
 
     await post_schedule_auth()
     await post_schedule_crawl()
-
-@app.on_event("startup")
-@repeat_every(seconds=60)  # Executes every 1 minute
-async def update_metrics() -> None:
-    from tools import update_metrics
-
-    await update_metrics()
 
 @app.get("/health")
 async def check_health():
