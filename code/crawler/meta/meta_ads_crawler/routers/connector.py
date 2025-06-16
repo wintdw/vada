@@ -35,7 +35,7 @@ async def ingest_partner_facebook_ad_callback(state: str, code: str):
             account_name=user_info["name"],
             vada_uid=state,
             access_token=access_token,
-            index_name=f"data_fbad_{user_info["name"]}",
+            index_name=f"data_fbad_{user_info["id"]}",
             crawl_type="facebook_business_ads"
         ))
         logger.info(crawl_info)
