@@ -13,7 +13,7 @@ logger = get_logger(__name__, 20)
 
 @router.get("/ingest/partner/facebook/ad/auth", tags=["Connector"])
 async def ingest_partner_facebook_ad_auth(vada_uid: str):
-    return RedirectResponse(url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id=822555046472581&redirect_uri={settings.META_REDIRECT_URI}&state={vada_uid}&cbt=1750174351970&scope=email,public_profile,ads_read&config_id=528311813246288&response_type=&response_type=token,signed_request,graph_domain")
+    return RedirectResponse(url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id=822555046472581&redirect_uri={settings.META_REDIRECT_URI}&state={vada_uid}&scope=email,pages_manage_cta,pages_show_list,read_page_mailboxes,ads_management,ads_read,business_management,pages_messaging,pages_messaging_subscriptions,page_events,commerce_account_read_settings,commerce_account_manage_orders,commerce_account_read_orders,commerce_account_read_reports,pages_read_engagement,pages_read_user_content,pages_manage_ads,pages_manage_posts,pages_manage_engagement,instagram_shopping_tag_products,instagram_manage_events,public_profile&response_type=code")
 
 @router.get("/ingest/partner/facebook/ad/callback", tags=["Connector"])
 async def ingest_partner_facebook_ad_callback(state: str, code: str):
