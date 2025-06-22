@@ -50,6 +50,59 @@ def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
     }
     return report | metadata
 
+
+def enrich_anchi_report(enriched_report: dict) -> dict:
+    """
+    Enrich report with vada metadata for ANCHI GROUP VIET NAM JOINT STOCK COMPANY.
+    
+    Args:
+        enriched_report (dict): The enriched report with advertiser information
+        
+    Returns:
+        dict: Report with additional vada metadata if applicable
+    """
+    # Check if advertiser company is ANCHI GROUP VIET NAM JOINT STOCK COMPANY
+    advertiser = enriched_report.get("advertiser", {})
+    company = advertiser.get("company", "")
+    
+    if company != "ANCHI GROUP VIET NAM JOINT STOCK COMPANY":
+        return enriched_report
+    
+    # Parse advertiser name (format: AF-TT-NS016-2)
+    advertiser_name = advertiser.get("name", "")
+    
+    if not advertiser_name or "-" not in advertiser_name:
+        return enriched_report
+    
+    try:
+        # Split the name by hyphens
+        parts = advertiser_name.split("-")
+        
+        if len(parts) >= 4:
+            ma_du_an = parts[0]  # AF
+            kenh_quang_cao = parts[1]  # TT
+            marketer_id = parts[2]  # NS016
+            sub_account_name = parts[3]  # 2
+            
+            # Create vada metadata
+            vada_metadata = {
+                "vada": {
+                    "ma_du_an": ma_du_an,
+                    "kenh_quang_cao": kenh_quang_cao,
+                    "marketer_id": marketer_id,
+                    "sub_account_name": sub_account_name
+                }
+            }
+            
+            # Add vada metadata to the report
+            return enriched_report | vada_metadata
+        else:
+            return enriched_report
+            
+    except Exception:
+        # If parsing fails, return the original report
+        return enriched_report
+
 async def crawl_tiktok_business(index_name: str, access_token: str, start_date: str, end_date: str):
     import logging
     import time
@@ -170,8 +223,11 @@ async def crawl_tiktok_business(index_name: str, access_token: str, start_date: 
                 enriched_report = enrich_report(detailed_report, index_name, doc_id)
                 logger.debug(enriched_report)
 
-                all_enriched_reports.append(enriched_report)
-                save_report(enriched_report, "report.jsonl")
+                enriched_anchi_report = enrich_anchi_report(enriched_report)
+                logger.debug(enriched_anchi_report)
+
+                all_enriched_reports.append(enriched_anchi_report)
+                save_report(enriched_anchi_report, "report.jsonl")
 
         # Send reports in batches
         total_reports = len(all_enriched_reports)
