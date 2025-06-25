@@ -7,7 +7,8 @@ from models import CrawlInfo, CrawlInfoResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-@router.delete("/v1/index/{index_name}", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["Index"])
+#@router.delete("/v1/index/{index_name}", response_model=CrawlInfoResponse, response_model_exclude_none=True, tags=["Index"])
+@router.delete("/v1/index/{index_name}", tags=["Index"])
 async def delete_crawl_info_by_index_name(index_name: str):
     pass
     """
