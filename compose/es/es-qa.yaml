@@ -10,9 +10,9 @@ services:
     environment:
       - node.name=es03.internal.vadata.vn
       - cluster.name=qa
-      - discovery.seed_hosts=es03.internal.vadata.vn
       - cluster.initial_master_nodes=es03.internal.vadata.vn
       - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms8g -Xmx8g"
     ulimits:
       memlock:
