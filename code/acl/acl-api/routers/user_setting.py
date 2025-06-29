@@ -13,6 +13,7 @@ async def get_user_setting_user_id(user_id: str):
         status=200,
         message="Success",
         data=UserSetting(
+	    workspace_id="",
             user_id=user_id,
             setting=Setting()
         )

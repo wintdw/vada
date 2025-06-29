@@ -15,6 +15,7 @@ async def get_setting_by_index_name(user_id: str, index_name: str):
         status=200,
         message="Success",
         data=UserSetting(
+	    workspace_id="",
             user_id=user_id,
             setting=Setting()
         )
@@ -29,6 +30,7 @@ async def get_setting_by_index_name(user_id: str, index_name: str):
         status=200,
         message="Success",
         data=UserSetting(
+	    workspace_id="",
             user_id=user_id,
             setting=Setting()
         )
@@ -46,6 +48,7 @@ async def get_setting_by_index_name(workspace_id: str, user_id: str, index_name:
         user_setting = await select_user_setting_by_workspace_id_and_user_id(workspace_id, user_id)
         if not user_setting or index_name not in [permissions.index_name for permissions in user_setting.setting.permissions]:
             user_setting = UserSetting(
+		workspace_id=workspace_id,
                 user_id=user_id,
                 setting=Setting(
                     permissions=[Permission(
@@ -88,6 +91,7 @@ async def get_setting(workspace_id: str, user_id: str):
         user_setting = await select_user_setting_by_workspace_id_and_user_id(workspace_id, user_id)
         if not user_setting:
             user_setting = UserSetting(
+		workspace_id=workspace_id,
                 user_id=user_id,
                 setting=Setting()
             )
