@@ -6,6 +6,18 @@ from models import UserSetting, UserSettingResponse, Setting
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
+### OLD FE CALL ###
+@router.get("/v1/user-settings/user/{user_id}", response_model=UserSettingResponse, tags=["UserSetting"])
+async def get_user_setting_user_id(user_id: str):
+    return UserSettingResponse(
+        status=200,
+        message="Success",
+        data=UserSetting(
+            user_id=user_id,
+            setting=Setting()
+        )
+    )
+
 ### FE CALL ###
 @router.get("/v1/user-settings/workspace/{workspace_id}/user/{user_id}", response_model=UserSettingResponse, tags=["UserSetting"])
 async def get_user_setting_by_workspace_id_and_user_id(workspace_id: str, user_id: str):
