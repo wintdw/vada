@@ -8,8 +8,6 @@ from etl.libs.insert_client import InsertClient
 from etl.ingest.model.ingest import IngestRequest
 from etl.ingest.model.setting import settings
 
-from libs.connectors.mappings import MappingsClient
-
 
 router = APIRouter()
 # Need to change to distributed lock for multiple instances
@@ -42,20 +40,4 @@ async def handle_json(request: IngestRequest) -> JSONResponse:
             f"Inserted {len(documents)} documents into index {index_name} for user {user_id}: {insert_response}"
         )
 
-    mappings_client = MappingsClient(settings.MAPPINGS_BASEURL)
-
-    # Do once at a time
-    async with SET_MAPPINGS_LOCK:
-        mappings_reponse = await mappings_client.copy_mappings(
-            user_id, index_name, index_friendly_name
-        )
-        logging.info(
-            f"Copied mappings for index {index_name} for user {user_id}: {mappings_reponse}"
-        )
-
-    return JSONResponse(
-        content={
-            "insert": insert_response,
-            "mappings": mappings_reponse,
-        }
-    )
+    return JSONResponse(content=insert_response)

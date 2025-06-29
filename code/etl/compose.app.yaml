@@ -35,7 +35,6 @@ services:
     environment:
       PORT: "8001"
       APP_ENV: app
-      MAPPINGS_BASEURL: http://mappings-app.internal.vadata.vn
       INSERT_BASEURL: http://insert-app.internal.vadata.vn
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
