@@ -23,7 +23,7 @@ async def get_setting_by_index_name(user_id: str, index_name: str):
 
 ### OLD FE CALL ###
 @router.get("/v1/settings/users/{user_id}", response_model=UserSettingResponse, tags=["Setting"])
-async def get_setting_by_index_name(user_id: str, index_name: str):
+async def get_setting_by_index_name(user_id: str):
     from models import Setting
 
     return UserSettingResponse(
