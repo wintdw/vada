@@ -9,7 +9,6 @@ logger = get_logger(__name__, 20)
 ### OLD FE CALL ###
 @router.get("/v1/settings/users/{user_id}/indexes/{index_name}", response_model=UserSettingResponse, tags=["Setting"])
 async def get_setting_by_index_name(user_id: str, index_name: str):
-    from repositories import select_user_setting_by_user_id
     from models import Setting
 
     return UserSettingResponse(
