@@ -1,6 +1,6 @@
 services:  
   frontend: &fe
-    image: vada898989.azurecr.io/prod-webapp:prod-989ea906
+    image: vada898989.azurecr.io/prod-webapp:prod-1943dce3
     container_name: frontend
     pull_policy: always
     ports:
@@ -14,7 +14,7 @@ services:
       - "3001:80"
 
   crm:
-    image: vada898989.azurecr.io/crm-api:1800ce0b
+    image: vada898989.azurecr.io/crm-api:qa-6cd6a74
     container_name: crm
     ports:
       - "8080:8080"
@@ -34,7 +34,7 @@ services:
       - ENABLE_SERVICE_PACKAGE=false
 
   qe: &qe
-    image: vada898989.azurecr.io/vada-query-engine:es-8.10.0
+    image: vada898989.azurecr.io/vada-query-engine:0e80e716
     container_name: qe
     pull_policy: always
     ports:

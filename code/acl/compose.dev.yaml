@@ -1,0 +1,22 @@
+secrets:
+  mysql_permission:
+    file: /var/secret/docker/mysql/permission
+
+services:
+  acl-api:
+    build:
+      context: ./acl-api
+      dockerfile: Dockerfile
+    image: acl-api:latest
+    container_name: acl_api
+    restart: always
+    environment:
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: permission
+      MYSQL_DB: vada_dev
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_permission
+      MAPPINGS_ENDPOINT: http://mappings-dev.internal.vadata.vn
+    secrets:
+      - mysql_permission
+    ports:
+      - "8100:8100"

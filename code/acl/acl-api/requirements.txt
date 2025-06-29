@@ -1,0 +1,8 @@
+asyncio
+uvicorn
+fastapi
+aiomysql
+pyjwt
+cryptography
+requests
+python-json-logger
