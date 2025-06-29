@@ -6,7 +6,7 @@ from models import UserSetting, UserSettingResponse
 router = APIRouter()
 logger = get_logger(__name__, 20)
 
-### OLD FE CALL ###
+### OLD CRM CALL ###
 @router.get("/v1/settings/users/{user_id}/indexes/{index_name}", response_model=UserSettingResponse, tags=["Setting"])
 async def get_setting_by_index_name(user_id: str, index_name: str):
     from models import Setting
@@ -19,6 +19,21 @@ async def get_setting_by_index_name(user_id: str, index_name: str):
             setting=Setting()
         )
     )
+
+### OLD FE CALL ###
+@router.get("/v1/settings/users/{user_id}", response_model=UserSettingResponse, tags=["Setting"])
+async def get_setting_by_index_name(user_id: str, index_name: str):
+    from models import Setting
+
+    return UserSettingResponse(
+        status=200,
+        message="Success",
+        data=UserSetting(
+            user_id=user_id,
+            setting=Setting()
+        )
+    )
+
 
 ### CRM CALL ###
 @router.get("/v1/settings/workspace/{workspace_id}/users/{user_id}/indexes/{index_name}", response_model=UserSettingResponse, tags=["Setting"])
