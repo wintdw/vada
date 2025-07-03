@@ -1,0 +1,5 @@
+---
+host_users:
+  - user: cxa
+    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGTWjrKLaNLAaoC8jMHfvJj13O/gZyoM3snA2rpiggxd cxa
+    sudo: true
