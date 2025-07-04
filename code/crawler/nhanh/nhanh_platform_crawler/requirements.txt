@@ -1,0 +1,10 @@
+uvicorn
+fastapi
+aiomysql
+cryptography
+python-json-logger
+aiohttp
+pydantic-settings
+fastapi-utils
+typing-inspect
+prometheus-client

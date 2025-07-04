@@ -1,0 +1,25 @@
+secrets:
+  mysql_crawler:
+    file: /var/secret/docker/mysql/crawler
+
+services:
+  nhanh_platform_crawler:
+    build:
+      context: ./nhanh_platform_crawler
+      dockerfile: Dockerfile
+    image: nhanh_platform_crawler:latest
+    container_name: nhanh_platform_crawler
+    restart: always
+    ports:
+      - "8149:8149"
+    secrets:
+      - mysql_crawler
+    environment:
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: crawler
+      MYSQL_DB: crawler_dev
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
+
+      INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn
+      
+      CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
