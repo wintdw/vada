@@ -3,9 +3,13 @@ services:
     image: mongo-express:latest
     container_name: mongo-express
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_MONGODB_PORT: "27017"
+      ME_CONFIG_MONGODB_URL_FILE: /run/secrets/mongo_root_url
+      ME_CONFIG_BASICAUTH: "false"
+    secrets:
+      - mongo_root_url
     ports:
-      - "0.0.0.0:8081:8081"
+      - "8081:8081"
+
+secrets:
+  mongo_root_url:
+    file: /var/secret/docker/mongo_root_url
