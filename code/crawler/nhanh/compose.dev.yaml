@@ -20,6 +20,8 @@ services:
       MYSQL_DB: crawler_dev
       MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
 
+      NHANH_REDIRECT_URI: https://api-dev.vadata.vn/ingest/partner/nhanh/platform/callback
+
       INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn
       
       CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
