@@ -9,5 +9,5 @@ RUN apt-get update && apt-get install -y tzdata && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-EXPOSE 8145
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8145"]
+EXPOSE 8149
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8149"]
