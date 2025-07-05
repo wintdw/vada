@@ -1,6 +1,8 @@
 secrets:
   mysql_crawler:
     file: /var/secret/docker/mysql/crawler
+  nhanh_secret_key:
+    file: /var/secret/docker/nhanh/secret_key
 
 services:
   nhanh_platform_crawler:
@@ -20,7 +22,10 @@ services:
       MYSQL_DB: crawler_dev
       MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
 
-      NHANH_REDIRECT_URI: https://api-dev.vadata.vn/ingest/partner/nhanh/platform/callback
+      NHANH_OAUTH_VERSION: 2.0
+      NHANH_APP_ID: 75154
+      NHANH_RETURN_LINK: https://api-dev.vadata.vn/ingest/partner/nhanh/platform/callback
+      NHANH_SECRET_KEY_FILE: /run/secrets/nhanh_secret_key
 
       INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn
       
