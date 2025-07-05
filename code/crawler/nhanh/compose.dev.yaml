@@ -5,12 +5,12 @@ secrets:
     file: /var/secret/docker/nhanh/secret_key
 
 services:
-  nhanh_platform_crawler:
+  nhanh_crawler:
     build:
-      context: ./nhanh_platform_crawler
+      context: ./nhanh_crawler
       dockerfile: Dockerfile
-    image: nhanh_platform_crawler:latest
-    container_name: nhanh_platform_crawler
+    image: nhanh_crawler:latest
+    container_name: nhanh_crawler
     restart: always
     ports:
       - "8149:8149"
