@@ -3,7 +3,6 @@ from fastapi_utils.tasks import repeat_every
 from fastapi.responses import JSONResponse
 
 from routers import (
-    crawl_history,
     crawl_info,
     connector,
 #    schedule,
@@ -33,7 +32,6 @@ async def check_health():
         )
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
-app.include_router(crawl_history.router)
 app.include_router(crawl_info.router)
 app.include_router(connector.router)
 #app.include_router(schedule.router)
