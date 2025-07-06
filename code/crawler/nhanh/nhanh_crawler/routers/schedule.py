@@ -11,12 +11,12 @@ logger = get_logger(__name__, 20)
 nhanh_platform_crawl = Counter(
     "nhanh_platform_crawl",
     "Total number of crawls",
-    ["account_name", "vada_uid"],
+    ["index_name", "business_id"],
 )
 nhanh_platform_crawl_success = Counter(
     "nhanh_platform_crawl_success",
     "Total number of successful crawls",
-    ["account_name", "vada_uid"],
+    ["index_name", "business_id"],
 )
 
 @router.post("/v1/schedule/{index_name}/crawl", response_model=NhanhCrawlInfoResponse, tags=["Schedule"])
@@ -34,7 +34,7 @@ async def post_schedule_crawl(index_name: str = None):
 
             history_id = crawl_history.history_id
             
-            nhanh_platform_crawl.labels(account_name=item.account_name, vada_uid=item.vada_uid).inc()
+            nhanh_platform_crawl.labels(index_name=item.index_name, business_id=item.business_id).inc()
 
             if not item.last_crawl_time:
                 # First crawl - get last 30 days of data
@@ -53,7 +53,7 @@ async def post_schedule_crawl(index_name: str = None):
                 )
                 logger.info(crawl_response)
 
-            nhanh_platform_crawl_success.labels(account_name=item.account_name, vada_uid=item.vada_uid).inc()
+            nhanh_platform_crawl_success.labels(index_name=item.index_name, business_id=item.business_id).inc()
 
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)
