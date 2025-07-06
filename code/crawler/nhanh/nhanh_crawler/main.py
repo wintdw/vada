@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from routers import (
     connector,
-#    schedule,
+    schedule,
     metrics
 )
 
@@ -30,5 +30,5 @@ async def check_health():
     return JSONResponse(content={"status": "success", "detail": "Service Available"})
 
 app.include_router(connector.router)
-#app.include_router(schedule.router)
+app.include_router(schedule.router)
 app.include_router(metrics.router)
