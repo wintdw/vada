@@ -19,8 +19,8 @@ nhanh_platform_crawl_success = Counter(
     ["account_name", "vada_uid"],
 )
 
-@router.post("/v1/schedule/{crawl_id}/crawl", response_model=NhanhCrawlInfoResponse, tags=["Schedule"])
-async def post_schedule_crawl(crawl_id: str = None):
+@router.post("/v1/schedule/{index_name}/crawl", response_model=NhanhCrawlInfoResponse, tags=["Schedule"])
+async def post_schedule_crawl(index_name: str = None):
     from repositories import select_crawl_info_by_next_crawl_time, update_crawl_info, insert_crawl_history, update_crawl_history
     from services.nhanh import crawl_nhanh_data
 
@@ -29,7 +29,7 @@ async def post_schedule_crawl(crawl_id: str = None):
         history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(NhanhCrawlHistory(crawl_id=item.crawl_id))
+            crawl_history = await insert_crawl_history(NhanhCrawlHistory(index_name=item.index_name))
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
@@ -58,11 +58,11 @@ async def post_schedule_crawl(crawl_id: str = None):
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)
 
-            crawl_info = await update_crawl_info(item.crawl_id, item)
+            crawl_info = await update_crawl_info(item.index_name, item)
             logger.info(crawl_info)
             
             crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
-                crawl_id=item.crawl_id,
+                index_name=item.index_name,
                 crawl_status="success",
                 crawl_duration=int(crawl_response.get("execution_time")),
                 crawl_data_number=crawl_response.get("total_reports")
@@ -71,7 +71,7 @@ async def post_schedule_crawl(crawl_id: str = None):
 
     except Exception as e:
         crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
-            crawl_id=crawl_id,
+            index_name=index_name,
             crawl_status="failed",
             crawl_error=str(e)
         ))
@@ -82,7 +82,3 @@ async def post_schedule_crawl(crawl_id: str = None):
             status=200,
             message="Success"
         )
-
-@router.post("/v1/schedule/{crawl_id}/auth", response_model=NhanhCrawlInfoResponse, tags=["Schedule"])
-async def post_schedule_auth(crawl_id: str = None):
-    pass

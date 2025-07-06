@@ -12,9 +12,8 @@ app = FastAPI()
 @app.on_event("startup")
 @repeat_every(seconds=60)  # Executes every 1 minute
 async def periodic_task() -> None:
-    from routers.schedule import post_schedule_auth, post_schedule_crawl
+    from routers.schedule import post_schedule_crawl
 
-    await post_schedule_auth()
     await post_schedule_crawl()
     
 @app.get("/health")

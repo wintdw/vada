@@ -44,6 +44,45 @@ async def select_crawl_info_by_next_crawl_time() -> List[NhanhCrawlInfo]:
             return [NhanhCrawlInfo.model_validate(result) for result in results]
 
 
+async def update_crawl_info(index_name: str, crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
+    """
+    Update crawl information in the database.
+    
+    Updates the last_crawl_time and next_crawl_time fields for a given index_name.
+    This is typically called after a successful crawl to update the scheduling
+    information for the next crawl.
+    
+    Args:
+        index_name (str): The unique index name identifying the crawl record to update.
+        crawl_info (NhanhCrawlInfo): The crawl information object containing
+                                    the updated last_crawl_time and next_crawl_time.
+    
+    Returns:
+        NhanhCrawlInfo: The updated crawl info object.
+        
+    Raises:
+        Exception: If database connection or query execution fails.
+    """
+    async with get_mysql_connection() as connection:
+        async with get_mysql_cursor(connection) as cursor:
+            await cursor.execute(
+                """
+                UPDATE `NhanhCrawlInfo`
+                SET
+                    last_crawl_time = %s,
+                    next_crawl_time = %s
+                WHERE index_name = %s
+                """,
+                (
+                    crawl_info.last_crawl_time,
+                    crawl_info.next_crawl_time,
+                    index_name
+                )
+            )
+            await connection.commit()
+            return crawl_info
+
+
 async def remove_crawl_info_by_index_name(index_name: str) -> int:
     """
     Remove a crawl information record by its index name.
@@ -105,7 +144,7 @@ async def upsert_crawl_info(crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
             # Check if the record exists
             await cursor.execute(
                 """
-                SELECT crawl_id
+                SELECT index_name
                 FROM `NhanhCrawlInfo`
                 WHERE index_name = %s
                 """,
