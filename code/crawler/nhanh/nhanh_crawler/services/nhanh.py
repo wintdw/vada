@@ -11,6 +11,9 @@ from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 
 from tools.settings import settings
+from tools import get_logger
+
+logger = get_logger(__name__, 10)
 
 async def get_access_token(access_code: str) -> Optional[Dict]:
     """
@@ -78,11 +81,14 @@ async def get_access_token(access_code: str) -> Optional[Dict]:
                 else:
                     # Log the error response for debugging
                     error_text = await response.text()
+                    logger.debug(f"Error getting access token. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
+        logger.debug(f"HTTP client error while getting access token: {e}")
         raise
     except Exception as e:
+        logger.debug(f"Unexpected error while getting access token: {e}")
         raise
 
 
@@ -110,11 +116,14 @@ async def get_product_categories(access_token: str) -> Optional[Dict]:
                     return result
                 else:
                     error_text = await response.text()
+                    logger.debug(f"Error getting product categories. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
+        logger.debug(f"HTTP client error while getting product categories: {e}")
         raise
     except Exception as e:
+        logger.debug(f"Unexpected error while getting product categories: {e}")
         raise
 
 
@@ -146,11 +155,14 @@ async def get_products(access_token: str, page: int = 1, limit: int = 100) -> Op
                     return result
                 else:
                     error_text = await response.text()
+                    logger.debug(f"Error getting products. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
+        logger.debug(f"HTTP client error while getting products: {e}")
         raise
     except Exception as e:
+        logger.debug(f"Unexpected error while getting products: {e}")
         raise
 
 
@@ -178,11 +190,14 @@ async def get_staff(access_token: str) -> Optional[Dict]:
                     return result
                 else:
                     error_text = await response.text()
+                    logger.debug(f"Error getting staff. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
+        logger.debug(f"HTTP client error while getting staff: {e}")
         raise
     except Exception as e:
+        logger.debug(f"Unexpected error while getting staff: {e}")
         raise
 
 
@@ -218,11 +233,14 @@ async def get_customers(access_token: str, page: int = 1, limit: int = 100, upda
                     return result
                 else:
                     error_text = await response.text()
+                    logger.debug(f"Error getting customers. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
+        logger.debug(f"HTTP client error while getting customers: {e}")
         raise
     except Exception as e:
+        logger.debug(f"Unexpected error while getting customers: {e}")
         raise
 
 
@@ -258,11 +276,14 @@ async def get_orders(access_token: str, from_date: str, to_date: str, page: int 
                     return result
                 else:
                     error_text = await response.text()
+                    logger.debug(f"Error getting orders. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
+        logger.debug(f"HTTP client error while getting orders: {e}")
         raise
     except Exception as e:
+        logger.debug(f"Unexpected error while getting orders: {e}")
         raise
 
 
@@ -278,8 +299,6 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
     Returns:
         Dict: Dictionary containing all crawled data and execution statistics.
     """
-    from tools import get_logger
-    logger = get_logger(__name__, 10)
 
     start_time = datetime.now()
     
