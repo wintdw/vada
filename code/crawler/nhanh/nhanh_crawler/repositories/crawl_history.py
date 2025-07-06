@@ -1,7 +1,7 @@
 """
 Repository module for managing Nhanh crawl history in the database.
 
-This module provides functions to interact with the CrawlHistory table,
+This module provides functions to interact with the NhanhCrawlHistory table,
 including inserting new crawl history records and updating existing ones
 with crawl results and status information.
 """
@@ -16,7 +16,7 @@ async def insert_crawl_history(crawl_history: NhanhCrawlHistory) -> NhanhCrawlHi
     """
     Insert a new crawl history record into the database.
     
-    Creates a new entry in the CrawlHistory table to track the execution
+    Creates a new entry in the NhanhCrawlHistory table to track the execution
     of a crawl operation. The function automatically generates a unique
     history_id using UUID4 and assigns it to the crawl_history object.
     
@@ -42,7 +42,7 @@ async def insert_crawl_history(crawl_history: NhanhCrawlHistory) -> NhanhCrawlHi
             crawl_history.history_id = str(uuid4())
             await cursor.execute(
                 """
-                INSERT INTO `CrawlHistory`
+                INSERT INTO `NhanhCrawlHistory`
                     (history_id, index_name, crawl_time, crawl_status,
                     crawl_error, crawl_duration, crawl_data_number) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -65,7 +65,7 @@ async def update_crawl_history(history_id: str, crawl_history: NhanhCrawlHistory
     """
     Update an existing crawl history record in the database.
     
-    Updates the CrawlHistory record identified by the provided history_id
+    Updates the NhanhCrawlHistory record identified by the provided history_id
     with new crawl status, error information, duration, and data count.
     This is typically used to update the final status of a crawl operation
     after it has completed or failed.
@@ -95,7 +95,7 @@ async def update_crawl_history(history_id: str, crawl_history: NhanhCrawlHistory
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(
                 """
-                UPDATE `CrawlHistory`
+                UPDATE `NhanhCrawlHistory`
                 SET crawl_status = %s,
                     crawl_error = %s,
                     crawl_duration = %s,
