@@ -310,12 +310,13 @@ async def get_customers(access_token: str, business_id: str, page: int = 1, icpp
         raise
 
 
-async def get_orders(access_token: str, from_date: str, to_date: str, page: int = 1, limit: int = 100) -> Optional[Dict]:
+async def get_orders(access_token: str, business_id: str, from_date: str, to_date: str, page: int = 1, limit: int = 100) -> Optional[Dict]:
     """
     Get orders from the Nhanh API.
     
     Args:
         access_token (str): The access token for authentication.
+        business_id (str): The business ID for the API request.
         from_date (str): Start date for order filtering (YYYY-MM-DD).
         to_date (str): End date for order filtering (YYYY-MM-DD).
         page (int): Page number for pagination.
@@ -326,17 +327,35 @@ async def get_orders(access_token: str, from_date: str, to_date: str, page: int 
     """
     url = "https://open.nhanh.vn/api/order/index"
     
-    params = {
-        "accessToken": access_token,
+    # Read settings
+    app_id = settings.NHANH_APP_ID
+    version = settings.NHANH_OAUTH_VERSION
+    
+    # Validate required settings
+    if not app_id:
+        raise ValueError("NHANH_APP_ID is not configured in settings")
+    if not version:
+        raise ValueError("NHANH_OAUTH_VERSION is not configured in settings")
+    
+    # Prepare the data payload
+    data_payload = {
         "fromDate": from_date,
         "toDate": to_date,
-        "page": page,
-        "limit": limit
+        "page": page
+    }
+    
+    # Prepare the request payload
+    payload = {
+        "version": version,
+        "appId": app_id,
+        "businessId": business_id,
+        "accessToken": access_token,
+        "data": (None, json.dumps(data_payload))
     }
     
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.post(url, json=payload) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result
@@ -464,13 +483,14 @@ async def crawl_nhanh_data(access_token: str, business_id: str, from_date: str =
             # Get orders for this date chunk (handle pagination)
             page = 1
             while True:
-                orders_response = await get_orders(access_token, chunk_from_date, chunk_to_date, page=page, limit=100)
+                orders_response = await get_orders(access_token, business_id, chunk_from_date, chunk_to_date, page=page, limit=100)
                 if orders_response and orders_response.get("data", {}).get("orders"):
                     orders_data = orders_response["data"]["orders"]
                     result["data"]["orders"].update(orders_data)
                     
                     # Check if there are more pages
-                    if len(orders_data) < 100:
+                    total_pages = orders_response.get("data", {}).get("totalPages", 1)
+                    if page >= total_pages:
                         break
                     page += 1
                 else:
