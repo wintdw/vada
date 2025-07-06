@@ -272,19 +272,10 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
             total_batches = (total_reports + batch_size - 1) // batch_size
 
             logger.debug(f"Sending batch {current_batch} of {total_batches}")
-            insert_json = await send_batch(
+            await send_batch(
                 index_name,
                 batch
             )
-
-            status = insert_json.get("status", "unknown")
-            detail = insert_json.get("detail", "no details provided")
-            logger.debug(
-                f"Batch {current_batch}/{total_batches} - Status: {status} - Detail: {detail}"
-            )
-
-            if status != "success":
-                logger.error(f"Failed to insert batch {current_batch}: {detail}")
 
             # Calculate total spending
             total_spend = sum(float(report.get("calcTotalMoney", 0)) for report in detailed_data)
