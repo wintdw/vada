@@ -3,7 +3,7 @@ from datetime import datetime
 
 class NhanhCrawlInfo(BaseModel):
     index_name: str
-    business_id: str
+    business_id: int
     access_token: str
     depot_ids: list[str]
     expired_datetime: datetime

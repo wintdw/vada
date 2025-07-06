@@ -1,7 +1,7 @@
 CREATE TABLE `NhanhCrawlInfo` (
   `id` int NOT NULL AUTO_INCREMENT,
   `index_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `business_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `business_id` int NOT NULL,
   `depot_ids` json NOT NULL,
   `access_token` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expired_datetime` timestamp NOT NULL,
