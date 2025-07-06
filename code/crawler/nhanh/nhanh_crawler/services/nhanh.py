@@ -160,12 +160,12 @@ async def send_batch(index_name, batch):
         async with aiohttp.ClientSession() as session:
             async with session.post(settings.INSERT_SERVICE_URL, json=payload) as response:
                 if response.status == 200:
-                    print(f"✅ Sent batch of {len(batch)}")
+                    logger.debug(f"✅ Sent batch of {len(batch)}")
                 else:
                     text = await response.text()
-                    print(f"❌ Failed to send batch: {response.status}, {text}")
+                    logger.debug(f"❌ Failed to send batch: {response.status}, {text}")
     except Exception as e:
-        print(f"❌ Exception during sending: {e}")
+        logger.debug(f"❌ Exception during sending: {e}")
 
 async def get_orders(business_id: str, access_token: str, from_date: str, to_date: str, page: int = 1):
     """
