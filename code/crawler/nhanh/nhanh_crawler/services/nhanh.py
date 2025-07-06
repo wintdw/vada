@@ -11,7 +11,9 @@ from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 
 from tools.settings import settings
+from tools import get_logger
 
+logger = get_logger(__name__, 10)
 
 async def get_access_token(access_code: str) -> Optional[Dict]:
     """
@@ -79,14 +81,14 @@ async def get_access_token(access_code: str) -> Optional[Dict]:
                 else:
                     # Log the error response for debugging
                     error_text = await response.text()
-                    print(f"Error getting access token. Status: {response.status}, Response: {error_text}")
+                    logger.debug(f"Error getting access token. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
-        print(f"HTTP client error while getting access token: {e}")
+        logger.debug(f"HTTP client error while getting access token: {e}")
         raise
     except Exception as e:
-        print(f"Unexpected error while getting access token: {e}")
+        logger.debug(f"Unexpected error while getting access token: {e}")
         raise
 
 
@@ -114,14 +116,14 @@ async def get_product_categories(access_token: str) -> Optional[Dict]:
                     return result
                 else:
                     error_text = await response.text()
-                    print(f"Error getting product categories. Status: {response.status}, Response: {error_text}")
+                    logger.debug(f"Error getting product categories. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
-        print(f"HTTP client error while getting product categories: {e}")
+        logger.debug(f"HTTP client error while getting product categories: {e}")
         raise
     except Exception as e:
-        print(f"Unexpected error while getting product categories: {e}")
+        logger.debug(f"Unexpected error while getting product categories: {e}")
         raise
 
 
@@ -153,14 +155,14 @@ async def get_products(access_token: str, page: int = 1, limit: int = 100) -> Op
                     return result
                 else:
                     error_text = await response.text()
-                    print(f"Error getting products. Status: {response.status}, Response: {error_text}")
+                    logger.debug(f"Error getting products. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
-        print(f"HTTP client error while getting products: {e}")
+        logger.debug(f"HTTP client error while getting products: {e}")
         raise
     except Exception as e:
-        print(f"Unexpected error while getting products: {e}")
+        logger.debug(f"Unexpected error while getting products: {e}")
         raise
 
 
@@ -188,14 +190,14 @@ async def get_staff(access_token: str) -> Optional[Dict]:
                     return result
                 else:
                     error_text = await response.text()
-                    print(f"Error getting staff. Status: {response.status}, Response: {error_text}")
+                    logger.debug(f"Error getting staff. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
-        print(f"HTTP client error while getting staff: {e}")
+        logger.debug(f"HTTP client error while getting staff: {e}")
         raise
     except Exception as e:
-        print(f"Unexpected error while getting staff: {e}")
+        logger.debug(f"Unexpected error while getting staff: {e}")
         raise
 
 
@@ -231,14 +233,14 @@ async def get_customers(access_token: str, page: int = 1, limit: int = 100, upda
                     return result
                 else:
                     error_text = await response.text()
-                    print(f"Error getting customers. Status: {response.status}, Response: {error_text}")
+                    logger.debug(f"Error getting customers. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
-        print(f"HTTP client error while getting customers: {e}")
+        logger.debug(f"HTTP client error while getting customers: {e}")
         raise
     except Exception as e:
-        print(f"Unexpected error while getting customers: {e}")
+        logger.debug(f"Unexpected error while getting customers: {e}")
         raise
 
 
@@ -274,14 +276,14 @@ async def get_orders(access_token: str, from_date: str, to_date: str, page: int 
                     return result
                 else:
                     error_text = await response.text()
-                    print(f"Error getting orders. Status: {response.status}, Response: {error_text}")
+                    logger.debug(f"Error getting orders. Status: {response.status}, Response: {error_text}")
                     return None
                     
     except aiohttp.ClientError as e:
-        print(f"HTTP client error while getting orders: {e}")
+        logger.debug(f"HTTP client error while getting orders: {e}")
         raise
     except Exception as e:
-        print(f"Unexpected error while getting orders: {e}")
+        logger.debug(f"Unexpected error while getting orders: {e}")
         raise
 
 
@@ -320,13 +322,13 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
     
     try:
         # Get product categories
-        print("Fetching product categories...")
+        logger.debug("Fetching product categories...")
         categories_response = await get_product_categories(access_token)
         if categories_response and categories_response.get("data"):
             result["data"]["categories"] = categories_response["data"]
         
         # Get products (handle pagination)
-        print("Fetching products...")
+        logger.debug("Fetching products...")
         page = 1
         while True:
             products_response = await get_products(access_token, page=page, limit=100)
@@ -342,13 +344,13 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
                 break
         
         # Get staff
-        print("Fetching staff...")
+        logger.debug("Fetching staff...")
         staff_response = await get_staff(access_token)
         if staff_response and staff_response.get("data", {}).get("users"):
             result["data"]["staff"] = staff_response["data"]["users"]
         
         # Get customers (handle pagination)
-        print("Fetching customers...")
+        logger.debug("Fetching customers...")
         page = 1
         while True:
             customers_response = await get_customers(access_token, page=page, limit=100)
@@ -364,7 +366,7 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
                 break
         
         # Get orders - handle Nhanh's 10-day query limitation
-        print("Fetching orders...")
+        logger.debug("Fetching orders...")
         from_date_obj = datetime.strptime(from_date, '%Y-%m-%d')
         to_date_obj = datetime.strptime(to_date, '%Y-%m-%d')
         
@@ -377,7 +379,7 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
             chunk_from_date = current_date.strftime('%Y-%m-%d')
             chunk_to_date = chunk_end_date.strftime('%Y-%m-%d')
             
-            print(f"Fetching orders from {chunk_from_date} to {chunk_to_date}")
+            logger.debug(f"Fetching orders from {chunk_from_date} to {chunk_to_date}")
             
             # Get orders for this date chunk (handle pagination)
             page = 1
@@ -408,7 +410,7 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
         
     except Exception as e:
         result["errors"].append(str(e))
-        print(f"Error during Nhanh data crawling: {e}")
+        logger.debug(f"Error during Nhanh data crawling: {e}")
     
     finally:
         end_time = datetime.now()
