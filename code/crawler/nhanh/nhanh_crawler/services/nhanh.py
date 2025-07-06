@@ -263,7 +263,7 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
         batch_size = 1000
 
         # Send reports in batches
-        total_reports = len(detail)
+        total_reports = len(detailed_data)
         logger.debug(f"Sending {total_reports} reports in batches of {batch_size}")
 
         for i in range(0, total_reports, batch_size):
