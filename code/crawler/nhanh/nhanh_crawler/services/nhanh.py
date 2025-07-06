@@ -210,14 +210,19 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
     """
     try:
         detailed_data = []
+        total_pages = 1
         page = 1
 
-        while True:
+        while page <= total_pages:
+            logger.debug(f"Fetching page {page} for orders from {from_date} to {to_date}")
             # Get orders for the current page
-            orders = await get_orders(business_id, access_token, from_date, to_date, page)
+            data = await get_orders(business_id, access_token, from_date, to_date, page)
             if not orders:
                 logger.debug(f"No orders found on page {page}.")
                 break
+
+            total_pages = data.get("totalPages", 1)
+            orders = data.get("orders", {})
 
             # Iterate through orders and fetch product details
             for order_id, order in orders.items():
