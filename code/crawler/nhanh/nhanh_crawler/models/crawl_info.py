@@ -1,5 +1,6 @@
 from pydantic import BaseModel, validator
 from datetime import datetime
+import json
 
 class NhanhCrawlInfo(BaseModel):
     index_name: str
