@@ -139,6 +139,34 @@ async def get_product_detail(business_id: str, access_token: str, product_id: st
         logger.debug(f"Unexpected error while getting product detail: {e}")
         raise
 
+def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
+    metadata = {
+        "_vada": {
+            "ingest": {
+                "destination": {"type": "elasticsearch", "index": index_name},
+                "vada_client_id": "a_quang_nguyen",
+                "doc_id": doc_id,
+            }
+        }
+    }
+    return report | metadata
+
+async def send_batch(index_name, batch):
+    payload = {
+        "meta": {"index_name": index_name},
+        "data": batch
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(settings.INSERT_SERVICE_URL, json=payload) as response:
+                if response.status == 200:
+                    print(f"✅ Sent batch of {len(batch)}")
+                else:
+                    text = await response.text()
+                    print(f"❌ Failed to send batch: {response.status}, {text}")
+    except Exception as e:
+        print(f"❌ Exception during sending: {e}")
+
 async def get_orders(business_id: str, access_token: str, from_date: str, to_date: str, page: int = 1):
     """
     Get a list of orders from the Nhanh API within the specified date range.
@@ -195,7 +223,7 @@ async def get_orders(business_id: str, access_token: str, from_date: str, to_dat
         logger.debug(f"Unexpected error while getting orders: {e}")
         raise
 
-async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, to_date: str) -> List[Dict]:
+async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str, from_date: str, to_date: str) -> List[Dict]:
     """
     Crawl data from Nhanh API by retrieving orders and their corresponding product details.
 
@@ -223,16 +251,50 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
 
             # Iterate through orders and fetch product details
             for order_id, order in orders.items():
+                timestamp = int(datetime.strptime(order["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
+                doc_id = f"{order['id']}_{timestamp}"
                 for product in order.get("products", []):
                     product_id = product.get("productId")
-                    if product_id:
-                        product["detail"] = await get_product_detail(business_id, access_token, product_id)
-                        time.sleep(0.05)  # avoid API overuse               
-                detailed_data.append(order)
+                    product["detail"] = await get_product_detail(business_id, access_token, product_id)
+                    time.sleep(0.05)  # avoid API overuse               
+                detailed_data.append(enrich_report(order, index_name, doc_id))
             page += 1
 
-        return detailed_data
+        batch_size = 1000
 
+        # Send reports in batches
+        total_reports = len(detail)
+        logger.debug(f"Sending {total_reports} reports in batches of {batch_size}")
+
+        for i in range(0, total_reports, batch_size):
+            batch = detailed_data[i : i + batch_size]
+            current_batch = i // batch_size + 1
+            total_batches = (total_reports + batch_size - 1) // batch_size
+
+            logger.debug(f"Sending batch {current_batch} of {total_batches}")
+            insert_json = await send_batch(
+                index_name,
+                batch
+            )
+
+            status = insert_json.get("status", "unknown")
+            detail = insert_json.get("detail", "no details provided")
+            logger.debug(
+                f"Batch {current_batch}/{total_batches} - Status: {status} - Detail: {detail}"
+            )
+
+            if status != "success":
+                logger.error(f"Failed to insert batch {current_batch}: {detail}")
+
+            # Calculate total spending
+            total_spend = sum(float(report.get("calcTotalMoney", 0)) for report in detailed_data)
+        return {
+            "status": "success",
+            "total_reports": total_reports,
+            "total_spend": round(total_spend, 2),
+            "date_start": from_date,
+            "date_end": to_date,
+        }
     except Exception as e:
         logger.debug(f"Error while crawling Nhanh data: {e}")
         raise

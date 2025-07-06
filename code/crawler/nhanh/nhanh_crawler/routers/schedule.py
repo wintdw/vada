@@ -39,6 +39,7 @@ async def post_schedule_crawl(index_name: str = None):
             if not item.last_crawl_time:
                 # First crawl - get last 30 days of data
                 crawl_response = await crawl_nhanh_data(
+                    item.index_name,
                     item.business_id,
                     item.access_token, 
                     (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), 
@@ -48,6 +49,7 @@ async def post_schedule_crawl(index_name: str = None):
             else:   
                 # Subsequent crawls - get last 2 days of data
                 crawl_response = await crawl_nhanh_data(
+                    item.index_name,
                     item.business_id,
                     item.access_token, 
                     (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d'), 
