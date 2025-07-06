@@ -217,9 +217,6 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
             logger.debug(f"Fetching page {page} for orders from {from_date} to {to_date}")
             # Get orders for the current page
             data = await get_orders(business_id, access_token, from_date, to_date, page)
-            if not orders:
-                logger.debug(f"No orders found on page {page}.")
-                break
 
             total_pages = data.get("totalPages", 1)
             orders = data.get("orders", {})
