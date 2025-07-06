@@ -195,22 +195,6 @@ async def get_orders(business_id: str, access_token: str, from_date: str, to_dat
         logger.debug(f"Unexpected error while getting orders: {e}")
         raise
 
-async def enrich_order(order: Dict) -> Dict:
-    try:
-        timestamp = int(datetime.strptime(order["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
-    except Exception as e:
-        print(f"❌ Invalid createdDateTime for order {order.get('id')}: {e}")
-        timestamp = 0
-
-    for product in order.get("products", []):
-        product_id = product.get("productId")
-        if product_id:
-            product["detail"] = await get_product_detail(order["businessId"], order["accessToken"], product_id)
-            time.sleep(0.05)  # avoid API overuse
-
-    doc_id = f"{order['id']}_{timestamp}"
-    return order
-
 async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, to_date: str) -> List[Dict]:
     """
     Crawl data from Nhanh API by retrieving orders and their corresponding product details.
@@ -237,8 +221,12 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
 
             # Iterate through orders and fetch product details
             for order_id, order in orders.items():
-                enriched = await enrich_order(order)
-                detailed_data.append(enriched)
+                for product in order.get("products", []):
+                    product_id = product.get("productId")
+                    if product_id:
+                        product["detail"] = await get_product_detail(business_id, access_token, product_id)
+                        time.sleep(0.05)  # avoid API overuse               
+                detailed_data.append(order)
             page += 1
 
         return detailed_data
