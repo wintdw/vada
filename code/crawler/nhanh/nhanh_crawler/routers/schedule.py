@@ -22,7 +22,7 @@ nhanh_platform_crawl_success = Counter(
 @router.post("/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_crawl(crawl_id: str = None):
     from repositories import select_crawl_info_by_next_crawl_time, update_crawl_info, insert_crawl_history, update_crawl_history
-    from handlers.tiktok import crawl_tiktok_business
+    from services.nhanh import crawl_nhanh_data
 
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
@@ -37,10 +37,20 @@ async def post_schedule_crawl(crawl_id: str = None):
             nhanh_platform_crawl.labels(account_name=item.account_name, vada_uid=item.vada_uid).inc()
 
             if not item.last_crawl_time:
-                crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
+                # First crawl - get last 30 days of data
+                crawl_response = await crawl_nhanh_data(
+                    item.access_token, 
+                    (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), 
+                    datetime.now().strftime('%Y-%m-%d')
+                )
                 logger.info(crawl_response)
             else:
-                crawl_response = await crawl_tiktok_business(item.index_name, item.access_token, (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), datetime.now().strftime('%Y-%m-%d'))
+                # Subsequent crawls - get last 2 days of data
+                crawl_response = await crawl_nhanh_data(
+                    item.access_token, 
+                    (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), 
+                    datetime.now().strftime('%Y-%m-%d')
+                )
                 logger.info(crawl_response)
 
             nhanh_platform_crawl_success.labels(account_name=item.account_name, vada_uid=item.vada_uid).inc()
