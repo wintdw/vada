@@ -204,7 +204,7 @@ async def enrich_order(order: Dict) -> Dict:
     doc_id = f"{order['id']}_{timestamp}"
     return order
 
-async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, to_date: str, index_name: str) -> List[Dict]:
+async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, to_date: str) -> List[Dict]:
     """
     Crawl data from Nhanh API by retrieving orders and their corresponding product details.
 
@@ -229,10 +229,11 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
                 break
 
             # Iterate through orders and fetch product details
+            """
             for order_id, order in orders.items():
                 enriched = await enrich_order(order)
                 detailed_data.append(enriched)
-
+            """
             page += 1
 
         return detailed_data

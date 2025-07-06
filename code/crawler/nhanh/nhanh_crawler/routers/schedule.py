@@ -45,12 +45,12 @@ async def post_schedule_crawl(index_name: str = None):
                     datetime.now().strftime('%Y-%m-%d')
                 )
                 logger.info(crawl_response)
-            else:
+            else:   
                 # Subsequent crawls - get last 2 days of data
                 crawl_response = await crawl_nhanh_data(
                     item.business_id,
                     item.access_token, 
-                    (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d'), 
+                    (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d'), 
                     datetime.now().strftime('%Y-%m-%d')
                 )
                 logger.info(crawl_response)
