@@ -23,7 +23,7 @@ async def select_crawl_info_by_next_crawl_time() -> List[NhanhCrawlInfo]:
     
     Returns:
         List[NhanhCrawlInfo]: A list of crawl info records ready for processing.
-        Each record contains business_id, access_token, depot_ids, index_name,
+        Each record contains business_id, access_token, depot_ids, expired_datetime, index_name,
         crawl_interval, last_crawl_time, and next_crawl_time.
         
     Raises:
@@ -34,8 +34,8 @@ async def select_crawl_info_by_next_crawl_time() -> List[NhanhCrawlInfo]:
             await cursor.execute(
                 """
                 SELECT index_name, business_id, access_token,
-                    depot_ids, crawl_interval, last_crawl_time,
-                    next_crawl_time
+                    depot_ids, expired_datetime,
+                    crawl_interval, last_crawl_time, next_crawl_time
                 FROM `NhanhCrawlInfo`
                 WHERE next_crawl_time < NOW()
                 """
