@@ -9,7 +9,6 @@ from routers import (
 )
 
 app = FastAPI()
-"""
 @app.on_event("startup")
 @repeat_every(seconds=60)  # Executes every 1 minute
 async def periodic_task() -> None:
@@ -17,7 +16,7 @@ async def periodic_task() -> None:
 
     await post_schedule_auth()
     await post_schedule_crawl()
-"""
+    
 @app.get("/health")
 async def check_health():
     from repositories import health_check

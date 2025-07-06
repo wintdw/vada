@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from prometheus_client import Counter, Histogram  # type: ignore
 
 from tools import get_logger
-from models import CrawlHistory, CrawlInfoResponse
+from models import NhanhCrawlHistory, NhanhCrawlInfoResponse
 
 router = APIRouter()
 logger = get_logger(__name__, 20)
@@ -19,7 +19,7 @@ nhanh_platform_crawl_success = Counter(
     ["account_name", "vada_uid"],
 )
 
-@router.post("/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"])
+@router.post("/v1/schedule/{crawl_id}/crawl", response_model=NhanhCrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_crawl(crawl_id: str = None):
     from repositories import select_crawl_info_by_next_crawl_time, update_crawl_info, insert_crawl_history, update_crawl_history
     from services.nhanh import crawl_nhanh_data
@@ -29,7 +29,7 @@ async def post_schedule_crawl(crawl_id: str = None):
         history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(CrawlHistory(crawl_id=item.crawl_id))
+            crawl_history = await insert_crawl_history(NhanhCrawlHistory(crawl_id=item.crawl_id))
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
@@ -61,7 +61,7 @@ async def post_schedule_crawl(crawl_id: str = None):
             crawl_info = await update_crawl_info(item.crawl_id, item)
             logger.info(crawl_info)
             
-            crawl_history = await update_crawl_history(history_id, CrawlHistory(
+            crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
                 crawl_id=item.crawl_id,
                 crawl_status="success",
                 crawl_duration=int(crawl_response.get("execution_time")),
@@ -70,7 +70,7 @@ async def post_schedule_crawl(crawl_id: str = None):
             logger.info(crawl_history)
 
     except Exception as e:
-        crawl_history = await update_crawl_history(history_id, CrawlHistory(
+        crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
             crawl_id=crawl_id,
             crawl_status="failed",
             crawl_error=str(e)
@@ -78,11 +78,11 @@ async def post_schedule_crawl(crawl_id: str = None):
         logger.error(crawl_history)
 
     finally:
-        return CrawlInfoResponse(
+        return NhanhCrawlInfoResponse(
             status=200,
             message="Success"
         )
 
-@router.post("/v1/schedule/{crawl_id}/auth", response_model=CrawlInfoResponse, tags=["Schedule"])
+@router.post("/v1/schedule/{crawl_id}/auth", response_model=NhanhCrawlInfoResponse, tags=["Schedule"])
 async def post_schedule_auth(crawl_id: str = None):
     pass
