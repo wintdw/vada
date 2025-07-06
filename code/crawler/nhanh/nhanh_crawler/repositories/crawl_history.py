@@ -43,14 +43,13 @@ async def insert_crawl_history(crawl_history: NhanhCrawlHistory) -> NhanhCrawlHi
             await cursor.execute(
                 """
                 INSERT INTO `NhanhCrawlHistory`
-                    (history_id, index_name, crawl_time, crawl_status,
+                    (history_id, index_name, crawl_status,
                     crawl_error, crawl_duration, crawl_data_number) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
                 (
                     crawl_history.history_id,
                     crawl_history.index_name,
-                    crawl_history.crawl_time,
                     crawl_history.crawl_status,
                     crawl_history.crawl_error,
                     crawl_history.crawl_duration,
