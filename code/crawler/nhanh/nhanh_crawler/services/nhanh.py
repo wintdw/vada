@@ -7,6 +7,7 @@ authentication via access tokens and other API operations.
 
 import aiohttp
 import os
+import json
 from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 
@@ -92,25 +93,46 @@ async def get_access_token(access_code: str) -> Optional[Dict]:
         raise
 
 
-async def get_product_categories(access_token: str) -> Optional[Dict]:
+async def get_product_categories(access_token: str, business_id: str) -> Optional[Dict]:
     """
     Get product categories from the Nhanh API.
     
     Args:
         access_token (str): The access token for authentication.
+        business_id (str): The business ID for the API request.
     
     Returns:
         Optional[Dict]: Product categories data or None if request fails.
     """
     url = "https://open.nhanh.vn/api/product/category"
     
-    params = {
-        "accessToken": access_token
+    # Read settings
+    app_id = settings.NHANH_APP_ID
+    version = settings.NHANH_OAUTH_VERSION
+    
+    # Validate required settings
+    if not app_id:
+        raise ValueError("NHANH_APP_ID is not configured in settings")
+    if not version:
+        raise ValueError("NHANH_OAUTH_VERSION is not configured in settings")
+    
+    # Prepare the data payload
+    data_payload = {
+        "dataString": "productcategory"
+    }
+    
+    # Prepare the request payload
+    payload = {
+        "version": version,
+        "appId": app_id,
+        "businessId": business_id,
+        "accessToken": access_token,
+        "data": (None, json.dumps(data_payload))
     }
     
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.post(url, json=payload) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result
@@ -139,7 +161,7 @@ async def get_products(access_token: str, page: int = 1, limit: int = 100) -> Op
     Returns:
         Optional[Dict]: Products data or None if request fails.
     """
-    url = "https://open.nhanh.vn/api/product/index"
+    url = "https://open.nhanh.vn/api/product/search"
     
     params = {
         "accessToken": access_token,
@@ -166,25 +188,49 @@ async def get_products(access_token: str, page: int = 1, limit: int = 100) -> Op
         raise
 
 
-async def get_staff(access_token: str) -> Optional[Dict]:
+async def get_staff(access_token: str, business_id: str, page: int = 1, icpp: int = 50) -> Optional[Dict]:
     """
     Get staff/users from the Nhanh API.
     
     Args:
         access_token (str): The access token for authentication.
+        business_id (str): The business ID for the API request.
+        page (int): Page number for pagination.
+        icpp (int): Number of staff per page (same as limit).
     
     Returns:
         Optional[Dict]: Staff data or None if request fails.
     """
     url = "https://open.nhanh.vn/api/user/index"
     
-    params = {
-        "accessToken": access_token
+    # Read settings
+    app_id = settings.NHANH_APP_ID
+    version = settings.NHANH_OAUTH_VERSION
+    
+    # Validate required settings
+    if not app_id:
+        raise ValueError("NHANH_APP_ID is not configured in settings")
+    if not version:
+        raise ValueError("NHANH_OAUTH_VERSION is not configured in settings")
+    
+    # Prepare the data payload
+    data_payload = {
+        "page": page,
+        "icpp": icpp
+    }
+    
+    # Prepare the request payload
+    payload = {
+        "version": version,
+        "appId": app_id,
+        "businessId": business_id,
+        "accessToken": access_token,
+        "data": (None, json.dumps(data_payload))
     }
     
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.post(url, json=payload) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result
@@ -201,33 +247,53 @@ async def get_staff(access_token: str) -> Optional[Dict]:
         raise
 
 
-async def get_customers(access_token: str, page: int = 1, limit: int = 100, updated_at_from: str = None) -> Optional[Dict]:
+async def get_customers(access_token: str, business_id: str, page: int = 1, icpp: int = 100, updated_at_from: str = None) -> Optional[Dict]:
     """
     Get customers from the Nhanh API.
     
     Args:
         access_token (str): The access token for authentication.
+        business_id (str): The business ID for the API request.
         page (int): Page number for pagination.
-        limit (int): Number of customers per page.
+        icpp (int): Number of customers per page (same as limit).
         updated_at_from (str): Filter customers updated from this date (YYYY-MM-DD).
     
     Returns:
         Optional[Dict]: Customers data or None if request fails.
     """
-    url = "https://open.nhanh.vn/api/customer/index"
+    url = "https://open.nhanh.vn/api/customer/search"
     
-    params = {
-        "accessToken": access_token,
+    # Read settings
+    app_id = settings.NHANH_APP_ID
+    version = settings.NHANH_OAUTH_VERSION
+    
+    # Validate required settings
+    if not app_id:
+        raise ValueError("NHANH_APP_ID is not configured in settings")
+    if not version:
+        raise ValueError("NHANH_OAUTH_VERSION is not configured in settings")
+    
+    # Prepare the data payload
+    data_payload = {
         "page": page,
-        "limit": limit
+        "icpp": icpp
     }
     
     if updated_at_from:
-        params["updatedAtFrom"] = updated_at_from
+        data_payload["updatedAtFrom"] = updated_at_from
+    
+    # Prepare the request payload
+    payload = {
+        "version": version,
+        "appId": app_id,
+        "businessId": business_id,
+        "accessToken": access_token,
+        "data": (None, json.dumps(data_payload))
+    }
     
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.post(url, json=payload) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result
@@ -287,12 +353,13 @@ async def get_orders(access_token: str, from_date: str, to_date: str, page: int 
         raise
 
 
-async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: str = None) -> Dict:
+async def crawl_nhanh_data(access_token: str, business_id: str, from_date: str = None, to_date: str = None) -> Dict:
     """
     Crawl all Nhanh data including categories, products, staff, customers, and orders.
     
     Args:
         access_token (str): The access token for authentication.
+        business_id (str): The business ID for the API request.
         from_date (str): Start date for order filtering (YYYY-MM-DD). Defaults to 30 days ago.
         to_date (str): End date for order filtering (YYYY-MM-DD). Defaults to today.
     
@@ -324,7 +391,7 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
     try:
         # Get product categories
         logger.debug("Fetching product categories...")
-        categories_response = await get_product_categories(access_token)
+        categories_response = await get_product_categories(access_token, business_id)
         if categories_response and categories_response.get("data"):
             result["data"]["categories"] = categories_response["data"]
         
@@ -344,23 +411,35 @@ async def crawl_nhanh_data(access_token: str, from_date: str = None, to_date: st
             else:
                 break
         
-        # Get staff
+        # Get staff (handle pagination)
         logger.debug("Fetching staff...")
-        staff_response = await get_staff(access_token)
-        if staff_response and staff_response.get("data", {}).get("users"):
-            result["data"]["staff"] = staff_response["data"]["users"]
+        page = 1
+        while True:
+            staff_response = await get_staff(access_token, business_id, page=page, icpp=50)
+            if staff_response and staff_response.get("data", {}).get("users"):
+                users_data = staff_response["data"]["users"]
+                result["data"]["staff"].update(users_data)
+                
+                # Check if there are more pages
+                total_pages = staff_response.get("data", {}).get("totalPages", 1)
+                if page >= total_pages:
+                    break
+                page += 1
+            else:
+                break
         
         # Get customers (handle pagination)
         logger.debug("Fetching customers...")
         page = 1
         while True:
-            customers_response = await get_customers(access_token, page=page, limit=100)
+            customers_response = await get_customers(access_token, business_id, page=page, icpp=100)
             if customers_response and customers_response.get("data", {}).get("customers"):
                 customers_data = customers_response["data"]["customers"]
                 result["data"]["customers"].update(customers_data)
                 
                 # Check if there are more pages
-                if len(customers_data) < 100:
+                total_pages = customers_response.get("data", {}).get("totalPages", 1)
+                if page >= total_pages:
                     break
                 page += 1
             else:
