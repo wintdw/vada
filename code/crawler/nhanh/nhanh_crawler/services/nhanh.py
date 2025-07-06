@@ -8,6 +8,7 @@ authentication via access tokens and other API operations.
 import aiohttp
 import os
 import json
+import time
 from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 
@@ -187,7 +188,35 @@ async def get_orders(business_id: str, access_token: str, from_date: str, to_dat
         logger.debug(f"Unexpected error while getting orders: {e}")
         raise
 
-async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, to_date: str) -> List[Dict]:
+def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
+    metadata = {
+        "_vada": {
+            "ingest": {
+                "destination": {"type": "elasticsearch", "index": index_name},
+                "vada_client_id": "a_quang_nguyen",
+                "doc_id": doc_id,
+            }
+        }
+    }
+    return report | metadata
+
+async def enrich_order(order, index_name):
+    try:
+        timestamp = int(datetime.strptime(order["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
+    except Exception as e:
+        print(f"❌ Invalid createdDateTime for order {order.get('id')}: {e}")
+        timestamp = 0
+
+    for product in order.get("products", []):
+        product_id = product.get("productId")
+        if product_id:
+            product["detail"] = await get_product_detail(order["businessId"], order["accessToken"], product_id)
+            time.sleep(0.05)  # avoid API overuse
+
+    doc_id = f"{order['id']}_{timestamp}"
+    return enrich_report(order, index_name, doc_id)
+
+async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, to_date: str, index_name: str) -> List[Dict]:
     """
     Crawl data from Nhanh API by retrieving orders and their corresponding product details.
 
@@ -196,6 +225,7 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
         access_token (str): The access token for authentication.
         from_date (str): The start date for the order retrieval in ISO format.
         to_date (str): The end date for the order retrieval in ISO format.
+        index_name (str): The index name for enriching the report.
 
     Returns:
         List[Dict]: A list of dictionaries containing order and product details.
@@ -212,13 +242,9 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
                 break
 
             # Iterate through orders and fetch product details
-            for order in orders:
-                product_id = order.get("productId")
-                if product_id:
-                    product_detail = await get_product_detail(business_id, access_token, product_id)
-                    detailed_data.append({"order": order, "product_detail": product_detail})
-                else:
-                    logger.debug(f"Order {order.get('id')} does not have a product ID.")
+            for order_id, order in orders.items():
+                enriched = await enrich_order(order, index_name)
+                detailed_data.append(enriched)
 
             page += 1
 
