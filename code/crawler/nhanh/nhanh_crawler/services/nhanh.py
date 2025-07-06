@@ -110,6 +110,10 @@ async def get_product_detail(business_id: str, access_token: str, product_id: st
         Exception: For other unexpected errors during the API call.
     """
     url = "https://open.nhanh.vn/api/product/detail"
+
+    headers = {
+        "Accept": "application/json"
+    }
     payload = {
         "version": settings.NHANH_OAUTH_VERSION,
         "appId": settings.NHANH_APP_ID,
@@ -120,7 +124,7 @@ async def get_product_detail(business_id: str, access_token: str, product_id: st
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as response:
+            async with session.post(url, headers=headers, data=payload) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result.get("data", {})
@@ -158,6 +162,9 @@ async def get_orders(business_id: str, access_token: str, from_date: str, to_dat
         Exception: For other unexpected errors during the API call.
     """
     url = "https://open.nhanh.vn/api/order/index"
+    headers = {
+        "Accept": "application/json"
+    }
     payload = {
         "fromDate": from_date,
         "toDate": to_date,
@@ -173,7 +180,7 @@ async def get_orders(business_id: str, access_token: str, from_date: str, to_dat
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=data) as response:
+            async with session.post(url, headers=headers, data=data) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result.get("data", {})
@@ -229,11 +236,9 @@ async def crawl_nhanh_data(business_id: str, access_token: str, from_date: str, 
                 break
 
             # Iterate through orders and fetch product details
-            """
             for order_id, order in orders.items():
                 enriched = await enrich_order(order)
                 detailed_data.append(enriched)
-            """
             page += 1
 
         return detailed_data
