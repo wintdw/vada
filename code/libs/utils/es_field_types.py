@@ -1,8 +1,12 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from dateutil import parser  # type: ignore
 from typing import Dict, List, Any
+
+
+# Define your default timezone as UTC+7
+DEFAULT_TZ = timezone(timedelta(hours=7))
 
 
 def determine_es_field_types(
@@ -100,7 +104,7 @@ def determine_es_field_types(
     # Determine the most probable type for each field
     field_types = {}
     for field, type_counts in field_type_counts.items():
-        most_probable_type = max(type_counts, key=type_counts.get)
+        most_probable_type = max(type_counts, key=type_counts.get)  # type: ignore
         if "text" in type_counts:
             most_probable_type = "text"
         elif most_probable_type == "long" and "double" in type_counts:
@@ -171,7 +175,7 @@ def convert_es_field_types(
                     converted_data[field] = 0
                 elif field_type == "date":
                     converted_data[field] = datetime(
-                        2000, 1, 1, tzinfo=timezone.utc
+                        2000, 1, 1, tzinfo=DEFAULT_TZ
                     ).isoformat()
                 continue
 
@@ -217,7 +221,7 @@ def convert_es_field_types(
                                         else int_value
                                     )
                                 ),
-                                timezone.utc,
+                                DEFAULT_TZ,
                             ).isoformat()
                         except (ValueError, TypeError):
                             try:
@@ -227,7 +231,7 @@ def convert_es_field_types(
                 elif isinstance(value, int):
                     try:
                         converted_data[field] = datetime.fromtimestamp(
-                            value, timezone.utc
+                            value, DEFAULT_TZ
                         ).isoformat()
                     except (ValueError, TypeError):
                         continue
