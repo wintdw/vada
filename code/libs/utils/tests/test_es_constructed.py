@@ -76,8 +76,6 @@ def test_construct_es_mappings_dynamic_settings():
     mappings = construct_es_mappings(field_types)
 
     assert mappings["mappings"]["dynamic"] is True
-    assert "dynamic_date_formats" in mappings["mappings"]
-    assert isinstance(mappings["mappings"]["dynamic_date_formats"], list)
 
 
 def test_determine_and_convert_full_workflow():

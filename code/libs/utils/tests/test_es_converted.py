@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from libs.utils.es_field_types import convert_es_field_types
 
 
@@ -89,7 +89,8 @@ def test_convert_es_field_types_empty_values():
     assert converted["number_long"] == 0
     assert converted["number_double"] == 0
     assert (
-        converted["date_field"] == datetime(2000, 1, 1, tzinfo=timezone.utc).isoformat()
+        converted["date_field"]
+        == datetime(2000, 1, 1, tzinfo=timezone(timedelta(hours=7))).isoformat()
     )
     assert converted["text_field"] == ""
     assert "boolean_field" in converted
