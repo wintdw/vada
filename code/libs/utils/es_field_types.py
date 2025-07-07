@@ -269,18 +269,19 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A dictionary representing the Elasticsearch mappings with nested field support.
     """
-    date_formats = [
-        "strict_date_optional_time",
-        "basic_date",
-        "basic_date_time",
-        "basic_date_time_no_millis",
-        "yyyy/MM/dd HH:mm:ss",
-    ]
+    # Do not use dynamic date formats for now, as they can cause issues with parsing
+    # date_formats = [
+    #     "strict_date_optional_time",
+    #     "basic_date",
+    #     "basic_date_time",
+    #     "basic_date_time_no_millis",
+    #     "yyyy/MM/dd HH:mm:ss",
+    # ]
 
     es_mappings = {
         "mappings": {
             "dynamic": True,
-            "dynamic_date_formats": date_formats,
+            # "dynamic_date_formats": date_formats,
             "properties": {},
         }
     }
