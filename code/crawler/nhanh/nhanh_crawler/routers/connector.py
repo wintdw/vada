@@ -101,7 +101,7 @@ async def ingest_partner_nhanh_platform_callback(access_code: str):
 async def ingest_partner_nhanh_platform_auth():
     return RedirectResponse(url=f"https://nhanh.vn/oauth?version={settings.NHANH_OAUTH_VERSION}&appId={settings.NHANH_APP_ID}&returnLink={settings.NHANH_RETURN_LINK}")
 
-@router.get("/ingest/partner/google/ad/config")
+@router.get("/ingest/partner/nhanh/platform/config")
 async def expose_config():
     import models.index_mappings as index_mappings_data
     return {"mappings": index_mappings_data["mappings"]}
