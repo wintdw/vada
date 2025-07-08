@@ -103,5 +103,5 @@ async def ingest_partner_nhanh_platform_auth():
 
 @router.get("/ingest/partner/nhanh/platform/config")
 async def expose_config():
-    import models.index_mappings as index_mappings_data
+    from models.index_mappings import index_mappings_data
     return {"mappings": index_mappings_data["mappings"]}
