@@ -1,0 +1,29 @@
+secrets:
+  mysql_crawler_prod:
+    file: /var/secret/docker/mysql/crawler_prod
+
+services:
+  meta_ads_crawler:
+    build:
+      context: ./meta_ads_crawler
+      dockerfile: Dockerfile
+    image: meta_ads_crawler:latest
+    container_name: meta_ads_crawler
+    restart: always
+    ports:
+      - "8147:8147"
+    secrets:
+      - mysql_crawler_prod
+    environment:
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: crawler_prod
+      MYSQL_DB: crawler_prod
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler_prod
+
+      META_APP_ID: 822555046472581
+      META_APP_SECRET: 1d63cc46243d28b50b0da5a6e2eefbcc
+      META_GRAPH_API_URL: https://graph.facebook.com/v22.0
+      META_REDIRECT_URI: https://api-app.vadata.vn/ingest/partner/facebook/ad/callback
+
+      CONNECTOR_CALLBACK_URL: https://app.vadata.vn/callback.html
+      CRAWLER_SERVICE_URL: http://vada-demo0:9206

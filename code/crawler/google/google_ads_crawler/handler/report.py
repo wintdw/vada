@@ -98,7 +98,7 @@ async def process_single_account_report(
                     "advertising_channel_type": row.campaign.advertising_channel_type.name,
                     "advertising_channel_sub_type": row.campaign.advertising_channel_sub_type.name,
                     "bidding_strategy_type": row.campaign.bidding_strategy_type.name,
-                    "labels": [label.name for label in row.campaign.labels],
+                    "labels": [label for label in row.campaign.labels],
                     "start_date": row.campaign.start_date,
                     "end_date": row.campaign.end_date,
                 },
@@ -113,7 +113,7 @@ async def process_single_account_report(
                         reason.name for reason in row.ad_group.primary_status_reasons
                     ],
                     "type": row.ad_group.type_.name,
-                    "labels": [label.name for label in row.ad_group.labels],
+                    "labels": [label for label in row.ad_group.labels],
                     "base_ad_group": row.ad_group.base_ad_group,
                     "campaign": row.ad_group.campaign,
                 },
@@ -126,7 +126,7 @@ async def process_single_account_report(
                     "resource_name": row.ad_group_ad.resource_name,
                     "status": row.ad_group_ad.status.name,
                     "strength": row.ad_group_ad.ad_strength.name,
-                    "labels": [label.name for label in row.ad_group_ad.labels],
+                    "labels": [label for label in row.ad_group_ad.labels],
                 },
                 # Metrics
                 **metrics,

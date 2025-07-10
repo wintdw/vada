@@ -3,6 +3,7 @@ fastapi
 aiohttp
 aiomysql
 apscheduler
+cryptography
 pydantic-settings
 google-auth-oauthlib
 google-ads
