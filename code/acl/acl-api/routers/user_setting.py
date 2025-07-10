@@ -38,6 +38,38 @@ async def get_user_setting_user_id(user_id: str):
             data=user_setting
         )
 
+### OLD FE CALL ###
+@router.get("/v1/user-settings/{user_id}", response_model=UserSettingResponse, tags=["UserSetting"])
+async def get_user_setting_user_id(user_id: str):
+    from repositories import select_user_setting_by_user_id
+
+    try:
+        user_setting = await select_user_setting_by_user_id(user_id)
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Internal Server Error"
+        )
+    if user_setting:
+        logger.info(user_setting)
+        return UserSettingResponse(
+            status=200,
+            message="Success",
+            data=user_setting
+        )
+    else:
+        user_setting = UserSetting(
+            user_id=user_id,
+            setting=Setting()
+        )
+        logger.info(user_setting)
+        return UserSettingResponse( 
+            status=200,
+            message="Success",
+            data=user_setting
+        )
+
 ### FE CALL ###
 @router.put("/v1/user-settings/{user_id}", response_model=UserSettingResponse, tags=["UserSetting"])
 async def put_user_setting_by_user_id(user_id: str, user_setting: UserSetting):
