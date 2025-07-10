@@ -3,7 +3,8 @@ import json
 
 from .setting import Setting
 
-class UserSetting(BaseModel):
+class UserSetting_v2(BaseModel):
+    workspace_id: str
     user_id: str
     setting: Setting
 
@@ -14,7 +15,7 @@ class UserSetting(BaseModel):
         else:
             return value
 
-class UserSettingResponse(BaseModel):
+class UserSettingResponse_v2(BaseModel):
     status: int
     message: str
-    data: list[UserSetting] | UserSetting = []
+    data: list[UserSetting_v2] | UserSetting_v2 = []

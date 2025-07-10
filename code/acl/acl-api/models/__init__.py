@@ -26,3 +26,5 @@ from .group_setting import (
     GroupSetting,
     GroupSettingResponse
 )
+
+from .user_setting_v2 import *
