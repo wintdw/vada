@@ -86,7 +86,7 @@ async def get_setting_by_index_name(user_id: str):
     )
 
 ### CRM CALL ###
-@router.get("/v1/settings/workspace/{workspace_id}/users/{user_id}/indexes/{index_name}", response_model=UserSettingResponse_v2, tags=["Setting"])
+@router.get("/v1/settings/workspace/{workspace_id}/user/{user_id}/index/{index_name}", response_model=UserSettingResponse_v2, tags=["Setting"])
 async def get_setting_by_index_name(workspace_id: str, user_id: str, index_name: str):
     from repositories import select_user_setting_by_workspace_id_and_user_id, select_user_groups_by_user_id, select_group_setting
     from handlers import merge_permissions
@@ -129,7 +129,7 @@ async def get_setting_by_index_name(workspace_id: str, user_id: str, index_name:
         data=user_setting
     )
 
-@router.get("/v1/settings/workspace/{workspace_id}/users/{user_id}", response_model=UserSettingResponse_v2, tags=["Setting"])
+@router.get("/v1/settings/workspace/{workspace_id}/user/{user_id}", response_model=UserSettingResponse_v2, tags=["Setting"])
 async def get_setting(workspace_id: str, user_id: str):
     from repositories import select_user_setting_by_workspace_id_and_user_id, select_user_groups_by_user_id, select_group_setting
     from handlers import merge_permissions
