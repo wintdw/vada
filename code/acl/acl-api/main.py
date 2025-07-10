@@ -6,6 +6,7 @@ from routers import (
     group_setting,
     user_setting,
     setting,
+    user_setting_v2
 )
 
 app = FastAPI()
@@ -28,3 +29,4 @@ app.include_router(user_group.router)
 app.include_router(user_setting.router)
 app.include_router(group_setting.router)
 app.include_router(setting.router)
+app.include_router(user_setting_v2.router)
