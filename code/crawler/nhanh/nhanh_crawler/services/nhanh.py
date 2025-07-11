@@ -73,10 +73,10 @@ async def get_access_token(access_code: str) -> Optional[Dict]:
         "secretKey": secret_key,
         "accessCode": access_code
     }
-    
+
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as response:
+            async with session.post(url, data=payload) as response:  # Use `data` for form data
                 if response.status == 200:
                     result = await response.json()
                     return result

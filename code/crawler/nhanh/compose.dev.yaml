@@ -16,6 +16,7 @@ services:
       - "8149:8149"
     secrets:
       - mysql_crawler
+      - nhanh_secret_key
     environment:
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler
