@@ -9,7 +9,7 @@ router = APIRouter()
 logger = get_logger(__name__, 20)
 
 @router.get("/ingest/partner/nhanh/platform/callback", tags=["Connector"])
-async def ingest_partner_nhanh_platform_callback(accessToken: str):
+async def ingest_partner_nhanh_platform_callback(accessCode: str):
     """
     Handle the OAuth callback from Nhanh platform.
     
@@ -31,7 +31,7 @@ async def ingest_partner_nhanh_platform_callback(accessToken: str):
     from models import NhanhCrawlInfo
     from services.nhanh import get_access_token
     
-    access_token = accessToken
+    access_code = accessCode
     try:
         # Get access token from Nhanh API
         access_token_response = await get_access_token(access_code=access_code)
