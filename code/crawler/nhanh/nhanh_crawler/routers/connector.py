@@ -38,18 +38,10 @@ async def ingest_partner_nhanh_platform_callback(accessCode: str):
         logger.info(f"Access token response: {access_token_response}")
         
         # Extract data from the response
-        data = access_token_response.get("data", {})
-        access_token = data.get("accessToken")
-        business_id = data.get("businessId")
-        depot_ids = data.get("depotIds", [])
-        expired_datetime = data.get("expiredDateTime")
-        
-        if not access_token or not business_id:
-            logger.error("Missing required data from access token response")
-            raise HTTPException(
-                status_code=400,
-                detail="Missing required data from access token response"
-            )
+        access_token = access_token_response.get("accessToken")
+        business_id = access_token_response.get("businessId")
+        depot_ids = access_token_response.get("depotIds", [])
+        expired_datetime = access_token_response.get("expiredDateTime")
         
         # Generate unique index name
         index_name = f"data_nhanh_{business_id}"
