@@ -42,8 +42,24 @@ async def post_schedule_crawl(index_name: str = None):
                     item.index_name,
                     item.business_id,
                     item.access_token, 
-                    (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), 
+                    (datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d'), 
                     datetime.now().strftime('%Y-%m-%d')
+                )
+                logger.info(crawl_response)
+                crawl_response = await crawl_nhanh_data(
+                    item.index_name,
+                    item.business_id,
+                    item.access_token, 
+                    (datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d'), 
+                    (datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d'), 
+                )
+                logger.info(crawl_response)
+                crawl_response = await crawl_nhanh_data(
+                    item.index_name,
+                    item.business_id,
+                    item.access_token, 
+                    (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), 
+                    (datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d'), 
                 )
                 logger.info(crawl_response)
             else:   
@@ -52,7 +68,7 @@ async def post_schedule_crawl(index_name: str = None):
                     item.index_name,
                     item.business_id,
                     item.access_token, 
-                    (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d'), 
+                    (datetime.now() - timedelta(days=)).strftime('%Y-%m-%d'), 
                     datetime.now().strftime('%Y-%m-%d')
                 )
                 logger.info(crawl_response)
