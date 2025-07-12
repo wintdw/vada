@@ -175,15 +175,16 @@ async def upsert_crawl_info(crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
                     """
                     INSERT INTO `NhanhCrawlInfo`
                         (index_name, business_id, access_token, 
-                        depot_ids, expired_datetime)
-                    VALUES (%s, %s, %s, %s, %s)
+                        depot_ids, expired_datetime, crawl_interval)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     """, 
                     (
                         crawl_info.index_name,
                         crawl_info.business_id,
                         crawl_info.access_token,
                         crawl_info.depot_ids,
-                        crawl_info.expired_datetime
+                        crawl_info.expired_datetime,
+                        crawl_info.crawl_interval
                     )
                 )
                 await connection.commit()
