@@ -37,14 +37,6 @@ async def ingest_partner_nhanh_platform_callback(accessCode: str):
         access_token_response = await get_access_token(access_code=access_code)
         logger.info(f"Access token response: {access_token_response}")
         
-        if not access_token_response or access_token_response.get("code") != 0:
-            error_message = access_token_response.get("message", "Unknown error") if access_token_response else "No response from Nhanh API"
-            logger.error(f"Failed to get access token: {error_message}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Failed to get access token: {error_message}"
-            )
-        
         # Extract data from the response
         data = access_token_response.get("data", {})
         access_token = data.get("accessToken")
