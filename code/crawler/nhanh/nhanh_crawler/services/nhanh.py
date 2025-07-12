@@ -253,10 +253,12 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
             for order_id, order in orders.items():
                 timestamp = int(datetime.strptime(order["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
                 doc_id = f"{order['id']}_{timestamp}"
+                """
                 for product in order.get("products", []):
                     product_id = product.get("productId")
                     product["detail"] = await get_product_detail(business_id, access_token, product_id)
                     time.sleep(0.05)  # avoid API overuse               
+                """
                 detailed_data.append(enrich_report(order, index_name, doc_id))
             page += 1
 
