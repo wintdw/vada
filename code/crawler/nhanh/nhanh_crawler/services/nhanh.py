@@ -291,7 +291,7 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
                 order_snake_case = {camel_to_snake(k): v for k, v in order.items()}
                 orders[order_id] = order_snake_case
 
-                detailed_data.append(enrich_report(order, index_name, doc_id))
+                detailed_data.append(enrich_report(order_snake_case, index_name, doc_id))
             page += 1
 
         batch_size = 1000
