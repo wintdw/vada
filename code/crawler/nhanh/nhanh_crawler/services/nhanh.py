@@ -266,7 +266,6 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
                     return data
 
             for order_id, order in orders.items():
-                orders[order_id] = convert_keys_to_snake_case(order)
                 # Map saleChannel to saleChannelName
                 sale_channel_mapping = {
                     "1": "Admin",
@@ -296,7 +295,7 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
                     product["detail"] = await get_product_detail(business_id, access_token, product_id)
                     time.sleep(0.05)  # avoid API overuse               
                 """
-                order_snake_case = {camel_to_snake(k): v for k, v in order.items()}
+                order_snake_case = convert_keys_to_snake_case(order)
                 orders[order_id] = order_snake_case
 
                 detailed_data.append(enrich_report(order_snake_case, index_name, doc_id))
