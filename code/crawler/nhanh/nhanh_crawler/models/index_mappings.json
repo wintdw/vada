@@ -2,13 +2,13 @@
   "mappings": {
       "dynamic": "true",
       "properties": {
-        "affiliateBonusCash": {
+        "affiliate_bonus_cash": {
           "type": "long"
         },
-        "affiliateBonusPercent": {
+        "affiliate_bonus_percent": {
           "type": "long"
         },
-        "affiliateCode": {
+        "affiliate_code": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -17,23 +17,10 @@
             }
           }
         },
-        "calcTotalMoney": {
+        "calc_total_money": {
           "type": "long"
         },
-        "carrierCode": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "eager_global_ordinals": true,
-              "ignore_above": 256
-            }
-          }
-        },
-        "carrierId": {
-          "type": "long"
-        },
-        "carrierName": {
+        "carrier_code": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -43,10 +30,23 @@
             }
           }
         },
-        "carrierServiceType": {
+        "carrier_id": {
           "type": "long"
         },
-        "carrierServiceTypeName": {
+        "carrier_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "carrier_service_type": {
+          "type": "long"
+        },
+        "carrier_service_type_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -59,13 +59,13 @@
         "channel": {
           "type": "long"
         },
-        "codFee": {
+        "cod_fee": {
           "type": "long"
         },
-        "createdById": {
+        "created_by_id": {
           "type": "long"
         },
-        "createdByName": {
+        "created_by_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -75,7 +75,7 @@
             }
           }
         },
-        "createdByUserName": {
+        "created_by_user_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -85,10 +85,10 @@
             }
           }
         },
-        "createdDateTime": {
+        "created_date_time": {
           "type": "date"
         },
-        "creditAccount": {
+        "credit_account": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -97,20 +97,10 @@
             }
           }
         },
-        "creditAmount": {
+        "credit_amount": {
           "type": "long"
         },
-        "customerAddress": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "eager_global_ordinals": true,
-              "ignore_above": 256
-            }
-          }
-        },
-        "customerCity": {
+        "customer_address": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -120,10 +110,7 @@
             }
           }
         },
-        "customerCityId": {
-          "type": "long"
-        },
-        "customerDistrict": {
+        "customer_city": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -133,25 +120,10 @@
             }
           }
         },
-        "customerDistrictId": {
+        "customer_city_id": {
           "type": "long"
         },
-        "customerEmail": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "customerId": {
-          "type": "long"
-        },
-        "customerMobile": {
-          "type": "long"
-        },
-        "customerName": {
+        "customer_district": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -161,10 +133,22 @@
             }
           }
         },
-        "customerShipFee": {
+        "customer_district_id": {
           "type": "long"
         },
-        "customerWard": {
+        "customer_id": {
+          "type": "long"
+        },
+        "customer_mobile": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "customer_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -174,13 +158,25 @@
             }
           }
         },
-        "declaredFee": {
+        "customer_ship_fee": {
           "type": "long"
         },
-        "deliveryDate": {
+        "customer_ward": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "declared_fee": {
+          "type": "long"
+        },
+        "delivery_date": {
           "type": "date"
         },
-        "depositAccount": {
+        "deposit_account": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -189,10 +185,10 @@
             }
           }
         },
-        "depotId": {
+        "depot_id": {
           "type": "long"
         },
-        "depotName": {
+        "depot_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -212,7 +208,7 @@
             }
           }
         },
-        "ecomShopId": {
+        "ecom_shop_id": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -224,57 +220,52 @@
         },
         "facebook": {
           "properties": {
-            "adId": {
+            "ad_id": {
               "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword",
-                  "eager_global_ordinals": true,
                   "ignore_above": 256
                 }
               }
             },
-            "conversationId": {
+            "conversation_id": {
               "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword",
-                  "eager_global_ordinals": true,
                   "ignore_above": 256
                 }
               }
             },
-            "fanpageId": {
+            "fanpage_id": {
               "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword",
-                  "eager_global_ordinals": true,
                   "ignore_above": 256
                 }
               }
             },
-            "pageId": {
+            "page_id": {
               "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword",
-                  "eager_global_ordinals": true,
                   "ignore_above": 256
                 }
               }
             },
-            "postId": {
+            "post_id": {
               "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword",
-                  "eager_global_ordinals": true,
                   "ignore_above": 256
                 }
               }
             },
-            "psId": {
+            "ps_id": {
               "type": "text",
               "fields": {
                 "keyword": {
@@ -285,13 +276,10 @@
             }
           }
         },
-        "handoverId": {
-          "type": "long"
-        },
         "id": {
           "type": "long"
         },
-        "merchantTrackingNumber": {
+        "merchant_tracking_number": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -301,42 +289,47 @@
             }
           }
         },
-        "moneyDeposit": {
+        "money_deposit": {
           "type": "long"
         },
-        "moneyDiscount": {
+        "money_discount": {
           "type": "long"
         },
-        "moneyTransfer": {
+        "money_transfer": {
           "type": "long"
         },
-        "moneyUsedPoints": {
+        "money_used_points": {
           "type": "long"
         },
-        "overWeightShipFee": {
+        "over_weight_ship_fee": {
           "type": "long"
         },
         "packed": {
           "properties": {
             "datetime": {
-              "type": "date"
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
             },
             "id": {
               "type": "long"
             }
           }
         },
-        "privateDescription": {
+        "private_description": {
           "type": "text",
           "fields": {
             "keyword": {
               "type": "keyword",
-              "eager_global_ordinals": true,
               "ignore_above": 256
             }
           }
         },
-        "privateId": {
+        "private_id": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -349,7 +342,7 @@
         "products": {
           "type": "nested",
           "properties": {
-            "avgCost": {
+            "avg_cost": {
               "type": "long"
             },
             "description": {
@@ -376,13 +369,13 @@
             "price": {
               "type": "long"
             },
-            "priceOriginal": {
+            "price_original": {
               "type": "long"
             },
-            "productBarcode": {
+            "product_barcode": {
               "type": "long"
             },
-            "productCode": {
+            "product_code": {
               "type": "text",
               "fields": {
                 "keyword": {
@@ -391,23 +384,22 @@
                 }
               }
             },
-            "productId": {
+            "product_id": {
               "type": "long"
             },
-            "productImage": {
+            "product_image": {
               "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword",
-                  "eager_global_ordinals": true,
                   "ignore_above": 256
                 }
               }
             },
-            "productMoney": {
-              "type": "float"
+            "product_money": {
+              "type": "long"
             },
-            "productName": {
+            "product_name": {
               "type": "text",
               "fields": {
                 "keyword": {
@@ -427,19 +419,22 @@
             }
           }
         },
-        "returnFee": {
+        "return_fee": {
           "type": "long"
         },
-        "returnFromOrderId": {
+        "return_from_order_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "sale_channel": {
           "type": "long"
         },
-        "saleChannel": {
-          "type": "long"
-        },
-        "saleId": {
-          "type": "long"
-        },
-        "saleName": {
+        "sale_channel_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -449,13 +444,7 @@
             }
           }
         },
-        "sendCarrierDate": {
-          "type": "date"
-        },
-        "serviceId": {
-          "type": "long"
-        },
-        "serviceName": {
+        "sale_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -464,29 +453,28 @@
             }
           }
         },
-        "shipFee": {
-          "type": "long"
-        },
-        "shipToCityLocationId": {
-          "type": "long"
-        },
-        "shipToDistrictLocationId": {
-          "type": "long"
-        },
-        "shipToWardLocationId": {
-          "type": "long"
-        },
-        "shopOrderId": {
+        "service_name": {
           "type": "text",
           "fields": {
             "keyword": {
               "type": "keyword",
-              "eager_global_ordinals": true,
               "ignore_above": 256
             }
           }
         },
-        "statusCode": {
+        "ship_fee": {
+          "type": "long"
+        },
+        "ship_to_city_location_id": {
+          "type": "long"
+        },
+        "ship_to_district_location_id": {
+          "type": "long"
+        },
+        "ship_to_ward_location_id": {
+          "type": "long"
+        },
+        "shop_order_id": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -496,7 +484,17 @@
             }
           }
         },
-        "statusName": {
+        "status_code": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "status_name": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -509,20 +507,16 @@
         "tags": {
           "type": "text"
         },
-        "trafficSourceId": {
-          "type": "long"
-        },
-        "trafficSourceName": {
+        "traffic_source_name": {
           "type": "text",
           "fields": {
             "keyword": {
               "type": "keyword",
-              "eager_global_ordinals": true,
               "ignore_above": 256
             }
           }
         },
-        "transferAccount": {
+        "transfer_account": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -541,19 +535,19 @@
             }
           }
         },
-        "typeId": {
+        "type_id": {
           "type": "long"
         },
-        "updatedAt": {
+        "updated_at": {
           "type": "date"
         },
-        "usedPointAmount": {
+        "used_point_amount": {
           "type": "long"
         },
-        "usedPoints": {
+        "used_points": {
           "type": "long"
         },
-        "utmCampaign": {
+        "utm_campaign": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -562,7 +556,7 @@
             }
           }
         },
-        "utmMedium": {
+        "utm_medium": {
           "type": "text",
           "fields": {
             "keyword": {
@@ -571,7 +565,7 @@
             }
           }
         },
-        "utmSource": {
+        "utm_source": {
           "type": "text",
           "fields": {
             "keyword": {
