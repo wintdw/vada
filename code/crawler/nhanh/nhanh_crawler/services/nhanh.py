@@ -251,6 +251,33 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
 
             # Iterate through orders and fetch product details
             for order_id, order in orders.items():
+                # Convert keys from camelCase to snake_case
+                def camel_to_snake(name):
+                    import re
+                    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+                    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+                # Map saleChannel to saleChannelName
+                sale_channel_mapping = {
+                    "1": "Admin",
+                    "2": "Website",
+                    "10": "API",
+                    "20": "Facebook",
+                    "21": "Instagram",
+                    "41": "Lazada.vn",
+                    "42": "Shopee.vn",
+                    "43": "Sendo.vn",
+                    "45": "Tiki.vn",
+                    "46": "Zalo Shop",
+                    "47": "1Landing.vn",
+                    "48": "Tiktok Shop",
+                    "49": "Zalo OA",
+                    "50": "Shopee Chat",
+                    "51": "Lazada Chat"
+                }
+                sale_channel = str(order.get("saleChannel", ""))
+                order["saleChannelName"] = sale_channel_mapping.get(sale_channel, "Unknown")
+
                 timestamp = int(datetime.strptime(order["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
                 doc_id = f"{order['id']}_{timestamp}"
                 """
@@ -259,6 +286,9 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
                     product["detail"] = await get_product_detail(business_id, access_token, product_id)
                     time.sleep(0.05)  # avoid API overuse               
                 """
+                order_snake_case = {camel_to_snake(k): v for k, v in order.items()}
+                orders[order_id] = order_snake_case
+
                 detailed_data.append(enrich_report(order, index_name, doc_id))
             page += 1
 

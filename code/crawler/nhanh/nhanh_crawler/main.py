@@ -5,7 +5,8 @@ from fastapi.responses import JSONResponse
 from routers import (
     connector,
     schedule,
-    metrics
+    metrics,
+    nhanh
 )
 
 app = FastAPI()
@@ -32,3 +33,4 @@ async def check_health():
 app.include_router(connector.router)
 app.include_router(schedule.router)
 app.include_router(metrics.router)
+app.include_router(nhanh.router)

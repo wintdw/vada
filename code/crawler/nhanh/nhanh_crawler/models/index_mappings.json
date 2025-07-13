@@ -1,3459 +1,585 @@
 {
-    "mappings": {
-        "dynamic": "true",
-        "dynamic_date_formats": [
-          "strict_date_optional_time",
-          "basic_date",
-          "basic_date_time",
-          "basic_date_time_no_millis",
-          "yyyy/MM/dd HH:mm:ss"
-        ],
-        "properties": {
-          "affiliateBonusCash": {
-            "type": "long"
-          },
-          "affiliateBonusPercent": {
-            "type": "long"
-          },
-          "affiliateCode": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+  "mappings": {
+      "dynamic": "true",
+      "properties": {
+        "affiliateBonusCash": {
+          "type": "long"
+        },
+        "affiliateBonusPercent": {
+          "type": "long"
+        },
+        "affiliateCode": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "calcTotalMoney": {
-            "type": "long"
-          },
-          "carrierCode": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "calcTotalMoney": {
+          "type": "long"
+        },
+        "carrierCode": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "carrierId": {
-            "type": "long"
-          },
-          "carrierName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "carrierId": {
+          "type": "long"
+        },
+        "carrierName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "carrierServiceType": {
-            "type": "long"
-          },
-          "carrierServiceTypeName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "carrierServiceType": {
+          "type": "long"
+        },
+        "carrierServiceTypeName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "channel": {
-            "type": "long"
-          },
-          "codFee": {
-            "type": "long"
-          },
-          "createdById": {
-            "type": "long"
-          },
-          "createdByName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "channel": {
+          "type": "long"
+        },
+        "codFee": {
+          "type": "long"
+        },
+        "createdById": {
+          "type": "long"
+        },
+        "createdByName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "createdByUserName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "createdByUserName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "createdDateTime": {
-            "type": "date"
-          },
-          "creditAccount": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "createdDateTime": {
+          "type": "date"
+        },
+        "creditAccount": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "creditAmount": {
-            "type": "long"
-          },
-          "customerAddress": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "creditAmount": {
+          "type": "long"
+        },
+        "customerAddress": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "customerCity": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "customerCity": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "customerCityId": {
-            "type": "long"
-          },
-          "customerDistrict": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "customerCityId": {
+          "type": "long"
+        },
+        "customerDistrict": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "customerDistrictId": {
-            "type": "long"
-          },
-          "customerName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "customerDistrictId": {
+          "type": "long"
+        },
+        "customerEmail": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "customerShipFee": {
-            "type": "long"
-          },
-          "declaredFee": {
-            "type": "long"
-          },
-          "depositAccount": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "customerId": {
+          "type": "long"
+        },
+        "customerMobile": {
+          "type": "long"
+        },
+        "customerName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "depotId": {
-            "type": "long"
-          },
-          "depotName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "customerShipFee": {
+          "type": "long"
+        },
+        "customerWard": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "description": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "declaredFee": {
+          "type": "long"
+        },
+        "deliveryDate": {
+          "type": "date"
+        },
+        "depositAccount": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "ecomShopId": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "depotId": {
+          "type": "long"
+        },
+        "depotName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "facebook": {
-            "properties": {
-              "adId": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
-                }
-              },
-              "conversationId": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
-                }
-              },
-              "fanpageId": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
-                }
-              },
-              "pageId": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
-                }
-              },
-              "postId": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
-                }
-              },
-              "psId": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
+          }
+        },
+        "description": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "ecomShopId": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "facebook": {
+          "properties": {
+            "adId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "eager_global_ordinals": true,
+                  "ignore_above": 256
                 }
               }
-            }
-          },
-          "id": {
-            "type": "long"
-          },
-          "merchantTrackingNumber": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
-            }
-          },
-          "moneyDeposit": {
-            "type": "long"
-          },
-          "moneyDiscount": {
-            "type": "long"
-          },
-          "moneyTransfer": {
-            "type": "long"
-          },
-          "moneyUsedPoints": {
-            "type": "long"
-          },
-          "overWeightShipFee": {
-            "type": "long"
-          },
-          "packed": {
-            "properties": {
-              "datetime": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
+            },
+            "conversationId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "eager_global_ordinals": true,
+                  "ignore_above": 256
                 }
-              },
-              "id": {
-                "type": "long"
               }
-            }
-          },
-          "privateDescription": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
-            }
-          },
-          "privateId": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
-            }
-          },
-          "products": {
-            "type": "nested",
-            "properties": {
-              "avgCost": {
-                "type": "long"
-              },
-              "description": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
+            },
+            "fanpageId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "eager_global_ordinals": true,
+                  "ignore_above": 256
                 }
-              },
-              "detail": {
-                "properties": {
-                  "37707743": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "37968891": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40434078": {
-                    "properties": {
-                      "barcode": {
-                        "type": "long"
-                      },
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "websiteInfo": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "40737675": {
-                    "properties": {
-                      "barcode": {
-                        "type": "long"
-                      },
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40737689": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "websiteInfo": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "40737707": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "websiteInfo": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "40737731": {
-                    "properties": {
-                      "barcode": {
-                        "type": "long"
-                      },
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40737732": {
-                    "properties": {
-                      "barcode": {
-                        "type": "long"
-                      },
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "websiteInfo": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "40737736": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "combos": {
-                        "properties": {
-                          "40737675": {
-                            "properties": {
-                              "code": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "name": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "quantity": {
-                                "type": "long"
-                              }
-                            }
-                          },
-                          "40737731": {
-                            "properties": {
-                              "code": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "name": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "quantity": {
-                                "type": "long"
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40737765": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "websiteInfo": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "40737767": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "price": {
-                        "type": "long"
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "websiteInfo": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "40737768": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "combos": {
-                        "properties": {
-                          "40737675": {
-                            "properties": {
-                              "code": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "name": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "quantity": {
-                                "type": "long"
-                              }
-                            }
-                          },
-                          "40737765": {
-                            "properties": {
-                              "code": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "name": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "quantity": {
-                                "type": "long"
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "importPrice": {
-                        "type": "long"
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40737791": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40737804": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  },
-                                  "transfering": {
-                                    "type": "long"
-                                  },
-                                  "warranty": {
-                                    "type": "long"
-                                  },
-                                  "warrantyHolding": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "shippingWeight": {
-                        "type": "long"
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "40737807": {
-                    "properties": {
-                      "brandName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "categoryId": {
-                        "type": "long"
-                      },
-                      "code": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "combos": {
-                        "properties": {
-                          "40737804": {
-                            "properties": {
-                              "code": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "name": {
-                                "type": "text",
-                                "fields": {
-                                  "keyword": {
-                                    "type": "keyword",
-                                    "ignore_above": 256
-                                  }
-                                }
-                              },
-                              "quantity": {
-                                "type": "long"
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "createdDateTime": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "idNhanh": {
-                        "type": "long"
-                      },
-                      "image": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "inventory": {
-                        "properties": {
-                          "available": {
-                            "type": "long"
-                          },
-                          "damaged": {
-                            "type": "long"
-                          },
-                          "depots": {
-                            "properties": {
-                              "109202": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  }
-                                }
-                              },
-                              "176274": {
-                                "properties": {
-                                  "available": {
-                                    "type": "long"
-                                  },
-                                  "damaged": {
-                                    "type": "long"
-                                  },
-                                  "holding": {
-                                    "type": "long"
-                                  },
-                                  "remain": {
-                                    "type": "long"
-                                  },
-                                  "shipping": {
-                                    "type": "long"
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "holding": {
-                            "type": "long"
-                          },
-                          "remain": {
-                            "type": "long"
-                          },
-                          "shipping": {
-                            "type": "long"
-                          },
-                          "transfering": {
-                            "type": "long"
-                          },
-                          "warranty": {
-                            "type": "long"
-                          },
-                          "warrantyHolding": {
-                            "type": "long"
-                          }
-                        }
-                      },
-                      "name": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "parentId": {
-                        "type": "long"
-                      },
-                      "previewLink": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "showHome": {
-                        "type": "long"
-                      },
-                      "showHot": {
-                        "type": "long"
-                      },
-                      "showNew": {
-                        "type": "long"
-                      },
-                      "status": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      },
-                      "typeId": {
-                        "type": "long"
-                      },
-                      "typeName": {
-                        "type": "text",
-                        "fields": {
-                          "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "apiURL": {
-                    "type": "text",
-                    "fields": {
-                      "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                      }
-                    }
-                  },
-                  "lockedSeconds": {
-                    "type": "long"
-                  },
-                  "unlockedAt": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  }
+              }
+            },
+            "pageId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "eager_global_ordinals": true,
+                  "ignore_above": 256
                 }
-              },
-              "discount": {
-                "type": "long"
-              },
-              "imei": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
+              }
+            },
+            "postId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "eager_global_ordinals": true,
+                  "ignore_above": 256
                 }
-              },
-              "price": {
-                "type": "long"
-              },
-              "priceOriginal": {
-                "type": "long"
-              },
-              "productBarcode": {
-                "type": "long"
-              },
-              "productCode": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
+              }
+            },
+            "psId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
                 }
-              },
-              "productId": {
-                "type": "long"
-              },
-              "productImage": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "eager_global_ordinals": true,
-                    "ignore_above": 256
-                  }
+              }
+            }
+          }
+        },
+        "handoverId": {
+          "type": "long"
+        },
+        "id": {
+          "type": "long"
+        },
+        "merchantTrackingNumber": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "moneyDeposit": {
+          "type": "long"
+        },
+        "moneyDiscount": {
+          "type": "long"
+        },
+        "moneyTransfer": {
+          "type": "long"
+        },
+        "moneyUsedPoints": {
+          "type": "long"
+        },
+        "overWeightShipFee": {
+          "type": "long"
+        },
+        "packed": {
+          "properties": {
+            "datetime": {
+              "type": "date"
+            },
+            "id": {
+              "type": "long"
+            }
+          }
+        },
+        "privateDescription": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "privateId": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "products": {
+          "type": "nested",
+          "properties": {
+            "avgCost": {
+              "type": "long"
+            },
+            "description": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
                 }
-              },
-              "productMoney": {
-                "type": "long"
-              },
-              "productName": {
-                "type": "text",
-                "fields": {
-                  "keyword": {
-                    "type": "keyword",
-                    "ignore_above": 256
-                  }
+              }
+            },
+            "discount": {
+              "type": "float"
+            },
+            "imei": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
                 }
-              },
-              "quantity": {
-                "type": "long"
-              },
-              "vat": {
-                "type": "long"
-              },
-              "weight": {
-                "type": "long"
               }
+            },
+            "price": {
+              "type": "long"
+            },
+            "priceOriginal": {
+              "type": "long"
+            },
+            "productBarcode": {
+              "type": "long"
+            },
+            "productCode": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "productId": {
+              "type": "long"
+            },
+            "productImage": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "eager_global_ordinals": true,
+                  "ignore_above": 256
+                }
+              }
+            },
+            "productMoney": {
+              "type": "float"
+            },
+            "productName": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "quantity": {
+              "type": "long"
+            },
+            "vat": {
+              "type": "long"
+            },
+            "weight": {
+              "type": "long"
             }
-          },
-          "returnFee": {
-            "type": "long"
-          },
-          "returnFromOrderId": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "returnFee": {
+          "type": "long"
+        },
+        "returnFromOrderId": {
+          "type": "long"
+        },
+        "saleChannel": {
+          "type": "long"
+        },
+        "saleId": {
+          "type": "long"
+        },
+        "saleName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "saleChannel": {
-            "type": "long"
-          },
-          "saleName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "sendCarrierDate": {
+          "type": "date"
+        },
+        "serviceId": {
+          "type": "long"
+        },
+        "serviceName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "serviceName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "shipFee": {
+          "type": "long"
+        },
+        "shipToCityLocationId": {
+          "type": "long"
+        },
+        "shipToDistrictLocationId": {
+          "type": "long"
+        },
+        "shipToWardLocationId": {
+          "type": "long"
+        },
+        "shopOrderId": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "shipFee": {
-            "type": "long"
-          },
-          "shipToCityLocationId": {
-            "type": "long"
-          },
-          "shipToDistrictLocationId": {
-            "type": "long"
-          },
-          "shopOrderId": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "statusCode": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "statusCode": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "statusName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "statusName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "tags": {
+          "type": "text"
+        },
+        "trafficSourceId": {
+          "type": "long"
+        },
+        "trafficSourceName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "tags": {
-            "type": "text"
-          },
-          "trafficSourceName": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "transferAccount": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "transferAccount": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "type": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
             }
-          },
-          "type": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "eager_global_ordinals": true,
-                "ignore_above": 256
-              }
+          }
+        },
+        "typeId": {
+          "type": "long"
+        },
+        "updatedAt": {
+          "type": "date"
+        },
+        "usedPointAmount": {
+          "type": "long"
+        },
+        "usedPoints": {
+          "type": "long"
+        },
+        "utmCampaign": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "typeId": {
-            "type": "long"
-          },
-          "updatedAt": {
-            "type": "date"
-          },
-          "usedPointAmount": {
-            "type": "long"
-          },
-          "usedPoints": {
-            "type": "long"
-          },
-          "utmCampaign": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "utmMedium": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
-          },
-          "utmMedium": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
-            }
-          },
-          "utmSource": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
+          }
+        },
+        "utmSource": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
           }
         }
       }
-  }
+    }
+}
