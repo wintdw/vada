@@ -8,6 +8,7 @@ and upserting crawl information.
 
 from uuid import uuid4
 from typing import List
+import json
 
 from models import NhanhCrawlInfo
 from tools import get_mysql_connection, get_mysql_cursor
@@ -182,7 +183,7 @@ async def upsert_crawl_info(crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
                         crawl_info.index_name,
                         crawl_info.business_id,
                         crawl_info.access_token,
-                        crawl_info.depot_ids,
+                        json.dumps(crawl_info.depot_ids),
                         crawl_info.expired_datetime,
                         crawl_info.crawl_interval
                     )
