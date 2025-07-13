@@ -80,7 +80,7 @@ async def post_schedule_crawl(index_name: str = None):
 
             crawl_info = await update_crawl_info(item.index_name, item)
             logger.info(crawl_info)
-            
+
             crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
                 index_name=item.index_name,
                 crawl_status="success",

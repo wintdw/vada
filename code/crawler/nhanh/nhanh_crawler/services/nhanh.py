@@ -237,6 +237,8 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
         List[Dict]: A list of dictionaries containing order and product details.
     """
     try:
+        start_time = time.time()
+
         detailed_data = []
         total_pages = 1
         page = 1
@@ -311,12 +313,17 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
 
             # Calculate total spending
             total_spend = sum(float(report.get("calcTotalMoney", 0)) for report in detailed_data)
+
+        end_time = time.time()
+        execution_time = round(end_time - start_time, 2)
+
         return {
             "status": "success",
             "total_reports": total_reports,
             "total_spend": round(total_spend, 2),
             "date_start": from_date,
             "date_end": to_date,
+            "execution_time": execution_time
         }
     except Exception as e:
         logger.debug(f"Error while crawling Nhanh data: {e}")
