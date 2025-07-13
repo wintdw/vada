@@ -8,7 +8,7 @@ class NhanhCrawlInfo(BaseModel):
     access_token: str
     depot_ids: list[str]
     expired_datetime: datetime
-    crawl_interval: int = 20
+    crawl_interval: int = 120
     last_crawl_time: datetime | None = None
     next_crawl_time: datetime | None = None
 

@@ -251,14 +251,22 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
             total_pages = data.get("totalPages", 1)
             orders = data.get("orders", {})
 
-            # Iterate through orders and fetch product details
-            for order_id, order in orders.items():
-                # Convert keys from camelCase to snake_case
-                def camel_to_snake(name):
-                    import re
-                    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-                    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+            # Convert keys from camelCase to snake_case
+            def camel_to_snake(name):
+                import re
+                s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+                return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+            def convert_keys_to_snake_case(data):
+                if isinstance(data, dict):
+                    return {camel_to_snake(k): convert_keys_to_snake_case(v) for k, v in data.items()}
+                elif isinstance(data, list):
+                    return [convert_keys_to_snake_case(item) for item in data]
+                else:
+                    return data
+
+            for order_id, order in orders.items():
+                orders[order_id] = convert_keys_to_snake_case(order)
                 # Map saleChannel to saleChannelName
                 sale_channel_mapping = {
                     "1": "Admin",
