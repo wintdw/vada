@@ -61,7 +61,7 @@ def test_convert_es_field_types_nested():
     assert converted["user"]["addresses"][1]["coordinates"]["lon"] == -122.4194
     assert converted["metadata"]["is_active"] is True
     assert converted["metadata"]["score"] == 95.5
-    assert converted["metadata"]["created_at"] == "2023-01-01T12:00:00+00:00"
+    assert converted["metadata"]["created_at"] == "2023-01-01T19:00:00+07:00"
 
 
 def test_convert_es_field_types_empty_values():
@@ -119,7 +119,7 @@ def test_convert_es_field_types_date_formats():
     assert converted["date1"] == "2025-06-20T07:01:58+07:00"
     assert "2023-01-01" in converted["date2"]
     assert "2023-01-01" in converted["date3"]
-    assert "2023-01-01" in converted["date4"]
+    assert converted["date4"] == "2023-01-01T19:00:00+07:00"
 
 
 def test_convert_es_field_types_numeric_conversions():

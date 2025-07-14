@@ -212,6 +212,7 @@ def convert_es_field_types(
                             dt = dt.replace(tzinfo=timezone.utc)
                         dt = dt.astimezone(DEFAULT_TZ)
                         converted_data[field] = dt.isoformat()
+                    # If can convert to int
                     except (ValueError, TypeError):
                         try:
                             int_value = int(value)
@@ -227,9 +228,10 @@ def convert_es_field_types(
                                 ),
                                 DEFAULT_TZ,
                             ).isoformat()
+                        # General parse as the last resort
                         except (ValueError, TypeError):
                             try:
-                                dt = parser.isoparse(value)
+                                dt = parser.parse(value)
                                 if dt.tzinfo is None:
                                     dt = dt.replace(tzinfo=timezone.utc)
                                 dt = dt.astimezone(DEFAULT_TZ)
