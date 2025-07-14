@@ -29,7 +29,7 @@ async def post_schedule_crawl(index_name: str = None):
         history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(NhanhCrawlHistory(index_name=item.index_name))
+            crawl_history = await insert_crawl_history(NhanhCrawlHistory(business_id=item.business_id))
             logger.info(crawl_history)
 
             history_id = crawl_history.history_id
