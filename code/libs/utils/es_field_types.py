@@ -207,7 +207,11 @@ def convert_es_field_types(
             elif field_type == "date":
                 if isinstance(value, str):
                     try:
-                        converted_data[field] = parser.isoparse(value).isoformat()
+                        dt = parser.isoparse(value)
+                        if dt.tzinfo is None:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                        dt = dt.astimezone(DEFAULT_TZ)
+                        converted_data[field] = dt.isoformat()
                     except (ValueError, TypeError):
                         try:
                             int_value = int(value)
@@ -225,7 +229,11 @@ def convert_es_field_types(
                             ).isoformat()
                         except (ValueError, TypeError):
                             try:
-                                converted_data[field] = parser.parse(value).isoformat()
+                                dt = parser.isoparse(value)
+                                if dt.tzinfo is None:
+                                    dt = dt.replace(tzinfo=timezone.utc)
+                                dt = dt.astimezone(DEFAULT_TZ)
+                                converted_data[field] = dt.isoformat()
                             except (ValueError, TypeError):
                                 continue
                 elif isinstance(value, int):

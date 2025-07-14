@@ -100,7 +100,7 @@ def test_convert_es_field_types_date_formats():
     """Test conversion of different date formats"""
     json_objects = [
         {
-            "date1": "2023-01-01T12:00:00Z",
+            "date1": "2025-06-20T00:01:58",  # No TZ
             "date2": "1672574400",  # 2023-01-01 12:00:00
             "date3": "1672574400000",  # milliseconds
             "date4": "2023/01/01 12:00:00",
@@ -116,7 +116,7 @@ def test_convert_es_field_types_date_formats():
 
     converted = convert_es_field_types(json_objects, field_types)[0]
 
-    assert converted["date1"] == "2023-01-01T12:00:00+00:00"
+    assert converted["date1"] == "2025-06-20T07:01:58+07:00"
     assert "2023-01-01" in converted["date2"]
     assert "2023-01-01" in converted["date3"]
     assert "2023-01-01" in converted["date4"]
