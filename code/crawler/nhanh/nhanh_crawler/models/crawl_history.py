@@ -3,7 +3,7 @@ from datetime import datetime
 
 class NhanhCrawlHistory(BaseModel):
     history_id: str | None = None
-    business_id: str
+    business_id: int
     crawl_time: datetime | None = None
     crawl_status: str = "in_progress"
     crawl_error: str = ""
