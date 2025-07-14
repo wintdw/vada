@@ -8,13 +8,13 @@ services:
 
   frontend_vtad:
     <<: *fe
-    image: vada898989.azurecr.io/mix-webapp:mix-989ea906
+    image: vada898989.azurecr.io/mix-webapp:mix-1943dce3
     container_name: frontend_vtad
     ports:
       - "3001:80"
 
   crm:
-    image: vada898989.azurecr.io/crm-api:qa-6cd6a74
+    image: vada898989.azurecr.io/crm-api:3b22f05b
     container_name: crm
     ports:
       - "8080:8080"
