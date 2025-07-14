@@ -82,7 +82,7 @@ async def post_schedule_crawl(index_name: str = None):
             logger.info(crawl_info)
 
             crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
-                index_name=item.index_name,
+                business_id=item.business_id,
                 crawl_status="success",
                 crawl_duration=int(crawl_response.get("execution_time")),
                 crawl_data_number=crawl_response.get("total_reports")
@@ -90,8 +90,9 @@ async def post_schedule_crawl(index_name: str = None):
             logger.info(crawl_history)
 
     except Exception as e:
+        logger.error(f"Error during crawl: {e}")
         crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(
-            index_name=index_name,
+            business_id=item.business_id,
             crawl_status="failed",
             crawl_error=str(e)
         ))
