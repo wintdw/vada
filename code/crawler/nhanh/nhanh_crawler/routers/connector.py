@@ -86,6 +86,13 @@ async def ingest_partner_nhanh_platform_callback(accessCode: str):
 async def ingest_partner_nhanh_platform_auth():
     return RedirectResponse(url=f"https://nhanh.vn/oauth?version={settings.NHANH_OAUTH_VERSION}&appId={settings.NHANH_APP_ID}&returnLink={settings.NHANH_RETURN_LINK}")
 
+@router.post("/ingest/partner/nhanh/platform/vada", tags=["Connector"])
+async def ingest_partner_nhanh_platform_vada(business_id: int, index_name: str):
+    from repositories.crawl_info import update_crawl_info_by_vada_uid
+    
+    await update_crawl_info_by_vada_uid(business_id=business_id, index_name=index_name)
+    return {"status": 200, "message": "Crawl info updated successfully"}
+
 @router.get("/ingest/partner/nhanh/platform/config")
 async def expose_config():
     from models.index_mappings import index_mappings_data

@@ -43,7 +43,24 @@ async def select_crawl_info_by_next_crawl_time() -> List[NhanhCrawlInfo]:
             )
             results = await cursor.fetchall()
             return [NhanhCrawlInfo.model_validate(result) for result in results]
-
+        
+async def update_crawl_info_by_vada_uid(business_id: str, vada_uid: str):
+    async with get_mysql_connection() as connection:
+        async with get_mysql_cursor(connection) as cursor:
+            await cursor.execute(
+                """
+                UPDATE `NhanhCrawlInfo`
+                SET
+                    vada_uid = %s
+                WHERE business_id = %s AND vada_uid IS NULL
+                """,
+                (
+                    vada_uid,
+                    business_id
+                )
+            )
+            await connection.commit()
+            return cursor.rowcount
 
 async def update_crawl_info(business_id: str, crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
     """
