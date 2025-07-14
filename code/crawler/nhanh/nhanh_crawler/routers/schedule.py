@@ -78,7 +78,7 @@ async def post_schedule_crawl(index_name: str = None):
             item.last_crawl_time = item.next_crawl_time
             item.next_crawl_time = item.next_crawl_time + timedelta(minutes=item.crawl_interval)
 
-            crawl_info = await update_crawl_info(item.index_name, item)
+            crawl_info = await update_crawl_info(item.business_id, item)
             logger.info(crawl_info)
 
             crawl_history = await update_crawl_history(history_id, NhanhCrawlHistory(

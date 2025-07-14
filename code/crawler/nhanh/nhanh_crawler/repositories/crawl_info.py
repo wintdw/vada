@@ -45,16 +45,16 @@ async def select_crawl_info_by_next_crawl_time() -> List[NhanhCrawlInfo]:
             return [NhanhCrawlInfo.model_validate(result) for result in results]
 
 
-async def update_crawl_info(index_name: str, crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
+async def update_crawl_info(business_id: str, crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
     """
     Update crawl information in the database.
     
-    Updates the last_crawl_time and next_crawl_time fields for a given index_name.
+    Updates the last_crawl_time and next_crawl_time fields for a given business_id.
     This is typically called after a successful crawl to update the scheduling
     information for the next crawl.
     
     Args:
-        index_name (str): The unique index name identifying the crawl record to update.
+        business_id (str): The unique index name identifying the crawl record to update.
         crawl_info (NhanhCrawlInfo): The crawl information object containing
                                     the updated last_crawl_time and next_crawl_time.
     
@@ -72,28 +72,28 @@ async def update_crawl_info(index_name: str, crawl_info: NhanhCrawlInfo) -> Nhan
                 SET
                     last_crawl_time = %s,
                     next_crawl_time = %s
-                WHERE index_name = %s
+                WHERE business_id = %s
                 """,
                 (
                     crawl_info.last_crawl_time,
                     crawl_info.next_crawl_time,
-                    index_name
+                    business_id
                 )
             )
             await connection.commit()
             return crawl_info
 
 
-async def remove_crawl_info_by_index_name(index_name: str) -> int:
+async def remove_crawl_info_by_business_id(business_id: str) -> int:
     """
-    Remove a crawl information record by its index name.
+    Remove a crawl information record by its business_id.
     
-    Deletes the NhanhCrawlInfo record that matches the provided index_name.
+    Deletes the NhanhCrawlInfo record that matches the provided business_id.
     This is typically used when a crawl configuration is no longer needed
     or has been replaced.
     
     Args:
-        index_name (str): The unique index name identifying the crawl record
+        business_id (str): The unique index name identifying the crawl record
                          to be removed.
     
     Returns:
@@ -107,9 +107,9 @@ async def remove_crawl_info_by_index_name(index_name: str) -> int:
             await cursor.execute(
                 """
                 DELETE FROM `NhanhCrawlInfo`
-                WHERE index_name = %s
+                WHERE business_id = %s
                 """,
-                (index_name,)
+                (business_id,)
             )
             await connection.commit()
             return cursor.rowcount
@@ -120,7 +120,7 @@ async def upsert_crawl_info(crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
     Insert or update crawl information in the database.
     
     This function performs an "upsert" operation (insert or update) on the
-    NhanhCrawlInfo table. If a record with the same index_name exists,
+    NhanhCrawlInfo table. If a record with the same business_id exists,
     it updates the access_token and expired_datetime. If no record exists,
     it creates a new one with all the provided information.
     
@@ -145,11 +145,11 @@ async def upsert_crawl_info(crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
             # Check if the record exists
             await cursor.execute(
                 """
-                SELECT index_name
+                SELECT business_id
                 FROM `NhanhCrawlInfo`
-                WHERE index_name = %s
+                WHERE business_id = %s
                 """,
-                (crawl_info.index_name,)
+                (crawl_info.business_id,)
             )
             existing_record = await cursor.fetchone()
 
@@ -161,12 +161,12 @@ async def upsert_crawl_info(crawl_info: NhanhCrawlInfo) -> NhanhCrawlInfo:
                     SET
                         access_token = %s,
                         expired_datetime = %s
-                    WHERE index_name = %s
+                    WHERE business_id = %s
                     """,
                     (
                         crawl_info.access_token,
                         crawl_info.expired_datetime,
-                        crawl_info.index_name
+                        crawl_info.business_id
                     )
                 )
                 await connection.commit()
