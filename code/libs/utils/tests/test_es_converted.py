@@ -116,10 +116,10 @@ def test_convert_es_field_types_date_formats():
 
     converted = convert_es_field_types(json_objects, field_types)[0]
 
-    assert converted["date1"] == "2025-06-20T07:01:58+07:00"
+    assert converted["date1"] == "2025-06-20T00:01:58+07:00"
     assert "2023-01-01" in converted["date2"]
     assert "2023-01-01" in converted["date3"]
-    assert converted["date4"] == "2023-01-01T19:00:00+07:00"
+    assert converted["date4"] == "2023-01-01T12:00:00+07:00"
 
 
 def test_convert_es_field_types_numeric_conversions():
