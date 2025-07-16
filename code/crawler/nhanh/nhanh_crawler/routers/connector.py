@@ -92,7 +92,7 @@ async def ingest_partner_nhanh_platform_vada(request: Request):
     
     request_data = await request.json()
     logger.info(f"Received request data: {request_data}")
-    await update_crawl_info_by_vada_uid(business_id=request_data.business_id, vada_uid=request_data.vada_uid)
+    await update_crawl_info_by_vada_uid(business_id=request_data["business_id"], vada_uid=request_data["vada_uid"])
     return {"status": 200, "message": "Crawl info updated successfully"}
 
 @router.get("/ingest/partner/nhanh/platform/config")
