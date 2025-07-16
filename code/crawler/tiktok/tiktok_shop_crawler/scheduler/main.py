@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta
 
@@ -10,12 +11,7 @@ from .token_processing import scheduled_refresh_token
 
 
 async def add_tiktok_shop_refresh_job(
-    scheduler: AsyncIOScheduler,
-    refresh_token: str,
-    job_id: str,
-    vada_uid: str,
-    account_id: str,
-    account_name: str = "",
+    scheduler: AsyncIOScheduler, job_id: str, crawl_id: str, refresh_token: str
 ):
     try:
         # Schedule the token refresh job
@@ -23,64 +19,61 @@ async def add_tiktok_shop_refresh_job(
             scheduled_refresh_token,
             trigger=IntervalTrigger(minutes=4320),  # Refresh every 3d
             kwargs={
+                "crawl_id": crawl_id,
                 "refresh_token": refresh_token,
-                "vada_uid": vada_uid,
-                "account_id": account_id,
             },
             id=job_id,
-            name=f"Refresh TikTokShop Token for Shop: {account_name} ({account_id}) for Vada UID: {vada_uid}",
+            name=f"Refresh TikTokShop Token for crawl_id {crawl_id}",
             replace_existing=True,
             misfire_grace_time=30,
             max_instances=1,
         )
         logging.info(
-            f"[Scheduler] Added TikTokShop Token refresh job for Shop: {account_name} ({account_id}) for Vada UID: {vada_uid}"
+            f"[Scheduler] Added TikTokShop Token refresh job for Crawl ID {crawl_id}"
         )
     except Exception as e:
         logging.error(
-            f"[Scheduler] Error adding TikTokShop Token refresh job for Shop: {account_name} ({account_id}) for Vada UID: {vada_uid}: {str(e)}",
+            f"[Scheduler] Error adding TikTokShop Token refresh job for Crawl ID {crawl_id}: {str(e)}",
             exc_info=True,
         )
 
 
 async def add_tiktok_shop_crawl_job(
     scheduler: AsyncIOScheduler,
+    job_id: str,
+    crawl_id: str,
     access_token: str,
     index_name: str,
-    job_id: str,
-    vada_uid: str,
-    account_id: str,
-    account_name: str,
     crawl_interval: int,
+    account_name: str = "",  # For logging purpose
+    first_crawl: bool = True,  # Whether to start the crawl immediately
 ):
-    now = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-    ninety_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
-
     try:
-        # Crawl immediately for the first time
-        await scheduled_fetch_all_orders(
-            access_token=access_token,
-            start_date=ninety_days_ago,
-            end_date=now,
-            index_name=index_name,
-            vada_uid=vada_uid,
-            account_id=account_id,
-            account_name=account_name,
-        )
+        if first_crawl:
+            # Crawl immediately for the first time
+            tmr = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+            ninety_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+            await scheduled_fetch_all_orders(
+                crawl_id=crawl_id,
+                access_token=access_token,
+                index_name=index_name,
+                crawl_interval=crawl_interval,
+                start_date=ninety_days_ago,
+                end_date=tmr,
+            )
 
         # The first job will crawl T-1 -> T0 with 2h interval
         scheduler.add_job(
             scheduled_fetch_all_orders,
             trigger=IntervalTrigger(minutes=crawl_interval),
             kwargs={
+                "crawl_id": crawl_id,
                 "access_token": access_token,
                 "index_name": index_name,
-                "vada_uid": vada_uid,
-                "account_id": account_id,
-                "account_name": account_name,
+                "crawl_interval": crawl_interval,
             },
             id=job_id,
-            name=f"Fetch TikTokShop Order for Shop: {account_name}, Index: {index_name} every {crawl_interval} minutes",
+            name=f"Fetch TikTokShop Order for Shop: {account_name} every {crawl_interval} minutes",
             replace_existing=True,
             misfire_grace_time=30,
             max_instances=1,
@@ -88,11 +81,11 @@ async def add_tiktok_shop_crawl_job(
         # We may create another job for crawling ealier T with longer interval
 
         logging.info(
-            f"[Scheduler] Added TikTokShop Order job for Shop: {account_name}, Index: {index_name} every {crawl_interval} minutes"
+            f"[Scheduler] Added TikTokShop Order job for Shop: {account_name} every {crawl_interval} minutes"
         )
     except Exception as e:
         logging.error(
-            f"[Scheduler] Error adding TikTokShop Order job for Shop: {account_name}, Index: {index_name}: {str(e)}",
+            f"[Scheduler] Error adding TikTokShop Order job for Shop: {account_name}: {str(e)}",
             exc_info=True,
         )
 
@@ -102,47 +95,53 @@ async def init_scheduler():
 
     async def update_jobs():
         # Fetch crawl info specific to TikTok Shop
-        crawl_info = await get_crawl_info("tiktok_shop")
+        crawl_info = await get_crawl_info()
         current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in crawl_info:
+            # For debugging
+            logging.info(f"Processing crawl info: {info}")
+
             crawl_id = info["crawl_id"]
-            vada_uid = info["vada_uid"]
-            account_id = info["account_id"]
             account_name = info["account_name"]
             index_name = info["index_name"]
             access_token = info["access_token"]
             refresh_token = info["refresh_token"]
             crawl_interval = info["crawl_interval"]
+            last_crawl_time = info["last_crawl_time"]
+            first_crawl = True
+            if last_crawl_time:
+                first_crawl = False
 
             crawl_job_id = f"crawl_order_{crawl_id}"
             refresh_job_id = f"refresh_token_{crawl_id}"
 
-            if crawl_job_id not in current_jobs:
+            # New refresh job
+            if refresh_job_id not in current_jobs:
                 await add_tiktok_shop_refresh_job(
                     scheduler=scheduler,
-                    refresh_token=refresh_token,
                     job_id=refresh_job_id,
-                    vada_uid=vada_uid,
-                    account_id=account_id,
-                    account_name=account_name,
-                )
-            else:
-                del current_jobs[crawl_job_id]
-
-            if refresh_job_id not in current_jobs:
-                await add_tiktok_shop_crawl_job(
-                    scheduler=scheduler,
-                    access_token=access_token,
-                    index_name=index_name,
-                    job_id=crawl_job_id,
-                    vada_uid=vada_uid,
-                    account_id=account_id,
-                    account_name=account_name,
-                    crawl_interval=crawl_interval,
+                    crawl_id=crawl_id,
+                    refresh_token=refresh_token,
                 )
             else:
                 del current_jobs[refresh_job_id]
+
+            # New crawl job
+            # Determine first crawl
+            if crawl_job_id not in current_jobs:
+                await add_tiktok_shop_crawl_job(
+                    scheduler=scheduler,
+                    job_id=crawl_job_id,
+                    crawl_id=crawl_id,
+                    access_token=access_token,
+                    index_name=index_name,
+                    crawl_interval=crawl_interval,
+                    account_name=account_name,
+                    first_crawl=first_crawl,
+                )
+            else:
+                del current_jobs[crawl_job_id]
 
         # Remove jobs that are no longer in the crawl_info
         for left_job_id in current_jobs:

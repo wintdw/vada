@@ -3,19 +3,19 @@ import logging
 from typing import List, Dict
 from datetime import datetime, timedelta
 
+from handler.mysql import update_crawl_time
 from handler.shop_apis import get_authorized_shop
 from handler.order_apis import get_order_list
 from handler.persist import post_processing
 
 
 async def scheduled_fetch_all_orders(
+    crawl_id: str,
     access_token: str,
+    index_name: str,
+    crawl_interval: int,
     start_date: str = "",
     end_date: str = "",
-    index_name: str = "",
-    vada_uid: str = "",
-    account_id: str = "",
-    account_name: str = "",
 ) -> List[Dict]:
     shop_info = await get_authorized_shop(access_token)
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
@@ -47,10 +47,12 @@ async def scheduled_fetch_all_orders(
 
     # Fetch order details for all orders
     if not orders:
-        logging.info("No orders found for the specified date range.")
+        logging.info("No orders found for the specified date range")
         return []
 
     insert_response = await post_processing(orders, index_name)
     logging.info("Insert response: %s", insert_response)
+
+    await update_crawl_time(crawl_id=crawl_id, crawl_interval=crawl_interval)
 
     return orders
