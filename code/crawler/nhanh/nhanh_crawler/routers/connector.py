@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from urllib.parse import urlencode
 
@@ -87,10 +87,11 @@ async def ingest_partner_nhanh_platform_auth():
     return RedirectResponse(url=f"https://nhanh.vn/oauth?version={settings.NHANH_OAUTH_VERSION}&appId={settings.NHANH_APP_ID}&returnLink={settings.NHANH_RETURN_LINK}")
 
 @router.post("/ingest/partner/nhanh/platform/vada", tags=["Connector"])
-async def ingest_partner_nhanh_platform_vada(business_id: int, vada_uid: str):
+async def ingest_partner_nhanh_platform_vada(request: Request):
     from repositories.crawl_info import update_crawl_info_by_vada_uid
     
-    await update_crawl_info_by_vada_uid(business_id=business_id, vada_uid=vada_uid)
+    request_data = await request.body()
+    await update_crawl_info_by_vada_uid(business_id=request_data.business_id, vada_uid=request_data.vada_uid)
     return {"status": 200, "message": "Crawl info updated successfully"}
 
 @router.get("/ingest/partner/nhanh/platform/config")
