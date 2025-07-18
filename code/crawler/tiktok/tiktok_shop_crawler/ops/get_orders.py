@@ -111,6 +111,7 @@ async def get_order_list(
 ) -> Dict[str, Any]:
     """
     Fetch the order list from the new TikTok Shop API (202309 version) with paging.
+    Also enrich each line_item with product_detail.
     """
     api_version = "202309"
     path = f"/order/{api_version}/orders/search"
@@ -138,12 +139,6 @@ async def get_order_list(
             payload = {
                 "create_time_ge": create_time_ge,
                 "create_time_lt": create_time_lt,
-                # "update_time_ge": create_time_ge,  # Optional
-                # "update_time_lt": create_time_lt,  # Optional
-                # "shipping_type": "TIKTOK",        # Optional
-                # "buyer_user_id": "7213489962827123654",  # Optional
-                # "is_buyer_request_cancel": False,
-                # "warehouse_ids": ["7000714532876273888", "7000714532876273666"]
             }
 
             # Sign calculation
@@ -164,10 +159,25 @@ async def get_order_list(
                 base_url, params=query_params, json=payload, headers=headers
             ) as response:
                 data = await response.json()
-                logging.info(f"Response: {data}")
+                # logging.debug(f"Response: {data}")
 
                 if data.get("code") == 0:
                     orders = data["data"]["orders"]
+
+                    # Enrich each line_item with product_detail
+                    for order in orders:
+                        line_items = order.get("line_items", [])
+                        for item in line_items:
+                            product_id = item.get("product_id")
+                            if product_id:
+                                # Fetch product_detail for each product_id
+                                product_detail = await get_product_detail(
+                                    access_token=access_token,
+                                    shop_cipher=shop_cipher,
+                                    product_id=product_id,
+                                )
+                                item["product_detail"] = product_detail
+
                     all_orders.extend(orders)
 
                     page_token = data["data"].get("next_page_token")
@@ -233,6 +243,53 @@ async def get_price_detail(
                 raise Exception(f"Error: {data.get('message')}")
 
 
+async def get_product_detail(
+    access_token: str, shop_cipher: str, product_id: str
+) -> Dict:
+    """
+    Retrieve all properties of a product (DRAFT, PENDING, or ACTIVATE status) from TikTok Shop API (202309 version).
+    """
+    api_version = "202309"
+    path = f"/product/{api_version}/products/{product_id}"
+    base_url = f"{BASE_URL}/{path}"
+    timestamp = int(time.time())
+
+    # Prepare query parameters
+    query_params = {
+        "app_key": APP_KEY,
+        "timestamp": timestamp,
+        "shop_cipher": shop_cipher,
+    }
+
+    # Sign calculation (GET request, no body)
+    query_params["sign"] = cal_sign(
+        path=path,
+        params=query_params,
+        app_secret=APP_SECRET,
+        content_type="application/json",
+    )
+
+    headers = {
+        "x-tts-access-token": access_token,
+        "content-type": "application/json",
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            base_url, params=query_params, headers=headers
+        ) as response:
+            data = await response.json()
+
+            if data.get("code") == 0:
+                return data["data"]
+            else:
+                logging.error(
+                    f"Failed to fetch product detail for product {product_id}: {data}",
+                    exc_info=True,
+                )
+                raise Exception(f"Error: {data.get('message')}")
+
+
 async def main():
     shop_info = await get_authorized_shop(ACCESS_TOKEN)
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
@@ -240,34 +297,30 @@ async def main():
     orders = await get_order_list(
         access_token=ACCESS_TOKEN,
         shop_cipher=shop_info["cipher"],
-        create_time_ge=int(time.time()) - 86400,  # Last 24 hours
+        create_time_ge=int(time.time()) - 600,  # Last 10m
         create_time_lt=int(time.time()),
     )
-    logging.info(
-        "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
-    )
-
-    # # Fetch order details for the first order
-    # order_id_list = [order["id"] for order in orders["orders"][:1]]
-    # order_details = await get_order_detail(
-    #     access_token=ACCESS_TOKEN,
-    #     shop_cipher=shop_info["cipher"],
-    #     order_ids=order_id_list,
+    # logging.info(
+    #     "Orders: %s, Length: %d", json.dumps(orders, indent=2), len(orders["orders"])
     # )
-    # logging.info("Order Details: %s", json.dumps(order_details, indent=2))
 
     for order in orders["orders"]:
-        order_id = order["id"]
-        price_detail = await get_price_detail(
-            access_token=ACCESS_TOKEN,
-            shop_cipher=shop_info["cipher"],
-            order_id=order_id,
-        )
-        logging.info(
-            "Price Detail for Order %s: %s",
-            order_id,
-            json.dumps(price_detail, indent=2),
-        )
+        line_items = order.get("line_items", [])
+        if line_items:
+            for item in line_items:
+                product_id = item.get("product_id")
+                if product_id:
+                    product_detail = await get_product_detail(
+                        access_token=ACCESS_TOKEN,
+                        shop_cipher=shop_info["cipher"],
+                        product_id=product_id,
+                    )
+                    item["product_detail"] = product_detail
+
+    # Now 'orders' contains all product_details in their line_items
+    # You can return, print, or process it as needed:
+    print(json.dumps(orders["orders"][-1], indent=2))
+    return orders  # If inside a function
 
 
 if __name__ == "__main__":
