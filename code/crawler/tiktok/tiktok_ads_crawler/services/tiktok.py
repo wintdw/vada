@@ -3,7 +3,8 @@ import json
 from tools import get, post
 from tools.settings import settings
 
-async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:    
+
+async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:
     request_json = await get(
         url=f"{settings.TIKTOK_BIZ_API_URL}/user/info/",
         access_token=access_token,
@@ -11,6 +12,7 @@ async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:
     if "data" in request_json:
         return request_json["data"]
     return []
+
 
 async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
     """
@@ -33,7 +35,9 @@ async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
     return []
 
 
-async def tiktok_biz_info_advertiser(access_token: str, advertiser_ids: List[str]) -> List[Dict]:
+async def tiktok_biz_info_advertiser(
+    access_token: str, advertiser_ids: List[str]
+) -> List[Dict]:
     """
     Fetch detailed advertiser information.
 
@@ -192,9 +196,10 @@ async def tiktok_biz_get_report_integrated(
             "cost_per_purchase",
             "purchase_rate",
             "total_purchase",
+            "total_purchase_value",
+            "total_onsite_shopping_value",
             "cost_per_total_purchase",
             "value_per_total_purchase",
-            "total_purchase_value",
             "total_active_pay_roas",
             "video_play_actions",
             "video_watched_2s",
@@ -210,7 +215,7 @@ async def tiktok_biz_get_report_integrated(
             "live_views",
             "live_unique_views",
             "live_effective_views",
-            "live_product_clicks"
+            "live_product_clicks",
         ]
 
     while True:
@@ -359,9 +364,7 @@ async def tiktok_biz_get_adgroup(
     return all_adgroups
 
 
-async def tiktok_biz_get_access_token(
-    auth_code: str
-) -> Dict:
+async def tiktok_biz_get_access_token(auth_code: str) -> Dict:
     """
     Fetch access token using authorization code.
 
@@ -377,8 +380,7 @@ async def tiktok_biz_get_access_token(
         "auth_code": auth_code,
     }
     request_json = await post(
-        url=f"{settings.TIKTOK_BIZ_API_URL}/oauth2/access_token/",
-        json=payload
+        url=f"{settings.TIKTOK_BIZ_API_URL}/oauth2/access_token/", json=payload
     )
     if "data" in request_json and "access_token" in request_json["data"]:
         return request_json["data"]
