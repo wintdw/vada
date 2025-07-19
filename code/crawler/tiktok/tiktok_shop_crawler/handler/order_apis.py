@@ -92,7 +92,7 @@ async def get_order_list(
                             f"More orders available, next page_token: {page_token}"
                         )
                     else:
-                        logging.info("No more orders available.")
+                        logging.info("No more orders available")
                         break
                 else:
                     raise Exception(f"Error: {data.get('message')}")

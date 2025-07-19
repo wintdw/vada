@@ -41,7 +41,7 @@ async def scheduled_fetch_all_orders(
         create_time_ge=create_time_ge,
         create_time_lt=create_time_lt,
     )
-    logging.info(order_reponse)
+    logging.debug(order_reponse)
 
     orders = order_reponse.get("orders", [])
 
