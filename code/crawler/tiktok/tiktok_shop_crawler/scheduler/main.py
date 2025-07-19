@@ -38,6 +38,32 @@ async def add_tiktok_shop_refresh_job(
         )
 
 
+async def add_tiktok_shop_first_crawl_jobs(
+    crawl_id: str,
+    access_token: str,
+    index_name: str,
+    crawl_interval: int,
+):
+    """Split the first 1-year crawl into 12 jobs, each handling 1 month."""
+    now = datetime.now()
+    for i in range(12):
+        start_date = (now - timedelta(days=365 - i * 30)).strftime("%Y-%m-%d")
+        # For the last job, end_date is tomorrow; otherwise, it's the end of the month window
+        end_date = (
+            (now - timedelta(days=335 - i * 30)).strftime("%Y-%m-%d")
+            if i < 11
+            else (now + timedelta(days=1)).strftime("%Y-%m-%d")
+        )
+        await scheduled_fetch_all_orders(
+            crawl_id=crawl_id,
+            access_token=access_token,
+            index_name=index_name,
+            crawl_interval=crawl_interval,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+
 async def add_tiktok_shop_crawl_job(
     scheduler: AsyncIOScheduler,
     job_id: str,
@@ -50,19 +76,15 @@ async def add_tiktok_shop_crawl_job(
 ):
     try:
         if first_crawl:
-            # Crawl immediately for the first time
-            tmr = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-            ninety_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
-            await scheduled_fetch_all_orders(
+            # Split 1-year crawl into 12 jobs of 1 month each
+            await add_tiktok_shop_first_crawl_jobs(
                 crawl_id=crawl_id,
                 access_token=access_token,
                 index_name=index_name,
                 crawl_interval=crawl_interval,
-                start_date=ninety_days_ago,
-                end_date=tmr,
             )
 
-        # The first job will crawl T-1 -> T0 with 2h interval
+        # The regular job will crawl T-1 -> T0 with 2h interval
         scheduler.add_job(
             scheduled_fetch_all_orders,
             trigger=IntervalTrigger(minutes=crawl_interval),
