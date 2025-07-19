@@ -44,16 +44,22 @@ async def add_tiktok_shop_first_crawl_jobs(
     index_name: str,
     crawl_interval: int,
 ):
-    """Split the first 1-year crawl into 12 jobs, each handling 1 month."""
+    """Split the first 1-year crawl into jobs, each handling 7 days."""
     now = datetime.now()
-    for i in range(12):
-        start_date = (now - timedelta(days=365 - i * 30)).strftime("%Y-%m-%d")
-        # For the last job, end_date is tomorrow; otherwise, it's the end of the month window
-        end_date = (
-            (now - timedelta(days=335 - i * 30)).strftime("%Y-%m-%d")
-            if i < 11
-            else (now + timedelta(days=1)).strftime("%Y-%m-%d")
+    days_in_year = 365
+    window = 7
+    num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
+    for i in range(num_jobs):
+        start_date = (now - timedelta(days=days_in_year - i * window)).strftime(
+            "%Y-%m-%d"
         )
+        # For the last job, end_date is tomorrow; otherwise, it's the end of the window
+        if i < num_jobs - 1:
+            end_date = (now - timedelta(days=days_in_year - (i + 1) * window)).strftime(
+                "%Y-%m-%d"
+            )
+        else:
+            end_date = (now + timedelta(days=1)).strftime("%Y-%m-%d")
         await scheduled_fetch_all_orders(
             crawl_id=crawl_id,
             access_token=access_token,

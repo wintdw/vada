@@ -1,7 +1,7 @@
 import logging
 import sys
 import json
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import jsonlogger  # type: ignore
 from datetime import datetime, timezone, timedelta
 import contextvars
 
@@ -9,7 +9,7 @@ import contextvars
 GMT_PLUS_7 = timezone(timedelta(hours=7))
 
 # Create a context variable to store the request ID
-request_id = contextvars.ContextVar("request_id", default=None)
+request_id = contextvars.ContextVar("request_id", default="")
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):

@@ -54,63 +54,66 @@ def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
 def enrich_anchi_report(enriched_report: dict) -> dict:
     """
     Enrich report with vada metadata for ANCHI GROUP VIET NAM JOINT STOCK COMPANY.
-    
+
     Args:
         enriched_report (dict): The enriched report with advertiser information
-        
+
     Returns:
         dict: Report with additional vada metadata if applicable
     """
     # Check if advertiser company is ANCHI GROUP VIET NAM JOINT STOCK COMPANY
     advertiser = enriched_report.get("advertiser", {})
     company = advertiser.get("company", "")
-    
+
     if company != "ANCHI GROUP VIET NAM JOINT STOCK COMPANY":
         return enriched_report
-    
+
     # Parse advertiser name (format: AF-TT-NS016-2)
     advertiser_name = advertiser.get("name", "")
-    
+
     if not advertiser_name or "-" not in advertiser_name:
         return enriched_report
-    
+
     try:
         # Split the name by hyphens
         parts = advertiser_name.split("-")
-        
+
         if len(parts) >= 4:
             ma_du_an = parts[0]  # AF
             kenh_quang_cao = parts[1]  # TT
             marketer_id = parts[2]  # NS016
             sub_account_name = parts[3]  # 2
-            
+
             # Create vada metadata
             vada_metadata = {
                 "vada": {
                     "ma_du_an": ma_du_an,
                     "kenh_quang_cao": kenh_quang_cao,
                     "marketer_id": marketer_id,
-                    "sub_account_name": sub_account_name
+                    "sub_account_name": sub_account_name,
                 }
             }
-            
+
             # Add vada metadata to the report
             return enriched_report | vada_metadata
         else:
             return enriched_report
-            
+
     except Exception:
         # If parsing fails, return the original report
         return enriched_report
 
-async def crawl_tiktok_business(index_name: str, access_token: str, start_date: str, end_date: str):
+
+async def crawl_tiktok_business(
+    index_name: str, access_token: str, start_date: str, end_date: str
+):
     import logging
     import time
     import uuid
     import asyncio
     from datetime import datetime
     from fastapi import HTTPException  # type: ignore
-    from tools import get_logger, request_id
+    from tools.logger import get_logger, request_id
 
     from services import (
         tiktok_biz_get_advertiser,
@@ -148,10 +151,11 @@ async def crawl_tiktok_business(index_name: str, access_token: str, start_date: 
 
             # Get advertiser info
             advertiser_info = await tiktok_biz_info_advertiser(
-                access_token,
-                [advertiser["advertiser_id"]]
+                access_token, [advertiser["advertiser_id"]]
             )
-            logger.debug(f"  → Advertiser name: {advertiser_info[0].get('name', 'N/A')}")
+            logger.debug(
+                f"  → Advertiser name: {advertiser_info[0].get('name', 'N/A')}"
+            )
             logger.debug(advertiser_info)
 
             # Get integrated report
@@ -181,7 +185,8 @@ async def crawl_tiktok_business(index_name: str, access_token: str, start_date: 
                 )
                 ads = await tiktok_biz_get_ad(
                     access_token=access_token,
-                    advertiser_id=advertiser["advertiser_id"], ad_ids=[report["ad_id"]]
+                    advertiser_id=advertiser["advertiser_id"],
+                    ad_ids=[report["ad_id"]],
                 )
 
                 # Create tasks for campaign and adgroup in parallel
@@ -256,14 +261,16 @@ async def crawl_tiktok_business(index_name: str, access_token: str, start_date: 
         execution_time = round(end_time - start_time, 2)
 
         # Calculate total spending
-        total_spend = sum(float(report.get("spend", 0)) for report in all_enriched_reports)
+        total_spend = sum(
+            float(report.get("spend", 0)) for report in all_enriched_reports
+        )
     except Exception as e:
         logger.error(f"Error occurred: {e}")
         raise HTTPException(
             status_code=500,
             detail="Internal Server Error",
         )
-    
+
     return {
         "status": "success",
         "execution_time": execution_time,
