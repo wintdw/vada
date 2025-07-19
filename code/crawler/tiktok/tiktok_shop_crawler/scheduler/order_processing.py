@@ -42,6 +42,7 @@ async def scheduled_fetch_all_orders(
         create_time_lt=create_time_lt,
     )
     logging.debug(order_reponse)
+    logging.info(f"Got {order_reponse.get('total', 0)} orders")
 
     orders = order_reponse.get("orders", [])
 
