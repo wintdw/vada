@@ -68,7 +68,10 @@ async def get_order_list(
                 # logging.debug(f"Response: {data}")
 
                 if data.get("code") == 0:
-                    orders = data["data"]["orders"]
+                    orders = data.get("data", {}).get("orders", [])
+                    if not orders:
+                        logging.info("No orders found in this page.")
+                        break
 
                     # Enrich each line_item with product_detail
                     for order in orders:
