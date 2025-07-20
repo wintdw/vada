@@ -127,7 +127,7 @@ async def get_product_detail(business_id: str, access_token: str, product_id: st
             async with session.post(url, headers=headers, data=payload) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result.get("data", {})
+                    return result.get("data", {}).get("product", {}).get(product_id, {})
                 else:
                     error_text = await response.text()
                     logger.debug(f"Error getting product detail. Status: {response.status}, Response: {error_text}")
@@ -294,8 +294,9 @@ async def crawl_nhanh_data(index_name: str, business_id: str, access_token: str,
                 for product in order.get("products", []):
                     product_id = product.get("productId")
                     product["detail"] = await get_product_detail(business_id, access_token, product_id)
-                    product['importPrice'] = int(product["detail"]['importPrice']) * int(product['quantity'])
-                    import_money += product['importPrice']
+                    if "importPrice" in product["detail"]:
+                        product['importMoney'] = int(product["detail"]['importPrice']) * int(product['quantity'])
+                        import_money += product['importMoney']
                     time.sleep(0.2)  # avoid API overuse
                 order["TotalImportMoney"] = import_money
 
