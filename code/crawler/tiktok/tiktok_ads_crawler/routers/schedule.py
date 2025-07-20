@@ -2,11 +2,15 @@ from fastapi import APIRouter  # type: ignore
 from datetime import datetime, timedelta
 from prometheus_client import Counter  # type: ignore
 
-from tools import get_logger
-from models import CrawlHistory, CrawlInfoResponse
+from tools.logger import get_logger
+from models.crawl_info import CrawlInfoResponse
+from repositories.crawl_info import (
+    select_crawl_info_by_next_crawl_time,
+    update_crawl_info,
+)
 
 router = APIRouter()
-logger = get_logger(__name__, level=10)  # 10 is logging.DEBUG
+logger = get_logger(__name__)  # 10 is logging.DEBUG
 
 tiktok_ad_crawl = Counter(
     "tiktok_ad_crawl",
@@ -24,27 +28,14 @@ tiktok_ad_crawl_success = Counter(
     "/v1/schedule/{crawl_id}/crawl", response_model=CrawlInfoResponse, tags=["Schedule"]
 )
 async def post_schedule_crawl(crawl_id: str = ""):
-    from repositories import (
-        select_crawl_info_by_next_crawl_time,
-        update_crawl_info,
-        insert_crawl_history,
-        update_crawl_history,
-    )
+
     from handlers.tiktok import crawl_tiktok_business
 
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
         logger.info(f"Processing crawl info: {crawl_info}")
-        history_id = None
 
         for item in crawl_info:
-            crawl_history = await insert_crawl_history(
-                CrawlHistory(crawl_id=item.crawl_id)
-            )
-            logger.info(crawl_history)
-
-            history_id = crawl_history.history_id
-
             tiktok_ad_crawl.labels(
                 account_name=item.account_name, vada_uid=item.vada_uid
             ).inc()
@@ -89,23 +80,8 @@ async def post_schedule_crawl(crawl_id: str = ""):
             crawl_info = await update_crawl_info(item.crawl_id, item)
             logger.info(crawl_info)
 
-            crawl_history = await update_crawl_history(
-                history_id,
-                CrawlHistory(
-                    crawl_id=item.crawl_id,
-                    crawl_status="success",
-                    crawl_duration=int(crawl_response.get("execution_time")),
-                    crawl_data_number=crawl_response.get("total_reports"),
-                ),
-            )
-            logger.info(crawl_history)
-
     except Exception as e:
-        crawl_history = await update_crawl_history(
-            history_id,
-            CrawlHistory(crawl_id=crawl_id, crawl_status="failed", crawl_error=str(e)),
-        )
-        logger.error(crawl_history)
+        logger.error(f"Error during TikTok Ads crawl: {e}", exc_info=True)
 
     finally:
         return CrawlInfoResponse(status=200, message="Success")

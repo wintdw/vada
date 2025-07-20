@@ -1,17 +1,22 @@
 from fastapi import APIRouter, HTTPException  # type: ignore
 from aiomysql import IntegrityError  # type: ignore
 
-from tools import get_logger
-from models import CrawlInfo, CrawlInfoResponse
+from tools.logger import get_logger
+from models.crawl_info import CrawlInfo, CrawlInfoResponse
+from repositories.crawl_info import (
+    select_crawl_info,
+    insert_crawl_info,
+    select_crawl_info_by_crawl_id,
+    update_crawl_info,
+    remove_crawl_info_by_crawl_id,
+)
 
 router = APIRouter()
-logger = get_logger(__name__, 20)
+logger = get_logger(__name__)
 
 
 @router.post("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
 async def post_crawl_info(crawl_info: CrawlInfo):
-    from repositories import insert_crawl_info
-
     try:
         crawl_info = await insert_crawl_info(crawl_info)
     except IntegrityError as e:
@@ -28,8 +33,6 @@ async def post_crawl_info(crawl_info: CrawlInfo):
     "/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"]
 )
 async def get_crawl_info_by_crawl_id(crawl_id: str):
-    from repositories import select_crawl_info_by_crawl_id
-
     try:
         crawl_info = await select_crawl_info_by_crawl_id(crawl_id)
     except Exception as e:
@@ -44,8 +47,6 @@ async def get_crawl_info_by_crawl_id(crawl_id: str):
 
 @router.get("/v1/crawl/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"])
 async def get_crawl_info():
-    from repositories import select_crawl_info
-
     try:
         crawl_info = await select_crawl_info()
     except Exception as e:
@@ -59,8 +60,6 @@ async def get_crawl_info():
     "/v1/crawl/{crawl_id}/info", response_model=CrawlInfoResponse, tags=["CrawlInfo"]
 )
 async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
-    from repositories import select_crawl_info_by_crawl_id, update_crawl_info
-
     try:
         crawl_info_selected = await select_crawl_info_by_crawl_id(crawl_id)
     except Exception as e:
@@ -85,8 +84,6 @@ async def put_crawl_info(crawl_id: str, crawl_info: CrawlInfo):
     tags=["CrawlInfo"],
 )
 async def delete_crawl_info(crawl_id: str):
-    from repositories import remove_crawl_info_by_crawl_id
-
     try:
         row_count = await remove_crawl_info_by_crawl_id(crawl_id)
     except Exception as e:

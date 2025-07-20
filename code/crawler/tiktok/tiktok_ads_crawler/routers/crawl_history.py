@@ -1,19 +1,26 @@
 from fastapi import APIRouter, HTTPException  # type: ignore
 from aiomysql import IntegrityError  # type: ignore
 
-from tools import get_logger
-from models import CrawlHistory, CrawlHistoryResponse
+from tools.logger import get_logger
+from models.crawl_history import CrawlHistory, CrawlHistoryResponse
+from repositories.crawl_history import (
+    select_crawl_history,
+    insert_crawl_history,
+    select_crawl_history_by_crawl_id,
+    select_crawl_history_by_history_id,
+    update_crawl_history,
+    remove_crawl_history,
+)
+
 
 router = APIRouter()
-logger = get_logger(__name__, 20)
+logger = get_logger(__name__)
 
 
 @router.post(
     "/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["CrawlHistory"]
 )
 async def post_crawl_history(crawl_history: CrawlHistory):
-    from repositories import insert_crawl_history
-
     try:
         crawl_history = await insert_crawl_history(crawl_history)
     except IntegrityError as e:
@@ -32,8 +39,6 @@ async def post_crawl_history(crawl_history: CrawlHistory):
     tags=["CrawlHistory"],
 )
 async def get_crawl_history_by_crawl_id(crawl_id: str):
-    from repositories import select_crawl_history_by_crawl_id
-
     try:
         crawl_history = await select_crawl_history_by_crawl_id(crawl_id)
     except Exception as e:
@@ -50,8 +55,6 @@ async def get_crawl_history_by_crawl_id(crawl_id: str):
     "/v1/crawl/history", response_model=CrawlHistoryResponse, tags=["CrawlHistory"]
 )
 async def get_crawl_history():
-    from repositories import select_crawl_history
-
     try:
         crawl_history = await select_crawl_history()
     except Exception as e:
@@ -67,8 +70,6 @@ async def get_crawl_history():
     tags=["CrawlHistory"],
 )
 async def put_crawl_history(history_id: str, crawl_history: CrawlHistory):
-    from repositories import select_crawl_history_by_history_id, update_crawl_history
-
     try:
         crawl_history_selected = await select_crawl_history_by_history_id(history_id)
     except Exception as e:
@@ -93,8 +94,6 @@ async def put_crawl_history(history_id: str, crawl_history: CrawlHistory):
     tags=["CrawlHistory"],
 )
 async def delete_crawl_history(history_id: str):
-    from repositories import remove_crawl_history
-
     try:
         row_count = await remove_crawl_history(history_id)
     except Exception as e:

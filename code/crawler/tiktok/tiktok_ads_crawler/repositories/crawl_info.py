@@ -1,215 +1,207 @@
-from uuid import uuid4
+import uuid
 
-from models import CrawlInfo
-from tools import get_mysql_connection, get_mysql_cursor
+from typing import Dict, List
 
+from tools.logger import get_logger
+from tools.mysql import get_mysql_connection, get_mysql_cursor
 
-async def insert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            crawl_info.crawl_id = str(uuid4())
-            await cursor.execute(
-                """
-                INSERT INTO `CrawlInfo`
-                    (crawl_id, account_id, account_name, vada_uid,
-                    index_name, crawl_type, access_token, refresh_token,
-                    crawl_interval)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    crawl_info.crawl_id,
-                    crawl_info.account_id,
-                    crawl_info.account_name,
-                    crawl_info.vada_uid,
-                    crawl_info.index_name,
-                    crawl_info.crawl_type,
-                    crawl_info.access_token,
-                    crawl_info.refresh_token,
-                    crawl_info.crawl_interval,
-                ),
-            )
-            await connection.commit()
-            return crawl_info
+logger = get_logger(__name__)
 
 
-async def select_crawl_info_by_crawl_id(crawl_id: str) -> CrawlInfo | None:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            await cursor.execute(
-                """
-                SELECT crawl_id, account_id, account_name, vada_uid,
-                    index_name, crawl_type, access_token, refresh_token,
-                    access_token_updated_at, refresh_token_updated_at,
-                    crawl_interval, last_crawl_time, next_crawl_time
-                FROM `CrawlInfo`
-                WHERE crawl_id = %s
-                """,
-                (crawl_id),
-            )
-            result = await cursor.fetchone()
-            if result is None:
-                return None
-            else:
-                return CrawlInfo.model_validate(result)
+async def insert_crawl_info(
+    account_id: str,
+    vada_uid: str,
+    account_name: str,
+    index_name: str,
+    access_token: str,
+    crawl_interval: int = 1440,
+) -> Dict:
+    """
+    Inserts a new record into the TTACrawlInfo table.
+    account_id and vada_uid are used to identify the record. The pair must be unique.
+    """
+    query = """
+        INSERT INTO TTACrawlInfo (
+            crawl_id, account_id, account_name, vada_uid, index_name, 
+            access_token, crawl_interval, next_crawl_time
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW() + INTERVAL %s MINUTE)
+    """
 
-
-async def select_crawl_info_by_next_crawl_time() -> list[CrawlInfo]:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            await cursor.execute(
-                """
-                SELECT crawl_id, account_id, account_name, vada_uid,
-                    index_name, crawl_type, access_token, refresh_token,
-                    access_token_updated_at, refresh_token_updated_at,
-                    crawl_interval, last_crawl_time, next_crawl_time
-                FROM `CrawlInfo`
-                WHERE next_crawl_time < NOW() AND crawl_type = 'tiktok_business_ads'
-                """
-            )
-            results = await cursor.fetchall()
-            return [CrawlInfo.model_validate(result) for result in results]
-
-
-async def select_crawl_info() -> list[CrawlInfo]:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            await cursor.execute(
-                """
-                SELECT crawl_id, account_id, account_name, vada_uid,
-                    index_name, crawl_type, access_token, refresh_token,
-                    access_token_updated_at, refresh_token_updated_at,
-                    crawl_interval, last_crawl_time, next_crawl_time
-                FROM `CrawlInfo`
-                """
-            )
-            results = await cursor.fetchall()
-            return [CrawlInfo.model_validate(result) for result in results]
-
-
-async def update_crawl_info(crawl_id: str, crawl_info: CrawlInfo) -> CrawlInfo:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            await cursor.execute(
-                """
-                UPDATE `CrawlInfo`
-                SET account_id = %s,
-                    account_name = %s,
-                    vada_uid = %s,
-                    index_name = %s,
-                    crawl_type = %s,
-                    access_token = %s,
-                    refresh_token = %s,
-                    access_token_updated_at = %s,
-                    refresh_token_updated_at = %s,
-                    crawl_interval = %s,
-                    last_crawl_time = %s,
-                    next_crawl_time = %s
-                WHERE crawl_id = %s
-                """,
-                (
-                    crawl_info.account_id,
-                    crawl_info.account_name,
-                    crawl_info.vada_uid,
-                    crawl_info.index_name,
-                    crawl_info.crawl_type,
-                    crawl_info.access_token,
-                    crawl_info.refresh_token,
-                    crawl_info.access_token_updated_at,
-                    crawl_info.refresh_token_updated_at,
-                    crawl_info.crawl_interval,
-                    crawl_info.last_crawl_time,
-                    crawl_info.next_crawl_time,
-                    crawl_id,
-                ),
-            )
-            await connection.commit()
-            crawl_info.crawl_id = crawl_id
-            return crawl_info
-
-
-async def remove_crawl_info_by_crawl_id(crawl_id: str) -> int:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            await cursor.execute(
-                """
-                DELETE FROM `CrawlInfo`
-                WHERE crawl_id = %s
-                """,
-                (crawl_id),
-            )
-            await connection.commit()
-            return cursor.rowcount
-
-
-async def remove_crawl_info_by_index_name(index_name: str) -> int:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            await cursor.execute(
-                """
-                DELETE FROM `CrawlInfo`
-                WHERE index_name = %s
-                """,
-                (index_name),
-            )
-            await connection.commit()
-            return cursor.rowcount
-
-
-async def upsert_crawl_info(crawl_info: CrawlInfo) -> CrawlInfo:
-    async with get_mysql_connection() as connection:
-        async with get_mysql_cursor(connection) as cursor:
-            # Check if the record exists
-            await cursor.execute(
-                """
-                SELECT crawl_id
-                FROM `CrawlInfo`
-                WHERE account_id = %s AND vada_uid = %s
-                """,
-                (crawl_info.account_id, crawl_info.vada_uid),
-            )
-            existing_record = await cursor.fetchone()
-
-            if existing_record:
-                # Update the existing record
+    try:
+        async with get_mysql_connection() as connection:
+            async with get_mysql_cursor(connection) as cursor:
+                crawl_id = str(uuid.uuid4())
                 await cursor.execute(
-                    """
-                    UPDATE `CrawlInfo`
-                    SET
-                        access_token = %s,
-                        refresh_token = %s,
-                        access_token_updated_at = NOW(),
-                        refresh_token_updated_at = NOW()
-                    WHERE crawl_id = %s
-                    """,
+                    query,
                     (
-                        crawl_info.access_token,
-                        crawl_info.refresh_token,
-                        crawl_info.crawl_id,
-                    ),
-                )
-            else:
-                # Insert a new record
-                crawl_info.crawl_id = str(uuid4())
-                await cursor.execute(
-                    """
-                    INSERT INTO `CrawlInfo`
-                        (crawl_id, account_id, account_name, vada_uid,
-                        index_name, crawl_type, access_token, refresh_token,
-                        crawl_interval)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (
-                        crawl_info.crawl_id,
-                        crawl_info.account_id,
-                        crawl_info.account_name,
-                        crawl_info.vada_uid,
-                        crawl_info.index_name,
-                        crawl_info.crawl_type,
-                        crawl_info.access_token,
-                        crawl_info.refresh_token,
-                        crawl_info.crawl_interval,
+                        crawl_id,
+                        account_id,
+                        account_name,
+                        vada_uid,
+                        index_name,
+                        access_token,
+                        crawl_interval,
+                        crawl_interval,
                     ),
                 )
                 await connection.commit()
+                logger.info(
+                    f"Inserted crawl info for account_name: {account_name} and vada_uid: {vada_uid}"
+                )
 
-            return crawl_info
+        return {"crawl_id": crawl_id}
+
+    except Exception as e:
+        logger.error(f"Error inserting crawl info: {str(e)}", exc_info=True)
+        return {}
+
+
+async def get_crawl_info(
+    crawl_id: str = "", account_id: str = "", vada_uid: str = ""
+) -> List[Dict]:
+    """
+    Selects info from TTACrawlInfo table, optionally filtered by crawl_id, account_id, and vada_uid.
+    Only returns records where disabled = 0.
+    If crawl_id is provided, account_id and vada_uid are ignored.
+    """
+    query = "SELECT * FROM TTACrawlInfo"
+    params = []
+
+    conditions = ["disabled = 0"]  # Always filter for enabled records
+    if crawl_id:
+        conditions.append("crawl_id = %s")
+        params.append(crawl_id)
+    else:
+        if account_id:
+            conditions.append("account_id = %s")
+            params.append(account_id)
+        if vada_uid:
+            conditions.append("vada_uid = %s")
+            params.append(vada_uid)
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    try:
+        async with get_mysql_connection() as connection:
+            async with get_mysql_cursor(connection) as cursor:
+                await cursor.execute(query, tuple(params))
+                results = await cursor.fetchall()
+
+        return [
+            {
+                "crawl_id": row["crawl_id"],
+                "account_id": row["account_id"],
+                "account_name": row["account_name"],
+                "vada_uid": row["vada_uid"],
+                "index_name": row["index_name"],
+                "access_token": row["access_token"],
+                "crawl_interval": row["crawl_interval"],
+                "last_crawl_time": (
+                    row["last_crawl_time"].isoformat()
+                    if row["last_crawl_time"]
+                    else None
+                ),
+                "next_crawl_time": (
+                    row["next_crawl_time"].isoformat()
+                    if row["next_crawl_time"]
+                    else None
+                ),
+                "created_at": (row["created_at"].isoformat()),
+                "updated_at": (row["updated_at"].isoformat()),
+            }
+            for row in results
+        ]
+
+    except Exception as e:
+        logger.error(f"Error fetching crawl info: {str(e)}", exc_info=True)
+        return []
+
+
+async def update_crawl_time(crawl_id: str, crawl_interval: int) -> Dict:
+    """
+    Updates last_crawl_time to NOW() and next_crawl_time to NOW() + INTERVAL crawl_interval MINUTE.
+    """
+    query = """
+        UPDATE TTACrawlInfo
+        SET last_crawl_time = NOW(),
+            next_crawl_time = NOW() + INTERVAL %s MINUTE
+        WHERE crawl_id = %s
+    """
+    try:
+        async with get_mysql_connection() as connection:
+            async with get_mysql_cursor(connection) as cursor:
+                await cursor.execute(query, (crawl_interval, crawl_id))
+                await connection.commit()
+        return {"crawl_id": crawl_id}
+    except Exception as e:
+        logger.error(f"Error updating crawl time: {str(e)}")
+        return {}
+
+
+async def update_crawl_token(crawl_id: str, access_token: str) -> Dict:
+    """Updates the access_token, refresh_token, and their expiry times for a given crawl_id."""
+    query = """
+        UPDATE TTACrawlInfo
+        SET access_token = %s
+        WHERE crawl_id = %s
+    """
+
+    try:
+        async with get_mysql_connection() as connection:
+            async with get_mysql_cursor(connection) as cursor:
+                await cursor.execute(query, (access_token, crawl_id))
+                await connection.commit()
+                logger.info(f"Updated tokens and expiry for crawl_id: {crawl_id}")
+
+        return {"crawl_id": crawl_id}
+
+    except Exception as e:
+        logger.error(f"Error updating crawl tokens: {str(e)}", exc_info=True)
+        return {}
+
+
+async def set_crawl_info(
+    account_id: str,
+    vada_uid: str,
+    account_name: str = "",
+    index_name: str = "",
+    access_token: str = "",
+    crawl_interval: int = 1440,
+) -> Dict:
+    """
+    Inserts a new record into the CrawlInfo table or updates the tokens and expiry if the record exists.
+    account_id and vada_uid are used to identify the record. The pair must be unique.
+    """
+    try:
+        result = await get_crawl_info(account_id=account_id, vada_uid=vada_uid)
+
+        if result:
+            # If the record exists, update the tokens and expiry
+            crawl_id = result[0]["crawl_id"]
+            account_name = result[0]["account_name"]
+            index_name = result[0]["index_name"]
+
+            if access_token:
+                await update_crawl_token(crawl_id, access_token)
+                logger.info(
+                    f"Updated tokens for account_name: {account_name} and vada_uid: {vada_uid}"
+                )
+
+            return {"crawl_id": crawl_id}
+        else:
+            # insert a new record
+            insert_result = await insert_crawl_info(
+                account_id,
+                vada_uid,
+                account_name,
+                index_name,
+                access_token,
+                crawl_interval,
+            )
+            logger.info(
+                f"Inserted crawl info for account_name: {account_name} and vada_uid: {vada_uid}"
+            )
+            return insert_result
+    except Exception as e:
+        logger.error(f"Error setting crawl info: {str(e)}", exc_info=True)
+        return {}

@@ -1,18 +1,19 @@
 import json
 
 from typing import List, Dict, Optional
-from tools import get, post
-from tools.settings import settings
+
+from tools.requests import get, post
+from models.settings import settings
 
 
-async def tiktok_biz_get_user_info(access_token: str) -> List[Dict]:
+async def tiktok_biz_get_user_info(access_token: str) -> Dict:
     request_json = await get(
         url=f"{settings.TIKTOK_BIZ_API_URL}/user/info/",
         access_token=access_token,
     )
     if "data" in request_json:
         return request_json["data"]
-    return []
+    return {}
 
 
 async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
