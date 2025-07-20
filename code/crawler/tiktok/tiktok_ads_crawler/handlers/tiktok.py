@@ -126,7 +126,7 @@ async def crawl_tiktok_business(
     )
     from .insert import add_insert_metadata
 
-    logger = get_logger(__name__, logging.INFO)
+    logger = get_logger(__name__, logging.DEBUG)
 
     # Generate and set request ID at the start of each request
     req_id = str(uuid.uuid4())[:8]  # Take first 8 characters
