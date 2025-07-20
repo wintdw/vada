@@ -49,13 +49,14 @@ async def get_auth(
         # Step 3: Set crawl info in MySQL
         await set_crawl_info(
             account_id=account_id,
-            account_name=account_name,
             vada_uid=state,
+            account_name=account_name,
             index_name=index_name,
-            crawl_type="tiktok_shop",
             access_token=tokens["access_token"],
             refresh_token=tokens["refresh_token"],
-            crawl_interval=240,  # 2 hours
+            access_token_expiry=tokens.get("access_token_expire_in", 0),
+            refresh_token_expiry=tokens.get("refresh_token_expire_in", 0),
+            crawl_interval=120,  # 2 hours
         )
 
         fe_redirect_url = f"{settings.TIKTOK_SHOP_AUTH_CALLBACK}?account_id={account_id}&account_name={account_name}&index_name={index_name}&friendly_index_name={friendly_index_name}"

@@ -1,13 +1,14 @@
-from pydantic_settings import BaseSettings
-import os
+from pydantic_settings import BaseSettings  # type: ignore
+
 
 class Settings(BaseSettings):
-    TIKTOK_BIZ_API_URL: str = os.getenv("TIKTOK_BIZ_API_URL")
-    TIKTOK_BIZ_APP_ID: str = os.getenv("TIKTOK_BIZ_APP_ID")
-    TIKTOK_BIZ_SECRET: str = os.getenv("TIKTOK_BIZ_SECRET")
-    TIKTOK_BIZ_REDIRECT_URI: str = os.getenv("TIKTOK_BIZ_REDIRECT_URI")
+    TIKTOK_BIZ_API_URL: str
+    TIKTOK_BIZ_APP_ID: str
+    TIKTOK_BIZ_SECRET: str
+    TIKTOK_BIZ_REDIRECT_URI: str
 
-    INSERT_SERVICE_URL: str = os.getenv("INSERT_SERVICE_URL")
-    CONNECTOR_CALLBACK_URL: str = os.getenv("CONNECTOR_CALLBACK_URL")
+    INSERT_SERVICE_URL: str
+    CONNECTOR_CALLBACK_URL: str
+
 
 settings = Settings()

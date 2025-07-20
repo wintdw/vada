@@ -1,5 +1,6 @@
-from typing import List, Dict, Optional
 import json
+
+from typing import List, Dict, Optional
 from tools import get, post
 from tools.settings import settings
 

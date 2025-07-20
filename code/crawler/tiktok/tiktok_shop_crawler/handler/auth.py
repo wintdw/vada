@@ -1,9 +1,12 @@
+import time
 import aiohttp  # type: ignore
+
+from typing import Dict
 
 from model.setting import settings
 
 
-async def get_tokens(auth_code: str):
+async def get_tokens(auth_code: str) -> Dict:
     """Get access and refresh tokens from auth code"""
     app_key = settings.TIKTOK_SHOP_APP_KEY
     app_secret = settings.TIKTOK_SHOP_APP_SECRET
@@ -27,7 +30,7 @@ async def get_tokens(auth_code: str):
                 raise Exception(f"Error: {result.get('message')}")
 
 
-async def refresh_tokens(refresh_token):
+async def refresh_tokens(refresh_token: str) -> Dict:
     """Refresh access token using refresh token"""
     app_key = settings.TIKTOK_SHOP_APP_KEY
     app_secret = settings.TIKTOK_SHOP_APP_SECRET
@@ -49,3 +52,15 @@ async def refresh_tokens(refresh_token):
                 return result["data"]
             else:
                 raise Exception(f"Error: {result.get('message')}")
+
+
+def check_days_left_to_expiry(expiry_timestamp: int) -> int:
+    """
+    Returns the number of days left until the given expiry timestamp (in seconds).
+    If expiry is in the past, returns 0.
+    """
+    now = int(time.time())
+    seconds_left = expiry_timestamp - now
+    days_left = max(0, seconds_left // 86400)
+
+    return days_left

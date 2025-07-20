@@ -10,34 +10,6 @@ from .order_processing import scheduled_fetch_all_orders
 from .token_processing import scheduled_refresh_token
 
 
-async def add_tiktok_shop_refresh_job(
-    scheduler: AsyncIOScheduler, job_id: str, crawl_id: str, refresh_token: str
-):
-    try:
-        # Schedule the token refresh job
-        scheduler.add_job(
-            scheduled_refresh_token,
-            trigger=IntervalTrigger(minutes=4320),  # Refresh every 3d
-            kwargs={
-                "crawl_id": crawl_id,
-                "refresh_token": refresh_token,
-            },
-            id=job_id,
-            name=f"Refresh TikTokShop Token for crawl_id {crawl_id}",
-            replace_existing=True,
-            misfire_grace_time=30,
-            max_instances=1,
-        )
-        logging.info(
-            f"[Scheduler] Added TikTokShop Token refresh job for Crawl ID {crawl_id}"
-        )
-    except Exception as e:
-        logging.error(
-            f"[Scheduler] Error adding TikTokShop Token refresh job for Crawl ID {crawl_id}: {str(e)}",
-            exc_info=True,
-        )
-
-
 async def add_tiktok_shop_first_crawl_jobs(
     crawl_id: str,
     access_token: str,
@@ -127,7 +99,6 @@ async def init_scheduler():
         current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in crawl_info:
-            # For debugging
             logging.info(f"Processing crawl info: {info}")
 
             crawl_id = info["crawl_id"]
@@ -135,32 +106,29 @@ async def init_scheduler():
             index_name = info["index_name"]
             access_token = info["access_token"]
             refresh_token = info["refresh_token"]
+            access_token_expiry = info["access_token_expiry"]
+            refresh_token_expiry = info["refresh_token_expiry"]
             crawl_interval = info["crawl_interval"]
             last_crawl_time = info["last_crawl_time"]
             first_crawl = True
             if last_crawl_time:
                 first_crawl = False
 
-            crawl_job_id = f"crawl_order_{crawl_id}"
-            refresh_job_id = f"refresh_token_{crawl_id}"
+            job_id = f"crawl_order_{crawl_id}"
 
-            # New refresh job
-            if refresh_job_id not in current_jobs:
-                await add_tiktok_shop_refresh_job(
-                    scheduler=scheduler,
-                    job_id=refresh_job_id,
-                    crawl_id=crawl_id,
-                    refresh_token=refresh_token,
-                )
-            else:
-                del current_jobs[refresh_job_id]
+            # --- Check and refresh token if needed ---
+            await scheduled_refresh_token(
+                crawl_id=crawl_id,
+                refresh_token=refresh_token,
+                access_token_expiry=access_token_expiry,
+                refresh_token_expiry=refresh_token_expiry,
+            )
 
             # New crawl job
-            # Determine first crawl
-            if crawl_job_id not in current_jobs:
+            if job_id not in current_jobs:
                 await add_tiktok_shop_crawl_job(
                     scheduler=scheduler,
-                    job_id=crawl_job_id,
+                    job_id=job_id,
                     crawl_id=crawl_id,
                     access_token=access_token,
                     index_name=index_name,
@@ -169,15 +137,14 @@ async def init_scheduler():
                     first_crawl=first_crawl,
                 )
             else:
-                del current_jobs[crawl_job_id]
+                del current_jobs[job_id]
 
         # Remove jobs that are no longer in the crawl_info
         for left_job_id in current_jobs:
-            # dont remove update_jobs
             if left_job_id != "update_jobs":
                 scheduler.remove_job(left_job_id)
                 logging.info(
-                    f"[Scheduler] Removed TikTokShop Order job with ID: {left_job_id} as it is no longer valid"
+                    f"[Scheduler] Removed TikTokShop job_id '{left_job_id}' as it is no longer valid"
                 )
 
     # Schedule the update_jobs function to run every 1m

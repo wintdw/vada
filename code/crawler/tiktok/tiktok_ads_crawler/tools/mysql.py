@@ -1,6 +1,7 @@
-import aiomysql
-from contextlib import asynccontextmanager
 import os
+import aiomysql  # type: ignore
+
+from contextlib import asynccontextmanager
 from .logger import get_logger
 
 MYSQL_HOST = os.getenv("MYSQL_HOST")
@@ -13,22 +14,21 @@ if mysql_passwd_file and os.path.isfile(mysql_passwd_file):
 
 logger = get_logger(__name__, 20)
 
+
 @asynccontextmanager
 async def get_mysql_connection():
     connection = None
     try:
         logger.debug("Initializing MySQL connection...")
         connection = await aiomysql.connect(
-            host=MYSQL_HOST,
-            user=MYSQL_USER,
-            password=MYSQL_PASSWD,
-            db=MYSQL_DB
+            host=MYSQL_HOST, user=MYSQL_USER, password=MYSQL_PASSWD, db=MYSQL_DB
         )
         yield connection
     finally:
         if connection:
             connection.close()
             logger.debug("MySQL connection closed.")
+
 
 @asynccontextmanager
 async def get_mysql_cursor(connection):

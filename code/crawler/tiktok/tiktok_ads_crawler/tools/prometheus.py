@@ -1,10 +1,11 @@
-from prometheus_client import Gauge
+from prometheus_client import Gauge  # type: ignore
 
 from .logger import get_logger
 
 logger = get_logger(__name__, 20)
 
 active_crawl_jobs_gauge = Gauge("active_crawl_jobs", "Number of active jobs")
+
 
 async def update_metrics():
     from repositories import select_crawl_history_by_crawl_status
