@@ -265,7 +265,7 @@ async def crawl_tiktok_business(
             float(report.get("spend", 0)) for report in all_enriched_reports
         )
     except Exception as e:
-        logger.error(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="Internal Server Error",

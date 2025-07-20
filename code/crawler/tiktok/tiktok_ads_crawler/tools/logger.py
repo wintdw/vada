@@ -33,7 +33,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         return json.dumps(log_payload, ensure_ascii=False)
 
 
-def get_logger(name: str, level: int = logging.INFO):
+def get_logger(name: str, level: int = logging.DEBUG):
     """Returns a structured JSON logger with GMT+7 timestamps."""
     logger = logging.getLogger(name)
     logger.setLevel(level)
