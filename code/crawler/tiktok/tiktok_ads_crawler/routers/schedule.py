@@ -1,6 +1,7 @@
 from fastapi import APIRouter  # type: ignore
 from datetime import datetime, timedelta
 from prometheus_client import Counter  # type: ignore
+import asyncio
 
 from tools import get_logger
 from models import CrawlHistory, CrawlInfoResponse
@@ -32,16 +33,13 @@ async def post_schedule_crawl(crawl_id: str = ""):
     )
     from handlers.tiktok import crawl_tiktok_business
 
-    try:
-        crawl_info = await select_crawl_info_by_next_crawl_time()
+    async def crawl_one(item):
         history_id = None
-
-        for item in crawl_info:
+        try:
             crawl_history = await insert_crawl_history(
                 CrawlHistory(crawl_id=item.crawl_id)
             )
             logger.info(crawl_history)
-
             history_id = crawl_history.history_id
 
             tiktok_ad_crawl.labels(
@@ -49,24 +47,43 @@ async def post_schedule_crawl(crawl_id: str = ""):
             ).inc()
 
             if not item.last_crawl_time:
-                # Crawl 1 year of data, split into 7-day chunks
+                # Crawl 1 year of data, split into 7-day chunks, run at most 3 at once
                 start_date = datetime.now() - timedelta(days=365)
                 end_date = datetime.now()
                 chunk = timedelta(days=7)
                 current_start = start_date
 
+                semaphore = asyncio.Semaphore(3)
+                chunk_tasks = []
+
+                async def chunk_crawl(start, end):
+                    async with semaphore:
+                        crawl_response = await crawl_tiktok_business(
+                            item.index_name,
+                            item.access_token,
+                            start.strftime("%Y-%m-%d"),
+                            end.strftime("%Y-%m-%d"),
+                        )
+                        logger.info(
+                            f"Crawled from {start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}: {crawl_response}"
+                        )
+                        return crawl_response
+
                 while current_start < end_date:
                     current_end = min(current_start + chunk, end_date)
-                    crawl_response = await crawl_tiktok_business(
-                        item.index_name,
-                        item.access_token,
-                        current_start.strftime("%Y-%m-%d"),
-                        current_end.strftime("%Y-%m-%d"),
-                    )
-                    logger.info(
-                        f"Crawled from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response}"
+                    chunk_tasks.append(
+                        asyncio.create_task(chunk_crawl(current_start, current_end))
                     )
                     current_start = current_end
+
+                chunk_results = await asyncio.gather(
+                    *chunk_tasks, return_exceptions=True
+                )
+                for idx, result in enumerate(chunk_results):
+                    if isinstance(result, Exception):
+                        logger.error(f"Chunk {idx} failed: {result}")
+                    else:
+                        logger.info(f"Chunk {idx} result: {result}")
             else:
                 crawl_response = await crawl_tiktok_business(
                     item.index_name,
@@ -98,14 +115,21 @@ async def post_schedule_crawl(crawl_id: str = ""):
                 ),
             )
             logger.info(crawl_history)
+        except Exception as e:
+            await update_crawl_history(
+                history_id,
+                CrawlHistory(
+                    crawl_id=item.crawl_id, crawl_status="failed", crawl_error=str(e)
+                ),
+            )
+            logger.error(f"Crawl failed for {item.crawl_id}: {e}")
 
+    try:
+        crawl_info = await select_crawl_info_by_next_crawl_time()
+        tasks = [asyncio.create_task(crawl_one(item)) for item in crawl_info]
+        await asyncio.gather(*tasks)
     except Exception as e:
-        crawl_history = await update_crawl_history(
-            history_id,
-            CrawlHistory(crawl_id=crawl_id, crawl_status="failed", crawl_error=str(e)),
-        )
-        logger.error(crawl_history)
-
+        logger.error(f"Error in post_schedule_crawl: {e}")
     finally:
         return CrawlInfoResponse(status=200, message="Success")
 
