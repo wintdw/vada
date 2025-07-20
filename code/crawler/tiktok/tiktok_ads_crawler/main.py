@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import FastAPI  # type: ignore
 
-from routers import connector
+from routers import connector, health
 from tools.logger import get_logger
 from schedulers.main import init_scheduler
 
@@ -10,6 +10,7 @@ logger = get_logger(__name__)
 
 app = FastAPI()
 app.include_router(connector.router)
+app.include_router(health.router)
 
 
 async def init_scheduler_background():
