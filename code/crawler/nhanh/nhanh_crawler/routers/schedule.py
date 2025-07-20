@@ -37,33 +37,57 @@ async def post_schedule_crawl(index_name: str = None):
             nhanh_platform_crawl.labels(index_name=item.index_name, business_id=item.business_id).inc()
 
             if not item.last_crawl_time:
-                # First crawl - get last 30 days of data
-                crawl_response = await crawl_nhanh_data(
-                    item.index_name,
-                    item.business_id,
-                    item.access_token, 
-                    (datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d'), 
-                    datetime.now().strftime('%Y-%m-%d')
-                )
-                logger.info(crawl_response)
-                crawl_response = await crawl_nhanh_data(
-                    item.index_name,
-                    item.business_id,
-                    item.access_token, 
-                    (datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d'), 
-                    (datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d'), 
-                )
-                logger.info(crawl_response)
-                crawl_response = await crawl_nhanh_data(
-                    item.index_name,
-                    item.business_id,
-                    item.access_token, 
-                    (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), 
-                    (datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d'), 
-                )
-                logger.info(crawl_response)
+                # First crawl - get last 360 days of data
+                date_ranges = [
+                    (0, 10),
+                    (11, 20),
+                    (21, 30),
+                    (31, 40),
+                    (41, 50),
+                    (51, 60),
+                    (61, 70),
+                    (71, 80),
+                    (81, 90),
+                    (91, 100),
+                    (101, 110),
+                    (111, 120),
+                    (121, 130),
+                    (131, 140),
+                    (141, 150),
+                    (151, 160),
+                    (161, 170),
+                    (171, 180),
+                    (181, 190),
+                    (191, 200),
+                    (201, 210),
+                    (211, 220),
+                    (221, 230),
+                    (231, 240),
+                    (241, 250),
+                    (251, 260),
+                    (261, 270),
+                    (271, 280),
+                    (281, 290),
+                    (291, 300),
+                    (301, 310),
+                    (311, 320),
+                    (321, 330),
+                    (331, 340),
+                    (341, 350),
+                    (351, 360)
+                ]
+
+                for start_offset, end_offset in date_ranges:
+                    crawl_response = await crawl_nhanh_data(
+                        item.index_name,
+                        item.business_id,
+                        item.access_token,
+                        (datetime.now() - timedelta(days=end_offset)).strftime('%Y-%m-%d'),
+                        (datetime.now() - timedelta(days=start_offset)).strftime('%Y-%m-%d')
+                    )
+                    logger.info(crawl_response)
             else:   
-                # Subsequent crawls - get last 2 days of data
+                # Subsequent crawls - get last 0 days of data
                 crawl_response = await crawl_nhanh_data(
                     item.index_name,
                     item.business_id,
