@@ -6,7 +6,7 @@ from tools import get_logger
 from models import CrawlHistory, CrawlInfoResponse
 
 router = APIRouter()
-logger = get_logger(__name__, 20)
+logger = get_logger(__name__, level=10)  # 10 is logging.DEBUG
 
 tiktok_ad_crawl = Counter(
     "tiktok_ad_crawl",
@@ -34,6 +34,7 @@ async def post_schedule_crawl(crawl_id: str = ""):
 
     try:
         crawl_info = await select_crawl_info_by_next_crawl_time()
+        logger.info(f"Processing crawl info: {crawl_info}")
         history_id = None
 
         for item in crawl_info:

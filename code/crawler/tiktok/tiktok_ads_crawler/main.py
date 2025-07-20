@@ -18,34 +18,13 @@ from routers import (
 app = FastAPI()
 
 
-@app.on_event("startup")
 @repeat_every(seconds=60)  # Executes every 1 minute, do not overlap
 async def periodic_task():
     from routers.schedule import post_schedule_auth, post_schedule_crawl
 
-    # Clean up completed tasks
-    if hasattr(app.state, "bg_tasks"):
-        app.state.bg_tasks = [task for task in app.state.bg_tasks if not task.done()]
-    else:
-        app.state.bg_tasks = []
-
-    auth_task = asyncio.create_task(post_schedule_auth())
-    crawl_task = asyncio.create_task(post_schedule_crawl())
-
-    app.state.bg_tasks.extend([auth_task, crawl_task])
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    # Cancel and await all background tasks
-    if hasattr(app.state, "bg_tasks"):
-        for task in app.state.bg_tasks:
-            task.cancel()
-        for task in app.state.bg_tasks:
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+    # This will take long for new crawl
+    await post_schedule_auth()
+    await post_schedule_crawl()
 
 
 @app.get("/health")
