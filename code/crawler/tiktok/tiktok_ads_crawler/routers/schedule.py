@@ -6,7 +6,7 @@ from tools import get_logger
 from models import CrawlHistory, CrawlInfoResponse
 
 router = APIRouter()
-logger = get_logger(__name__, 10)
+logger = get_logger(__name__, 20)
 
 tiktok_ad_crawl = Counter(
     "tiktok_ad_crawl",
