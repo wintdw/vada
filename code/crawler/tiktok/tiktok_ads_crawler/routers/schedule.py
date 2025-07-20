@@ -49,13 +49,24 @@ async def post_schedule_crawl(crawl_id: str = ""):
             ).inc()
 
             if not item.last_crawl_time:
-                crawl_response = await crawl_tiktok_business(
-                    item.index_name,
-                    item.access_token,
-                    (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d"),
-                    datetime.now().strftime("%Y-%m-%d"),
-                )
-                logger.info(crawl_response)
+                # Crawl 1 year of data, split into 7-day chunks
+                start_date = datetime.now() - timedelta(days=365)
+                end_date = datetime.now()
+                chunk = timedelta(days=7)
+                current_start = start_date
+
+                while current_start < end_date:
+                    current_end = min(current_start + chunk, end_date)
+                    crawl_response = await crawl_tiktok_business(
+                        item.index_name,
+                        item.access_token,
+                        current_start.strftime("%Y-%m-%d"),
+                        current_end.strftime("%Y-%m-%d"),
+                    )
+                    logger.info(
+                        f"Crawled from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response}"
+                    )
+                    current_start = current_end
             else:
                 crawl_response = await crawl_tiktok_business(
                     item.index_name,
