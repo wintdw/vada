@@ -21,20 +21,23 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         user_info = await tiktok_biz_get_user_info(access_token=access_token)
         logger.info(user_info)
 
+        account_id = user_info["core_user_id"]
+        account_name = user_info["display_name"]
+        index_name = f"data_tiktokad_{account_id}"
+        friendly_index_name = f"Tiktok Ads - {account_name}"
+
         crawl_info = await set_crawl_info(
-            account_id=user_info["core_user_id"],
+            account_id=account_id,
             vada_uid=state,
-            account_name=user_info["display_name"],
-            index_name=f"data_tiktokad_{user_info['core_user_id']}",
+            account_name=account_name,
+            index_name=index_name,
             access_token=access_token,
             crawl_interval=1440,
         )
         logger.info(crawl_info)
 
-        friendly_index_name = f"Tiktok Ads - {user_info['display_name']}"
-
         return RedirectResponse(
-            url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={user_info['core_user_id']}&account_name={crawl_info.account_name}&index_name={crawl_info.index_name}&friendly_index_name={friendly_index_name}"
+            url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={account_id}&account_name={account_name}&index_name={index_name}&friendly_index_name={friendly_index_name}"
         )
     except Exception as e:
         logger.error(f"Error during TikTok Ads callback: {e}", exc_info=True)
