@@ -34,15 +34,15 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
 
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
-    """Returns a structured JSON logger with GMT+7 timestamps."""
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
     # Prevent duplicate handlers
-    if not logger.hasHandlers():
+    if not logger.handlers:
         log_handler = logging.StreamHandler(sys.stdout)
         log_formatter = CustomJsonFormatter()
         log_handler.setFormatter(log_formatter)
         logger.addHandler(log_handler)
+        logger.propagate = False  # <--- Add this line
 
     return logger

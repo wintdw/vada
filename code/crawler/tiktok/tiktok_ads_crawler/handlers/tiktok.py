@@ -38,7 +38,7 @@ async def crawl_tiktok_business(
         all_enriched_reports = []
 
         for idx, advertiser in enumerate(advertisers, 1):
-            logger.info(
+            logger.debug(
                 f"Processing advertiser {idx}/{total_advertisers} - ID: {advertiser['advertiser_id']}"
             )
 
