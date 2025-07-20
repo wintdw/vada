@@ -92,7 +92,9 @@ async def select_crawl_history() -> list[CrawlHistory]:
             return [CrawlHistory.model_validate(result) for result in results]
 
 
-async def update_crawl_history(history_id: str, crawl_history: CrawlHistory) -> CrawlHistory:
+async def update_crawl_history(
+    history_id: str, crawl_history: CrawlHistory
+) -> CrawlHistory:
     async with get_mysql_connection() as connection:
         async with get_mysql_cursor(connection) as cursor:
             await cursor.execute(

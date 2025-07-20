@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel  # type: ignore
 from datetime import datetime
+
 
 class CrawlHistory(BaseModel):
     history_id: str | None = None
@@ -9,6 +10,7 @@ class CrawlHistory(BaseModel):
     crawl_error: str = ""
     crawl_duration: int = 0
     crawl_data_number: int = 0
+
 
 class CrawlHistoryResponse(BaseModel):
     status: int
