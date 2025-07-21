@@ -68,11 +68,10 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
 
         enriched_record_data = add_insert_metadata(batch, index_name)
         response = await send_to_insert_service(enriched_record_data)
-        status = response.get("status", "unknown")
-        detail = response.get("detail", "")
-        if status != "success":
+        status = response.get("status", 0)
+        if status != 200:
             logging.error(
-                f"Batch {current_batch}/{total_batches} failed - Status: {status} - Detail: {detail}"
+                f"Batch {current_batch}/{total_batches} failed - Status: {status} - Detail: {response.get('detail', '')}"
             )
         last_response = response
 

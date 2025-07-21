@@ -17,6 +17,8 @@ services:
     secrets:
       - mysql_crawler
     environment:
+      LOG_LEVEL: 20   # INFO
+
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler
       MYSQL_DB: crawler_dev
