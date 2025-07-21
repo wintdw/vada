@@ -49,7 +49,7 @@ async def add_shopee_shop_crawl_job(
     index_name: str,
     job_id: str,
     vada_uid: str,
-    account_id: str,
+    account_id: int,
     account_name: str,
     crawl_interval: int,
 ):

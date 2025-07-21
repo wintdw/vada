@@ -14,10 +14,14 @@ async def scheduled_fetch_all_orders(
     end_date: str = "",
     index_name: str = "",
     vada_uid: str = "",
-    account_id: str = "",
+    account_id: int = 0,
     account_name: str = "",
 ) -> List[Dict]:
-    shop_info = await get_authorized_shop(access_token)
+    shop_info = await get_authorized_shop(
+            access_token,
+            account_id
+        )
+    
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
 
     # end_date shoud be the next day
@@ -33,17 +37,20 @@ async def scheduled_fetch_all_orders(
         "Fetching orders from %s to %s for shop ID: %s",
         start_date,
         end_date,
-        shop_info["id"],
+        shop_info["shop_name"],
+        account_id,
     )
-    order_reponse = await get_order_list(
-        access_token=access_token,
-        shop_cipher=shop_info["cipher"],
-        create_time_ge=create_time_ge,
-        create_time_lt=create_time_lt,
-    )
-    logging.info(order_reponse)
 
-    orders = order_reponse.get("orders", [])
+    order_response = await get_order_list(
+        access_token=access_token,
+        shop_id=account_id,
+        create_time_from=create_time_ge,
+        create_time_to=create_time_lt,
+    )
+
+    logging.info(order_response)
+
+    orders = order_response.get("orders", [])
 
     # Fetch order details for all orders
     if not orders:

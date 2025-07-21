@@ -1,15 +1,11 @@
 import logging
-from typing import Dict
 
 from fastapi import APIRouter, Query  # type: ignore
 from fastapi.responses import RedirectResponse  # type: ignore
 
 from model.setting import settings
-from handler.auth import get_tokens
 from handler.shop_apis import get_authorized_shop
 from handler.mysql import set_crawl_info
-import hashlib
-import urllib.parse
 
 from utils import generate_shopee_auth_url, get_access_token
 
@@ -20,9 +16,9 @@ router = APIRouter()
 async def get_auth_url(
     vada_uid: str = Query(..., description="Vada UID requesting the authorization")
 ) -> RedirectResponse:
-    redirect_url = "http://localhost:8148/ingest/partner/shopee/callback"
+    redirect_url = f"http://localhost:8148/ingest/partner/shopee/callback?vada_uid={vada_uid}"
     custom_params = {
-        "state": vada_uid,
+        "vada_uid": vada_uid,
     }
     auth_url = generate_shopee_auth_url(
         redirect_url=redirect_url,
@@ -37,7 +33,7 @@ async def get_auth_url(
 async def get_auth(
     code: str = Query(..., description="Authorization code from TikTok Shop"),
     shop_id: int = Query(..., description="Shop Id from TikTok Shop"),
-    # state: str = Query(..., description="Vada UID requesting the authorization"),
+    vada_uid: str = Query(..., description="Vada UID requesting the authorization"),
 ) -> RedirectResponse:
     try:
         tokens = await get_access_token(code, shop_id)
@@ -53,7 +49,7 @@ async def get_auth(
             f"Shoping: {shop_info}"
         )
         
-        account_id = shop_info["shop_name"]
+        account_id = shop_id
         account_name = shop_info["shop_name"]
         index_name = f"data_shopee_shop_{account_id}"
         friendly_index_name = f"Shopee - {account_id}"
@@ -63,7 +59,7 @@ async def get_auth(
         await set_crawl_info(
             account_id=account_id,
             account_name=account_name,
-            vada_uid='123123123123123',
+            vada_uid=vada_uid,
             index_name=index_name,
             crawl_type="shopee_shop",
             access_token=tokens["access_token"],
@@ -71,7 +67,7 @@ async def get_auth(
             crawl_interval=240,  # 2 hours
         )
 
-        fe_redirect_url = f"{settings.SHOPEE_SHOP_AUTH_CALLBACK}?account_id={account_id}&account_name={account_name}&index_name={index_name}&friendly_index_name={friendly_index_name}"
+        fe_redirect_url = f"{settings.SHOPEE_SHOP_AUTH_CALLBACK}?account_id={account_id}&account_name={account_name}&index_name={index_name}&friendly_index_name={friendly_index_name}&vada_uid={vada_uid}"
         return RedirectResponse(url=fe_redirect_url, status_code=302)
 
     except Exception as e:

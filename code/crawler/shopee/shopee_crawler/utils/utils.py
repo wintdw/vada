@@ -35,6 +35,22 @@ def _generate_signature_shop(
 
     return hmac.new(partner_key, base_string.encode(), hashlib.sha256).hexdigest()
 
+def generate_partner_signature(
+    path: str,
+    timestamp: int,
+    access_token: str,
+    shop_id: int
+) -> str:
+
+    partner_id = str(settings.SHOPEE_PARTNER_ID)
+    partner_key = settings.SHOPEE_PARTNER_KEY.encode()
+    base_string = f"{partner_id}{path}{timestamp}{access_token}{shop_id}"
+
+    logging.info(f"[Shopee Signature - Order v2] Base string: {base_string}")
+
+    return hmac.new(partner_key, base_string.encode(), hashlib.sha256).hexdigest()
+
+
 def _get_domain(sandbox: bool) -> str:
     return "partner.test-stable.shopeemobile.com" if sandbox else "partner.shopeemobile.com"
 
@@ -91,4 +107,30 @@ async def get_access_token(
             resp.raise_for_status()
             return await resp.json()
 
+async def refresh_access_token(
+    refresh_token: str,
+    sandbox: bool = True
+):
+    path = "/api/v2/auth/access_token/get"
+    timestamp = int(time.time())
+    sign = _generate_signature(path, timestamp)
+    domain = _get_domain(sandbox)
 
+    query = {
+        "partner_id": settings.SHOPEE_PARTNER_ID,
+        "timestamp": timestamp,
+        "sign": sign
+    }
+
+    url = f"https://{domain}{path}?{urllib.parse.urlencode(query)}"
+
+    payload = {
+        "refresh_token": refresh_token,
+        "partner_id": settings.SHOPEE_PARTNER_ID
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload) as resp:
+            resp.raise_for_status()
+            new_tokens = await resp.json()
+            return new_tokens

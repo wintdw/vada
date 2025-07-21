@@ -2,205 +2,144 @@ import aiohttp  # type: ignore
 import time
 import json
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from utils import generate_partner_signature
 
 from model.setting import settings
-from .sign import cal_sign
-
 
 async def get_order_list(
     access_token: str,
-    shop_cipher: str,
-    create_time_ge: int,
-    create_time_lt: int,
+    shop_id: int,
+    create_time_from: int,
+    create_time_to: int,
     page_size: int = 100,
 ) -> Dict[str, Any]:
-    """
-    Fetch the order list from the new TikTok Shop API (202309 version) with paging.
-    """
-    api_version = "202309"
-    path = f"/order/{api_version}/orders/search"
+    path = "/api/v2/order/get_order_list"
     base_url = f"{settings.SHOPEE_OPEN_API_BASEURL}{path}"
 
     all_orders = []
-    page_token = ""
+    cursor = ""
 
     async with aiohttp.ClientSession() as session:
         while True:
             timestamp = int(time.time())
 
-            # Prepare query parameters
-            query_params = {
-                # "app_key": settings.SHOPEE_APP_KEY,
-                "shop_cipher": shop_cipher,
+            query = {
+                "partner_id": settings.SHOPEE_PARTNER_ID,
                 "timestamp": timestamp,
+                "access_token": access_token,
+                "shop_id": shop_id,
+            }
+
+            sign = generate_partner_signature(
+                path=path,
+                timestamp=timestamp,
+                access_token=access_token,
+                shop_id=shop_id
+            )
+            query["sign"] = sign
+
+            body = {
+                "time_range_field": "create_time",
+                "time_from": create_time_from,
+                "time_to": create_time_to,
                 "page_size": page_size,
             }
 
-            if page_token:
-                query_params["page_token"] = page_token
-
-            # JSON body (filter conditions)
-            payload = {
-                "create_time_ge": create_time_ge,
-                "create_time_lt": create_time_lt,
-                # "update_time_ge": create_time_ge,  # Optional
-                # "update_time_lt": create_time_lt,  # Optional
-                # "shipping_type": "TIKTOK",        # Optional
-                # "buyer_user_id": "7213489962827123654",  # Optional
-                # "is_buyer_request_cancel": False,
-                # "warehouse_ids": ["7000714532876273888", "7000714532876273666"]
-            }
-
-            # Sign calculation
-            query_params["sign"] = cal_sign(
-                path=path,
-                params=query_params,
-                app_secret=settings.TIKTOK_SHOP_APP_SECRET,
-                body=json.dumps(payload).encode("utf-8"),
-                content_type="application/json",
-            )
-
-            headers = {
-                "x-tts-access-token": access_token,
-                "content-type": "application/json",
-            }
+            if cursor:
+                body["cursor"] = cursor
 
             async with session.post(
-                base_url, params=query_params, json=payload, headers=headers
+                base_url, params=query, json=body, headers={"Content-Type": "application/json"}
             ) as response:
                 data = await response.json()
-                logging.info(f"Response: {data}")
+                logging.info(f"[Shopee] Order List Response: {data}")
 
-                if data.get("code") == 0:
-                    orders = data["data"]["orders"]
+                if data.get("error") == 0:
+                    orders = data["response"]["order_list"]
                     all_orders.extend(orders)
-
-                    page_token = data["data"].get("next_page_token")
-                    if page_token:
-                        logging.info(
-                            f"More orders available, next page_token: {page_token}"
-                        )
-                    else:
-                        logging.info("No more orders available.")
+                    cursor = data["response"].get("next_cursor")
+                    if not cursor:
                         break
                 else:
-                    raise Exception(f"Error: {data.get('message')}")
+                    raise Exception(f"[Shopee] API error: {data.get('message')}")
 
     return {"total": len(all_orders), "orders": all_orders}
 
 
 async def get_order_detail(
     access_token: str,
-    shop_cipher: str,
-    order_ids: List[str],
-    chunk_size: int = 40,
-) -> List[Dict]:
-    """
-    Fetch order details using the new TikTok Shop API (202309 version).
-    Supports chunking for large order lists.
-    """
-    api_version = "202309"
-    path = f"/order/{api_version}/orders"
+    shop_id: int,
+    order_sn_list: List[str],
+) -> Dict[str, Any]:
+    path = "/api/v2/order/get_order_detail"
     base_url = f"{settings.SHOPEE_OPEN_API_BASEURL}{path}"
+    timestamp = int(time.time())
 
-    all_order_details: List[Dict] = []
+    query = {
+        "partner_id": settings.SHOPEE_PARTNER_ID,
+        "timestamp": timestamp,
+        "access_token": access_token,
+        "shop_id": shop_id,
+    }
 
-    # Break the order_id_list into chunks
-    total_chunks = (len(order_ids) + chunk_size - 1) // chunk_size
-    logging.info(f"Total chunks to process: {total_chunks}")
+    sign = generate_partner_signature(
+        path=path,
+        timestamp=timestamp,
+        access_token=access_token,
+        shop_id=shop_id
+    )
+    query["sign"] = sign
+
+    body = {
+        "order_sn_list": order_sn_list
+    }
 
     async with aiohttp.ClientSession() as session:
-        for chunk_index, i in enumerate(range(0, len(order_ids), chunk_size), start=1):
-            chunk = order_ids[i : i + chunk_size]
-            ids_str = ",".join(chunk)
-            timestamp = int(time.time())
-
-            query_params = {
-                # "app_key": settings.SHOPEE_APP_KEY,
-                "shop_cipher": shop_cipher,
-                "timestamp": timestamp,
-                "ids": ids_str,
-            }
-
-            # Sign calculation (no body, GET request)
-            query_params["sign"] = cal_sign(
-                path=path,
-                params=query_params,
-                app_secret=settings.TIKTOK_SHOP_APP_SECRET,
-                content_type="application/json",
-            )
-
-            headers = {
-                "x-tts-access-token": access_token,
-                "content-type": "application/json",
-            }
-
-            logging.info(f"Fetching order detail chunk {chunk_index}/{total_chunks}.")
-
-            async with session.get(
-                base_url, params=query_params, headers=headers
-            ) as response:
-                data = await response.json()
-                # logging.info(f"Response for chunk {chunk_index}: {data}")
-
-                if data.get("code") == 0:
-                    all_order_details.extend(data["data"]["orders"])
-                else:
-                    logging.error(
-                        f"Error fetching order details for chunk {chunk_index}: {data.get('message')}",
-                        exc_info=True,
-                    )
-                    raise Exception(f"Error: {data.get('message')}")
-
-    logging.info(f"Finished processing all {total_chunks} chunks.")
-    return all_order_details
+        async with session.post(
+            base_url, params=query, json=body, headers={"Content-Type": "application/json"}
+        ) as response:
+            data = await response.json()
+            if data.get("error") == 0:
+                return data["response"]
+            else:
+                raise Exception(f"[Shopee] Order detail error: {data.get('message')}")
 
 
 async def get_price_detail(
     access_token: str,
-    shop_cipher: str,
-    order_id: str,
-) -> Dict:
-    """
-    Fetch price detail of a specific order using TikTok Shop API (202407 version).
-    """
-    api_version = "202407"
-    path = f"/order/{api_version}/orders/{order_id}/price_detail"
+    shop_id: int,
+    order_sn: str,
+) -> Dict[str, Any]:
+    path = f"/api/v2/order/get_invoice_info"
     base_url = f"{settings.SHOPEE_OPEN_API_BASEURL}{path}"
     timestamp = int(time.time())
 
-    # Prepare query parameters
-    query_params = {
-        "app_key": settings.SHOPEE_APP_KEY,
+    query = {
+        "partner_id": settings.SHOPEE_PARTNER_ID,
         "timestamp": timestamp,
-        "shop_cipher": shop_cipher,
+        "access_token": access_token,
+        "shop_id": shop_id,
     }
 
-    # Sign calculation (GET request, no body)
-    query_params["sign"] = cal_sign(
+    sign = generate_partner_signature(
         path=path,
-        params=query_params,
-        app_secret=settings.TIKTOK_SHOP_APP_SECRET,
-        content_type="application/json",
+        timestamp=timestamp,
+        access_token=access_token,
+        shop_id=shop_id
     )
+    query["sign"] = sign
 
-    headers = {
-        "x-tts-access-token": access_token,
-        "content-type": "application/json",
+    body = {
+        "order_sn": order_sn
     }
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-            base_url, params=query_params, headers=headers
+        async with session.post(
+            base_url, params=query, json=body, headers={"Content-Type": "application/json"}
         ) as response:
             data = await response.json()
-
-            if data.get("code") == 0:
-                return data["data"]
+            if data.get("error") == 0:
+                return data["response"]
             else:
-                logging.error(
-                    f"Failed to fetch price detail for order {order_id}: {data}",
-                    exc_info=True,
-                )
-                raise Exception(f"Error: {data.get('message')}")
+                raise Exception(f"[Shopee] Price detail error: {data.get('message')}")

@@ -74,7 +74,7 @@ async def get_crawl_info(crawl_type: str) -> List[Dict]:
 
 
 async def set_crawl_info(
-    account_id: str,
+    account_id: int,
     vada_uid: str,
     account_name: str = "",
     index_name: str = "",

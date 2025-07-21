@@ -1,14 +1,14 @@
 import logging
 
-from handler.auth import refresh_tokens
 from handler.mysql import set_crawl_info
+from utils import refresh_access_token
 
 
-async def scheduled_refresh_token(refresh_token: str, vada_uid: str, account_id: str):
+async def scheduled_refresh_token(refresh_token: str, vada_uid: str, account_id: int):
     """Job to refresh the token"""
     try:
         logging.info("Refreshing token...")
-        new_tokens = await refresh_tokens(refresh_token)
+        new_tokens = await refresh_access_token(refresh_token)
         logging.info(f"New tokens: {new_tokens}")
         # Save the new tokens (e.g., to a database or file)
         crawl_info = await set_crawl_info(

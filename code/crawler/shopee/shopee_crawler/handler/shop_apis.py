@@ -1,14 +1,11 @@
-import urllib
+import urllib.parse
 import aiohttp  # type: ignore
 import time
-import json
 import logging
-from typing import Dict
 from model.setting import settings
 
 from model.setting import settings
 from utils.utils import _generate_signature_shop, _get_domain
-from .sign import cal_sign
 
 
 async def get_authorized_shop(
