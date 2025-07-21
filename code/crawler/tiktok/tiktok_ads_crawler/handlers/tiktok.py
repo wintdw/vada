@@ -60,7 +60,6 @@ async def crawl_tiktok_business(
             )
             total_reports = len(reports)
             logger.debug(f"  → Found {total_reports} reports for this advertiser")
-            logger.debug(reports)
 
             for report_idx, report in enumerate(reports, 1):
                 logger.debug(f"  → Processing report {report_idx}/{total_reports}")
