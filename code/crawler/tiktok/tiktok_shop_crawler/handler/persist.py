@@ -54,8 +54,7 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
         enriched_record = enrich_record(record, doc_id)
         enriched_records.append(enriched_record)
 
-    # Send in batches of 1000
-    batch_size = 1000
+    batch_size = 300
     total_records = len(enriched_records)
     total_batches = (total_records + batch_size - 1) // batch_size
     last_response = {}
