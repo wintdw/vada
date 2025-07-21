@@ -1,9 +1,9 @@
 import time
 import uuid
 import asyncio
+import traceback
 
 from datetime import datetime
-from fastapi import HTTPException  # type: ignore
 
 from tools.logger import get_logger, request_id
 from .enrichment import construct_detailed_report, enrich_report
@@ -128,7 +128,7 @@ async def crawl_tiktok_business(
 
         # Log the response from the insert service
         logger.debug(
-            f"Send {total_reports} reports to Datastore: {send_batches['status']} - {send_batches.get('detail', '')}"
+            f"Send {total_reports} reports to Datastore: {send_batches.get('status', '')} - {send_batches.get('detail', '')}"
         )
 
         end_time = time.time()
@@ -138,18 +138,18 @@ async def crawl_tiktok_business(
         total_spend = sum(
             float(report.get("spend", 0)) for report in all_enriched_reports
         )
-    except Exception as e:
-        logger.error(f"Error occurred: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Internal Server Error",
-        )
 
-    return {
-        "status": "success",
-        "execution_time": execution_time,
-        "total_reports": total_reports,
-        "total_spend": round(total_spend, 2),
-        "date_start": start_date,
-        "date_end": end_date,
-    }
+        return {
+            "status": "success",
+            "request_id": req_id,
+            "execution_time": execution_time,
+            "total_reports": total_reports,
+            "total_spend": round(total_spend, 2),
+            "date_start": start_date,
+            "date_end": end_date,
+        }
+    except Exception as e:
+        logger.error(
+            f"Error occurred: {e} | Traceback: {traceback.format_exc()}", exc_info=True
+        )
+        return {"status": "failure", "request_id": req_id}
