@@ -47,6 +47,6 @@ def get_logger(name: str) -> logging.Logger:
         log_formatter = CustomJsonFormatter()
         log_handler.setFormatter(log_formatter)
         logger.addHandler(log_handler)
-        logger.propagate = False  # <--- Add this line
+        # logger.propagate = False  # <--- Add this line
 
     return logger
