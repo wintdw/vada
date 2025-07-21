@@ -26,13 +26,11 @@ async def add_tiktok_ad_crawl_job(
                 f"[First Crawl] Processing job for: {account_name} with crawl_id: {crawl_id}"
             )
             # Split 1-year crawl into 12 jobs of 1 month each
-            asyncio.create_task(
-                crawl_first_tiktok_ad(
-                    crawl_id=crawl_id,
-                    access_token=access_token,
-                    index_name=index_name,
-                    crawl_interval=crawl_interval,
-                )
+            await crawl_first_tiktok_ad(
+                crawl_id=crawl_id,
+                access_token=access_token,
+                index_name=index_name,
+                crawl_interval=crawl_interval,
             )
 
         # The regular job will crawl T-1 -> T0 with 2h interval
