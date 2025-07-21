@@ -1,4 +1,5 @@
 import aiohttp  # type: ignore
+import logging
 from typing import Dict, List
 
 from model.setting import settings
@@ -31,19 +32,18 @@ async def send_to_insert_service(data: Dict) -> Dict:
 
 ### The main function to process and send records
 async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
-    """Produce data to insert service
+    """Produce data to insert service in batches of 1000
 
     Args:
         raw_data: List of data to be processed and sent
 
     Returns:
-        Dict: Response from insert service
+        Dict: Last response from insert service
     """
 
     # Enrich each record with metadata
     enriched_records = []
     for record in raw_data:
-        # Create unique doc ID using create_time, id, and user_id
         doc_id = ".".join(
             [
                 str(record.get("create_time", "")),
@@ -54,10 +54,26 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
         enriched_record = enrich_record(record, doc_id)
         enriched_records.append(enriched_record)
 
-    # Add insert metadata wrapper
-    enriched_record_data = add_insert_metadata(enriched_records, index_name)
+    # Send in batches of 1000
+    batch_size = 1000
+    total_records = len(enriched_records)
+    total_batches = (total_records + batch_size - 1) // batch_size
+    last_response = {}
 
-    # Send to insert service
-    response = await send_to_insert_service(enriched_record_data)
+    logging.info(f"Sending {total_batches} batches to insert service")
 
-    return response
+    for i in range(0, total_records, batch_size):
+        batch = enriched_records[i : i + batch_size]
+        current_batch = i // batch_size + 1
+
+        enriched_record_data = add_insert_metadata(batch, index_name)
+        response = await send_to_insert_service(enriched_record_data)
+        status = response.get("status", "unknown")
+        detail = response.get("detail", "")
+        if status != "success":
+            logging.error(
+                f"Batch {current_batch}/{total_batches} failed - Status: {status} - Detail: {detail}"
+            )
+        last_response = response
+
+    return last_response

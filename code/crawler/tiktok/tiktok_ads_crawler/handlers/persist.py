@@ -31,6 +31,8 @@ async def send_batch(batch_report: List, index_name: str) -> Dict:
     total_batches = (total_reports + batch_size - 1) // batch_size
     last_response = {}
 
+    logger.info(f"Sending {total_batches} batches to insert service")
+
     for i in range(0, total_reports, batch_size):
         batch = batch_report[i : i + batch_size]
         current_batch = i // batch_size + 1

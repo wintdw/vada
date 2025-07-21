@@ -19,7 +19,7 @@ async def add_tiktok_shop_first_crawl_jobs(
     """Split the first 1-year crawl into jobs, each handling 7 days."""
     now = datetime.now()
     days_in_year = 365
-    window = 7
+    window = 30
     num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
     for i in range(num_jobs):
         start_date = (now - timedelta(days=days_in_year - i * window)).strftime(

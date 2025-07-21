@@ -24,10 +24,10 @@ async def crawl_first_tiktok_ad(
             current_start.strftime("%Y-%m-%d"),
             current_end.strftime("%Y-%m-%d"),
         )
-        current_start = current_end
         logger.info(
             f"[First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response}"
         )
+        current_start = current_end
 
     await update_crawl_time(crawl_id, crawl_interval)
 
