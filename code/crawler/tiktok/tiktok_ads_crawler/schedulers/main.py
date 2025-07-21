@@ -2,8 +2,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from tools.logger import get_logger
-from .crawl import crawl_first_tiktok_ad, crawl_daily_tiktok_ad
 from repositories.crawl_info import get_crawl_info
+from .crawl import crawl_first_tiktok_ad, crawl_daily_tiktok_ad
 
 logger = get_logger(__name__)
 
@@ -15,9 +15,13 @@ async def add_tiktok_ad_crawl_job(
     access_token: str,
     index_name: str,
     crawl_interval: int,
-    account_name: str = "",  # For logging purpose
+    account_name: str,  # For logging purpose
     first_crawl: bool = True,  # Whether to start the crawl immediately
 ):
+    """Add a TikTok Ad crawl job to the scheduler.
+    If first_crawl is True, it will crawl the first year of data.
+    Otherwise, it will set up a regular job to crawl daily data.
+    """
     try:
         if first_crawl:
             logger.info(
@@ -68,8 +72,6 @@ async def init_scheduler():
         current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in crawl_infos:
-            logger.info(f"Processing crawl: {info}")
-
             crawl_id = info["crawl_id"]
             account_name = info["account_name"]
             index_name = info["index_name"]

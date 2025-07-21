@@ -17,7 +17,7 @@ services:
     secrets:
       - mysql_crawler_prod
     environment:
-      LOG_LEVEL: 10
+      LOG_LEVEL: 20   # INFO
 
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler_prod
