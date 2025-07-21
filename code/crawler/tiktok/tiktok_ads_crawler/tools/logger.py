@@ -1,9 +1,13 @@
-import logging
 import sys
 import json
-from pythonjsonlogger import jsonlogger  # type: ignore
-from datetime import datetime, timezone, timedelta
 import contextvars
+import logging
+
+from datetime import datetime, timezone, timedelta
+from pythonjsonlogger import jsonlogger  # type: ignore
+
+from models.settings import settings
+
 
 # Define GMT+7 timezone
 GMT_PLUS_7 = timezone(timedelta(hours=7))
@@ -33,9 +37,9 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         return json.dumps(log_payload, ensure_ascii=False)
 
 
-def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
+def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(level)
+    logger.setLevel(settings.LOG_LEVEL)
 
     # Prevent duplicate handlers
     if not logger.handlers:

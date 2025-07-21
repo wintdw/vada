@@ -2,7 +2,7 @@ from prometheus_client import Gauge  # type: ignore
 
 from .logger import get_logger
 
-logger = get_logger(__name__, 20)
+logger = get_logger(__name__)
 
 active_crawl_jobs_gauge = Gauge("active_crawl_jobs", "Number of active jobs")
 

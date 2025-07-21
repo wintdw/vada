@@ -17,6 +17,8 @@ services:
     secrets:
       - mysql_crawler_prod
     environment:
+      LOG_LEVEL: 10
+
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler_prod
       MYSQL_DB: crawler_prod
@@ -28,7 +30,6 @@ services:
       TIKTOK_BIZ_REDIRECT_URI: https://api-app.vadata.vn/ingest/partner/tiktok/ad/callback
 
       INSERT_SERVICE_URL: http://insert-app.internal.vadata.vn
-      
       CONNECTOR_CALLBACK_URL: https://app.vadata.vn/callback.html
 
   tiktok_shop_crawler:
