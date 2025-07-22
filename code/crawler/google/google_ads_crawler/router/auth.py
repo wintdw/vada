@@ -132,11 +132,9 @@ async def auth_callback(code: str, state: str, flows: Dict = Depends(get_flows))
         index_name = f"data_ggad_{user_info['id']}"
         crawl_info = await set_crawl_info(
             account_id=account_id,
-            account_name=account_name,
             vada_uid=vada_uid,
+            account_name=account_name,
             index_name=index_name,
-            crawl_type="google_ad",
-            access_token="",
             refresh_token=refresh_token,
             crawl_interval=120,
         )

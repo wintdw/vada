@@ -1,35 +1,37 @@
 import logging
+import asyncio
 from datetime import datetime, timedelta
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.report import fetch_google_reports
 from handler.mysql import get_crawl_info
+from .crawl import crawl_new_client
 
 
 async def add_google_ad_crawl_job(
     scheduler: AsyncIOScheduler,
+    job_id: str,
+    crawl_id: str,
     refresh_token: str,
     index_name: str,
-    job_id: str,
     vada_uid: str,
     account_name: str,
     crawl_interval: int,
+    first_crawl: bool = False,  # Whether to start the crawl immediately
 ):
-    now = datetime.now().strftime("%Y-%m-%d")
-    thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-
     try:
-        # Crawl immediately for the first time
-        await fetch_google_reports(
-            refresh_token=refresh_token,
-            start_date=thirty_days_ago,
-            end_date=now,
-            persist=True,
-            index_name=index_name,
-            vada_uid=vada_uid,
-            account_name=account_name,
-        )
+        if first_crawl:
+            # Crawl immediately for the first time
+            await crawl_new_client(
+                crawl_id=crawl_id,
+                refresh_token=refresh_token,
+                index_name=index_name,
+                vada_uid=vada_uid,
+                account_name=account_name,
+                crawl_interval=crawl_interval,
+            )
 
         # The first job will crawl T-1 -> T0 with 2h interval
         scheduler.add_job(
@@ -41,6 +43,10 @@ async def add_google_ad_crawl_job(
                 "index_name": index_name,
                 "vada_uid": vada_uid,
                 "account_name": account_name,
+                "start_date": (datetime.now() - timedelta(days=1))
+                .date()
+                .strftime("%Y-%m-%d"),
+                "end_date": datetime.now().date().strftime("%Y-%m-%d"),
             },
             id=job_id,
             name=f"Fetch Google Ads Reports for Account: {account_name}, Index: {index_name} every {crawl_interval} minutes",
@@ -64,7 +70,8 @@ async def init_scheduler():
 
     async def update_jobs():
         # Fetch Google Ad crawl info
-        google_ad_info = await get_crawl_info("google_ad")
+        google_ad_info = await get_crawl_info()
+        tasks = []
         current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in google_ad_info:
@@ -74,47 +81,28 @@ async def init_scheduler():
             index_name = info["index_name"]
             refresh_token = info["refresh_token"]
             crawl_interval = info["crawl_interval"]
+            last_crawl_time = info["last_crawl_time"]
+            first_crawl = True
+            if last_crawl_time:
+                first_crawl = False
 
-            job_id = f"fetch_google_reports_job_{crawl_id}"
-            existing_job = scheduler.get_job(job_id)
+            job_id = f"fetch_gga_reports_job_{crawl_id}"
 
-            # Check if the job already exists
-            if existing_job:
-                # Check if any parameters have changed
-                existing_trigger = existing_job.trigger
-                existing_kwargs = existing_job.kwargs
-
-                if (
-                    existing_kwargs["index_name"] != index_name
-                    or existing_kwargs["refresh_token"] != refresh_token
-                    or existing_trigger.interval.total_seconds() != crawl_interval * 60
-                ):
-                    # Update the job with new parameters
-                    await add_google_ad_crawl_job(
+            tasks.append(
+                asyncio.create_task(
+                    add_google_ad_crawl_job(
                         scheduler=scheduler,
+                        job_id=job_id,
+                        crawl_id=crawl_id,
                         refresh_token=refresh_token,
                         index_name=index_name,
-                        job_id=job_id,
                         vada_uid=vada_uid,
                         account_name=account_name,
                         crawl_interval=crawl_interval,
+                        first_crawl=first_crawl,
                     )
-                # job unchanged
-                else:
-                    logging.info(
-                        f"[Scheduler] Job for Account: {account_name}, Index: {index_name} is unchanged. Skipping update."
-                    )
-            else:
-                # Add a new job
-                await add_google_ad_crawl_job(
-                    scheduler=scheduler,
-                    refresh_token=refresh_token,
-                    index_name=index_name,
-                    job_id=job_id,
-                    vada_uid=vada_uid,
-                    account_name=account_name,
-                    crawl_interval=crawl_interval,
                 )
+            )
 
             # Remove the old job from current_jobs
             if job_id in current_jobs:
@@ -128,6 +116,10 @@ async def init_scheduler():
                 logging.info(
                     f"[Scheduler] Removed Google Ads Reports job with ID: {job_id} as it is no longer valid"
                 )
+
+        # Wait for all add_google_ad_crawl_job tasks to finish
+        if tasks:
+            await asyncio.gather(*tasks)
 
     # Schedule the update_jobs function to run every 1m
     scheduler.add_job(

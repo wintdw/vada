@@ -3,8 +3,8 @@ import logging
 import asyncio  # Add this import at the top
 from fastapi import FastAPI  # type: ignore
 
-from router import auth, account, report, metric, config
-from scheduler.get_reports import init_scheduler
+from router import auth, report, metric, config
+from scheduler.main import init_scheduler
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
@@ -19,7 +19,6 @@ flows = {}
 
 app.include_router(config.router)
 app.include_router(auth.router)
-app.include_router(account.router)
 app.include_router(report.router)
 app.include_router(metric.router)
 

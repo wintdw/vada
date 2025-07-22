@@ -9,6 +9,38 @@ from handler.order_apis import get_order_list
 from handler.persist import post_processing
 
 
+async def crawl_new_client(
+    crawl_id: str,
+    access_token: str,
+    index_name: str,
+    crawl_interval: int,
+):
+    """Split the first 1-year crawl into jobs, each handling 7 days."""
+    now = datetime.now()
+    days_in_year = 365
+    window = 30
+    num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
+    for i in range(num_jobs):
+        start_date = (now - timedelta(days=days_in_year - i * window)).strftime(
+            "%Y-%m-%d"
+        )
+        # For the last job, end_date is tomorrow; otherwise, it's the end of the window
+        if i < num_jobs - 1:
+            end_date = (now - timedelta(days=days_in_year - (i + 1) * window)).strftime(
+                "%Y-%m-%d"
+            )
+        else:
+            end_date = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+        await scheduled_fetch_all_orders(
+            crawl_id=crawl_id,
+            access_token=access_token,
+            index_name=index_name,
+            crawl_interval=crawl_interval,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+
 async def scheduled_fetch_all_orders(
     crawl_id: str,
     access_token: str,

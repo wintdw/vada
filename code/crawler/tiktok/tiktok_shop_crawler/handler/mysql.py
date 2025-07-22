@@ -21,8 +21,8 @@ async def get_mysql_connection():
         yield connection
     finally:
         if connection:
-            connection.close()
-            logging.debug("MySQL connection closed.")
+            await connection.ensure_closed()
+            logging.debug("MySQL connection closed")
 
 
 @asynccontextmanager

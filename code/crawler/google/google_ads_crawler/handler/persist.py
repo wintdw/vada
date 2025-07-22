@@ -1,3 +1,4 @@
+import logging
 import aiohttp  # type: ignore
 from typing import Dict, List
 
@@ -33,13 +34,13 @@ async def send_to_insert_service(data: Dict, insert_service_baseurl: str) -> Dic
 
 ### The main function to process and send reports
 async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
-    """Produce data to insert service
+    """Produce data to insert service in batches of 1000
 
     Args:
         raw_reports: List of report data to be processed and sent
 
     Returns:
-        Dict: Response from insert service
+        Dict: Last response from insert service
     """
 
     # Enrich each report with metadata
@@ -58,12 +59,24 @@ async def post_processing(raw_reports: List[Dict], index_name: str) -> Dict:
         enriched_report = enrich_report(report, index_name, doc_id)
         enriched_reports.append(enriched_report)
 
-    # Add insert metadata wrapper
-    enriched_report_data = add_insert_metadata(enriched_reports, index_name)
+    batch_size = 1000
+    total_reports = len(enriched_reports)
+    total_batches = (total_reports + batch_size - 1) // batch_size
+    last_response = {}
 
-    # Send to insert service
-    response = await send_to_insert_service(
-        enriched_report_data, settings.INSERT_SERVICE_BASEURL
-    )
+    for i in range(0, total_reports, batch_size):
+        batch = enriched_reports[i : i + batch_size]
+        current_batch = i // batch_size + 1
 
-    return response
+        enriched_report_data = add_insert_metadata(batch, index_name)
+        response = await send_to_insert_service(
+            enriched_report_data, settings.INSERT_SERVICE_BASEURL
+        )
+        status = response.get("status", 0)
+        if status != 200:
+            logging.error(
+                f"Batch {current_batch}/{total_batches} failed - Status: {status} - Detail: {response.get('detail', '')}"
+            )
+        last_response = response
+
+    return last_response
