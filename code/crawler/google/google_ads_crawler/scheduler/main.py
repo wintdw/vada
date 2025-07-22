@@ -56,9 +56,6 @@ async def add_google_ad_crawl_job(
         )
         # We may create another job for crawling ealier T with longer interval
 
-        logging.info(
-            f"[Scheduler] Added Google Ads Reports job for Account: {account_name}, Index: {index_name} every {crawl_interval} minutes"
-        )
     except Exception as e:
         logging.error(
             f"[Scheduler] Error adding Google Ads Reports job for Account: {account_name}, Index: {index_name}: {str(e)}"

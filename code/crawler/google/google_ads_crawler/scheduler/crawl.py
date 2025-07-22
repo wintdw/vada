@@ -19,6 +19,9 @@ async def crawl_new_client(
     current_start = start_date
 
     try:
+        logging.info(
+            f"[Scheduler] Starting initial crawl for {account_name} from {current_start.strftime('%Y-%m-%d')} to {now.strftime('%Y-%m-%d')}"
+        )
         # Crawl 1 year of data in 12 monthly jobs
         while current_start < now:
             current_end = min(current_start + chunk, now)
