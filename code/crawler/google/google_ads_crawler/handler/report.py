@@ -230,6 +230,8 @@ async def fetch_google_reports(
         ga_client, start_date, end_date, customer_ads_accounts
     )
 
+    logging.info(f"Returning {len(ad_reports)} reports")
+
     # Process and send reports to insert service if any ads
     if ad_reports:
         if persist and index_name:
@@ -259,7 +261,6 @@ async def fetch_google_reports(
             "reports": ad_reports,
         },
     }
-    logging.info(f"Returning {len(ad_reports)} reports")
 
     # Prometheus metrics
     google_ad_crawl_success.labels(account_name=account_name, vada_uid=vada_uid).inc()
