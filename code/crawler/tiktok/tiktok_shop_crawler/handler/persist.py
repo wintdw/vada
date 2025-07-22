@@ -59,7 +59,9 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
     total_batches = (total_records + batch_size - 1) // batch_size
     last_response = {}
 
-    logging.info(f"Sending {total_batches} batches to insert service")
+    logging.info(
+        f"Sending {total_records} records in {total_batches} batches to insert service"
+    )
 
     for i in range(0, total_records, batch_size):
         batch = enriched_records[i : i + batch_size]

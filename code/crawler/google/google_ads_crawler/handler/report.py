@@ -235,7 +235,8 @@ async def fetch_google_reports(
         if persist and index_name:
             insert_response = await post_processing(ad_reports, index_name)
             logging.info(
-                "Sending to Insert service. Index: %s. Response: %s",
+                "Sending %d records to Insert service. Index: %s. Response: %s",
+                len(ad_reports),
                 index_name,
                 insert_response,
             )

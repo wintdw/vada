@@ -1,7 +1,6 @@
 import aiohttp  # type: ignore
 import time
 import json
-import logging
 from typing import Dict
 
 from model.setting import settings
