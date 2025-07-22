@@ -1,3 +1,5 @@
+import asyncio
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
@@ -69,6 +71,7 @@ async def init_scheduler():
     async def update_jobs():
         # Fetch crawl info specific to TikTok Shop
         crawl_infos = await get_crawl_info()
+        tasks = []
         current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
         for info in crawl_infos:
@@ -84,9 +87,8 @@ async def init_scheduler():
 
             job_id = f"crawl_tta_{crawl_id}"
 
-            # New crawl job
-            if job_id not in current_jobs:
-                await add_tiktok_ad_crawl_job(
+            tasks.append(
+                add_tiktok_ad_crawl_job(
                     scheduler=scheduler,
                     job_id=job_id,
                     crawl_id=crawl_id,
@@ -96,7 +98,9 @@ async def init_scheduler():
                     account_name=account_name,
                     first_crawl=first_crawl,
                 )
-            else:
+            )
+
+            if job_id in current_jobs:
                 del current_jobs[job_id]
 
         # Remove jobs that are no longer in the crawl_info
@@ -106,6 +110,10 @@ async def init_scheduler():
                 logger.info(
                     f"[Scheduler] Removed TikTokAd job_id '{left_job_id}' as it is no longer valid"
                 )
+
+        # Wait for all add_google_ad_crawl_job tasks to finish
+        if tasks:
+            await asyncio.gather(*tasks)
 
     # Schedule the update_jobs function to run every 1m
     scheduler.add_job(
