@@ -18,7 +18,7 @@ async def add_tiktok_ad_crawl_job(
     index_name: str,
     crawl_interval: int,
     account_name: str,  # For logging purpose
-    first_crawl: bool = True,  # Whether to start the crawl immediately
+    first_crawl: bool = False,  # Whether to start the crawl immediately
 ):
     """Add a TikTok Ad crawl job to the scheduler.
     If first_crawl is True, it will crawl the first year of data.
@@ -81,9 +81,9 @@ async def init_scheduler():
             access_token = info["access_token"]
             crawl_interval = info["crawl_interval"]
             last_crawl_time = info["last_crawl_time"]
-            first_crawl = True
-            if last_crawl_time:
-                first_crawl = False
+            first_crawl = False
+            if not last_crawl_time:
+                first_crawl = True
 
             job_id = f"crawl_tta_{crawl_id}"
 

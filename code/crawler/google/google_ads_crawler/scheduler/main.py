@@ -79,9 +79,9 @@ async def init_scheduler():
             refresh_token = info["refresh_token"]
             crawl_interval = info["crawl_interval"]
             last_crawl_time = info["last_crawl_time"]
-            first_crawl = True
-            if last_crawl_time:
-                first_crawl = False
+            first_crawl = False
+            if not last_crawl_time:
+                first_crawl = True
 
             job_id = f"fetch_gga_reports_job_{crawl_id}"
 

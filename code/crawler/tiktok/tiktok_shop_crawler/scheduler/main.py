@@ -17,7 +17,7 @@ async def add_tiktok_shop_crawl_job(
     index_name: str,
     crawl_interval: int,
     account_name: str = "",  # For logging purpose
-    first_crawl: bool = True,  # Whether to start the crawl immediately
+    first_crawl: bool = False,  # Whether to start the crawl immediately
 ):
     try:
         if first_crawl:
@@ -78,9 +78,9 @@ async def init_scheduler():
             refresh_token_expiry = info["refresh_token_expiry"]
             crawl_interval = info["crawl_interval"]
             last_crawl_time = info["last_crawl_time"]
-            first_crawl = True
-            if last_crawl_time:
-                first_crawl = False
+            first_crawl = False
+            if not last_crawl_time:
+                first_crawl = True
 
             job_id = f"crawl_order_{crawl_id}"
 
