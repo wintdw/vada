@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     MYSQL_HOST: str
     MYSQL_USER: str
     MYSQL_DB: str
-    MYSQL_PASSWD: str
     MYSQL_PASSWD_FILE: str
 
     INSERT_SERVICE_BASEURL: str

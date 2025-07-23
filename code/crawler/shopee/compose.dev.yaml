@@ -12,6 +12,8 @@ services:
     restart: always
     ports:
       - "8150:8150"
+    secrets:
+      - mysql_crawler
     environment:
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler
