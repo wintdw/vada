@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     MYSQL_USER: str
     MYSQL_DB: str
     MYSQL_PASSWD: str
+    MYSQL_PASSWD_FILE: str
 
     INSERT_SERVICE_BASEURL: str
 
@@ -21,5 +22,13 @@ class Settings(BaseSettings):
     SHOPEE_AUTH_LINK: str
     SHOPEE_SHOP_AUTH_CALLBACK: str
     SHOPEE_OPEN_API_BASEURL: str
+
+    @property
+    def MYSQL_PASSWD(self) -> str:
+        if self.MYSQL_PASSWD_FILE and os.path.isfile(self.MYSQL_PASSWD_FILE):
+            with open(self.MYSQL_PASSWD_FILE, "r") as file:
+                return file.read().strip()
+        else:
+            raise ValueError("MYSQL_PASSWD_FILE is not set or file does not exist.")
 
 settings = Settings()
