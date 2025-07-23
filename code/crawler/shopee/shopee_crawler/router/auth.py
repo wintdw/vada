@@ -16,7 +16,8 @@ router = APIRouter()
 async def get_auth_url(
     vada_uid: str = Query(..., description="Vada UID requesting the authorization")
 ) -> RedirectResponse:
-    redirect_url = f"http://localhost:8148/ingest/partner/shopee/callback?vada_uid={vada_uid}"
+    redirect_url = f"{settings.API_BASE_URL}/ingest/partner/shopee/callback?vada_uid={vada_uid}"
+
     custom_params = {
         "vada_uid": vada_uid,
     }

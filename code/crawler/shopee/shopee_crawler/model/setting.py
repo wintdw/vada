@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     SHOPEE_PARTNER_ID: int
     SHOPEE_PARTNER_KEY: str
-    
+    API_BASE_URL: str
     
     SHOPEE_AUTH_BASEURL: str
     SHOPEE_AUTH_LINK: str
