@@ -31,16 +31,6 @@ async def add_google_ad_crawl_job(
                 crawl_interval=crawl_interval,
             )
 
-        # QUICK FIX: Run crawl_daily immediately
-        await crawl_daily(
-            crawl_id=crawl_id,
-            refresh_token=refresh_token,
-            index_name=index_name,
-            vada_uid=vada_uid,
-            account_name=account_name,
-            crawl_interval=crawl_interval,
-        )
-
         scheduler.add_job(
             crawl_daily,
             trigger=IntervalTrigger(minutes=crawl_interval),
@@ -82,29 +72,48 @@ async def init_scheduler():
             refresh_token = info["refresh_token"]
             crawl_interval = info["crawl_interval"]
             last_crawl_time = info["last_crawl_time"]
-            first_crawl = False
-            if not last_crawl_time:
-                first_crawl = True
+            first_crawl = not last_crawl_time
 
             job_id = f"fetch_gga_reports_job_{crawl_id}"
 
-            tasks.append(
-                asyncio.create_task(
-                    add_google_ad_crawl_job(
-                        scheduler=scheduler,
-                        job_id=job_id,
-                        crawl_id=crawl_id,
-                        refresh_token=refresh_token,
-                        index_name=index_name,
-                        vada_uid=vada_uid,
-                        account_name=account_name,
-                        crawl_interval=crawl_interval,
-                        first_crawl=first_crawl,
+            job = scheduler.get_job(job_id)
+            should_update = True
+            if job:
+                job_refresh_token = job.kwargs.get("refresh_token")
+                job_crawl_interval = (
+                    job.trigger.interval.total_seconds() // 60
+                    if hasattr(job.trigger, "interval")
+                    else None
+                )
+                # Only update if refresh_token or crawl_interval changed
+                if (
+                    job_refresh_token == refresh_token
+                    and job_crawl_interval == crawl_interval
+                ):
+                    should_update = False
+
+            if should_update:
+                tasks.append(
+                    asyncio.create_task(
+                        add_google_ad_crawl_job(
+                            scheduler=scheduler,
+                            job_id=job_id,
+                            crawl_id=crawl_id,
+                            refresh_token=refresh_token,
+                            index_name=index_name,
+                            vada_uid=vada_uid,
+                            account_name=account_name,
+                            crawl_interval=crawl_interval,
+                            first_crawl=first_crawl,
+                        )
                     )
                 )
-            )
+            else:
+                logging.info(
+                    f"[Scheduler] Google Ads Reports job for Account: {account_name}, Index: {index_name} already exists and is up-to-date."
+                )
 
-            # Remove the old job from current_jobs
+            # Remove the old job from current_jobs if it was processed
             if job_id in current_jobs:
                 del current_jobs[job_id]
 
