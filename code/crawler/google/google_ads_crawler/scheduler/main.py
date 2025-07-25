@@ -5,9 +5,8 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
-from handler.report import fetch_google_reports
 from handler.mysql import get_crawl_info
-from .crawl import crawl_new_client
+from .crawl import crawl_new_client, crawl_daily
 
 
 async def add_google_ad_crawl_job(
@@ -19,11 +18,10 @@ async def add_google_ad_crawl_job(
     vada_uid: str,
     account_name: str,
     crawl_interval: int,
-    first_crawl: bool = False,  # Whether to start the crawl immediately
+    first_crawl: bool = False,
 ):
     try:
         if first_crawl:
-            # Crawl immediately for the first time
             await crawl_new_client(
                 crawl_id=crawl_id,
                 refresh_token=refresh_token,
@@ -33,20 +31,26 @@ async def add_google_ad_crawl_job(
                 crawl_interval=crawl_interval,
             )
 
-        # The first job will crawl T-1 -> T0 with 2h interval
+        # QUICK FIX: Run crawl_daily immediately
+        await crawl_daily(
+            crawl_id=crawl_id,
+            refresh_token=refresh_token,
+            index_name=index_name,
+            vada_uid=vada_uid,
+            account_name=account_name,
+            crawl_interval=crawl_interval,
+        )
+
         scheduler.add_job(
-            fetch_google_reports,
+            crawl_daily,
             trigger=IntervalTrigger(minutes=crawl_interval),
             kwargs={
+                "crawl_id": crawl_id,
                 "refresh_token": refresh_token,
-                "persist": True,
                 "index_name": index_name,
                 "vada_uid": vada_uid,
                 "account_name": account_name,
-                "start_date": (datetime.now() - timedelta(days=1))
-                .date()
-                .strftime("%Y-%m-%d"),
-                "end_date": datetime.now().date().strftime("%Y-%m-%d"),
+                "crawl_interval": crawl_interval,
             },
             id=job_id,
             name=f"Fetch Google Ads Reports for Account: {account_name}, Index: {index_name} every {crawl_interval} minutes",
@@ -54,7 +58,6 @@ async def add_google_ad_crawl_job(
             misfire_grace_time=30,
             max_instances=1,
         )
-        # We may create another job for crawling ealier T with longer interval
 
     except Exception as e:
         logging.error(

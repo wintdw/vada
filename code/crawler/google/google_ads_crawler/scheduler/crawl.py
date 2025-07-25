@@ -46,3 +46,37 @@ async def crawl_new_client(
             f"[Scheduler] Error during initial crawl for {account_name}: {str(e)}",
             exc_info=True,
         )
+
+
+async def crawl_daily(
+    crawl_id: str,
+    refresh_token: str,
+    index_name: str,
+    vada_uid: str,
+    account_name: str,
+    crawl_interval: int,
+):
+    try:
+        now = datetime.now()
+        start_date = (now - timedelta(days=3)).strftime("%Y-%m-%d")
+        end_date = now.strftime("%Y-%m-%d")
+        logging.info(
+            f"[Scheduler] Starting daily crawl for {account_name} from {start_date} to {end_date}"
+        )
+        await fetch_google_reports(
+            refresh_token=refresh_token,
+            start_date=start_date,
+            end_date=end_date,
+            persist=True,
+            index_name=index_name,
+            vada_uid=vada_uid,
+            account_name=account_name,
+        )
+        logging.info(f"[Scheduler] daily crawl for {account_name} completed.")
+
+        await update_crawl_time(crawl_id, crawl_interval)
+    except Exception as e:
+        logging.error(
+            f"[Scheduler] Error during daily crawl for {account_name}: {str(e)}",
+            exc_info=True,
+        )
