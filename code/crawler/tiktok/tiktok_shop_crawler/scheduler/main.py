@@ -85,31 +85,28 @@ async def init_scheduler():
             job_id = f"crawl_order_{crawl_id}"
 
             # --- Check and refresh token if needed ---
-            new_refresh_token = await scheduled_refresh_token(
+            new_tokens = await scheduled_refresh_token(
                 crawl_id=crawl_id,
                 refresh_token=refresh_token,
                 access_token_expiry=access_token_expiry,
                 refresh_token_expiry=refresh_token_expiry,
             )
-            if new_refresh_token:
-                refresh_token = new_refresh_token
+            if new_tokens:
+                access_token = new_tokens["access_token"]
 
             job = scheduler.get_job(job_id)
             should_update = False
             # job exists
             if job:
-                job_refresh_token = job.kwargs.get("refresh_token")
+                job_access_token = job.kwargs.get("access_token")
                 job_crawl_interval = (
                     job.trigger.interval.total_seconds() // 60
                     if hasattr(job.trigger, "interval")
                     else None
                 )
-                logging.info(
-                    f"Current job {job_id} has refresh_token: {job_refresh_token}, crawl_interval: {job_crawl_interval}, {refresh_token}, {crawl_interval}"
-                )
                 # Only update if refresh_token or crawl_interval changed
                 if (
-                    job_refresh_token != refresh_token
+                    job_access_token != access_token
                     or job_crawl_interval != crawl_interval
                 ):
                     should_update = True
