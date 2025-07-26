@@ -85,12 +85,14 @@ async def init_scheduler():
             job_id = f"crawl_order_{crawl_id}"
 
             # --- Check and refresh token if needed ---
-            await scheduled_refresh_token(
+            new_refresh_token = await scheduled_refresh_token(
                 crawl_id=crawl_id,
                 refresh_token=refresh_token,
                 access_token_expiry=access_token_expiry,
                 refresh_token_expiry=refresh_token_expiry,
             )
+            if new_refresh_token:
+                refresh_token = new_refresh_token
 
             job = scheduler.get_job(job_id)
             should_update = False
@@ -101,6 +103,9 @@ async def init_scheduler():
                     job.trigger.interval.total_seconds() // 60
                     if hasattr(job.trigger, "interval")
                     else None
+                )
+                logging.info(
+                    f"Current job {job_id} has refresh_token: {job_refresh_token}, crawl_interval: {job_crawl_interval}, {refresh_token}, {crawl_interval}"
                 )
                 # Only update if refresh_token or crawl_interval changed
                 if (
@@ -137,7 +142,7 @@ async def init_scheduler():
                     f"[Scheduler] Removed TikTokShop job_id '{left_job_id}' as it is no longer valid"
                 )
 
-        # Wait for all add_google_ad_crawl_job tasks to finish
+        # Wait for all add_tiktok_shop_crawl_job tasks to finish
         if tasks:
             await asyncio.gather(*tasks)
 

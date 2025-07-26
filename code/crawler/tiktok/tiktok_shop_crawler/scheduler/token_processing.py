@@ -1,4 +1,5 @@
 import logging
+from typing import Dict
 
 from handler.auth import refresh_tokens, check_days_left_to_expiry
 from handler.mysql import update_crawl_token
@@ -11,7 +12,7 @@ async def scheduled_refresh_token(
     refresh_token: str,
     access_token_expiry: int,
     refresh_token_expiry: int,
-):
+) -> str:
     """Job to refresh the token if it's close to expiry"""
     try:
         access_days_left = check_days_left_to_expiry(access_token_expiry)
@@ -38,5 +39,8 @@ async def scheduled_refresh_token(
             )
             logging.info(f"Updated crawl info: {crawl_info}")
 
+            return new_tokens["refresh_token"]
+        return refresh_token
     except Exception as e:
         logging.error(f"Failed to refresh token: {e}", exc_info=True)
+        return ""
