@@ -92,19 +92,39 @@ async def init_scheduler():
                 refresh_token_expiry=refresh_token_expiry,
             )
 
-            # New crawl job
-            tasks.append(
-                add_tiktok_shop_crawl_job(
-                    scheduler=scheduler,
-                    job_id=job_id,
-                    crawl_id=crawl_id,
-                    access_token=access_token,
-                    index_name=index_name,
-                    crawl_interval=crawl_interval,
-                    account_name=account_name,
-                    first_crawl=first_crawl,
+            job = scheduler.get_job(job_id)
+            should_update = False
+            # job exists
+            if job:
+                job_refresh_token = job.kwargs.get("refresh_token")
+                job_crawl_interval = (
+                    job.trigger.interval.total_seconds() // 60
+                    if hasattr(job.trigger, "interval")
+                    else None
                 )
-            )
+                # Only update if refresh_token or crawl_interval changed
+                if (
+                    job_refresh_token != refresh_token
+                    or job_crawl_interval != crawl_interval
+                ):
+                    should_update = True
+            # new job
+            else:
+                should_update = True
+
+            if should_update:
+                tasks.append(
+                    add_tiktok_shop_crawl_job(
+                        scheduler=scheduler,
+                        job_id=job_id,
+                        crawl_id=crawl_id,
+                        access_token=access_token,
+                        index_name=index_name,
+                        crawl_interval=crawl_interval,
+                        account_name=account_name,
+                        first_crawl=first_crawl,
+                    )
+                )
 
             if job_id in current_jobs:
                 del current_jobs[job_id]
