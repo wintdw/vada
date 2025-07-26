@@ -77,7 +77,8 @@ async def init_scheduler():
             job_id = f"fetch_gga_reports_job_{crawl_id}"
 
             job = scheduler.get_job(job_id)
-            should_update = True
+            should_update = False
+            # job exists
             if job:
                 job_refresh_token = job.kwargs.get("refresh_token")
                 job_crawl_interval = (
@@ -87,10 +88,13 @@ async def init_scheduler():
                 )
                 # Only update if refresh_token or crawl_interval changed
                 if (
-                    job_refresh_token == refresh_token
-                    and job_crawl_interval == crawl_interval
+                    job_refresh_token != refresh_token
+                    or job_crawl_interval != crawl_interval
                 ):
-                    should_update = False
+                    should_update = True
+            # new job
+            else:
+                should_update = True
 
             if should_update:
                 tasks.append(

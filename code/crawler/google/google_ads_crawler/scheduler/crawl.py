@@ -58,7 +58,7 @@ async def crawl_daily(
 ):
     try:
         now = datetime.now()
-        start_date = (now - timedelta(days=3)).strftime("%Y-%m-%d")
+        start_date = (now - timedelta(days=1)).strftime("%Y-%m-%d")
         end_date = now.strftime("%Y-%m-%d")
         logging.info(
             f"[Scheduler] Starting daily crawl for {account_name} from {start_date} to {end_date}"
