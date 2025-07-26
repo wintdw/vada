@@ -59,80 +59,85 @@ async def init_scheduler():
     scheduler = AsyncIOScheduler()
 
     async def update_jobs():
-        # Fetch Google Ad crawl info
-        google_ad_info = await get_crawl_info()
-        tasks = []
-        current_jobs = {job.id: job for job in scheduler.get_jobs()}
+        try:
+            # Fetch Google Ad crawl info
+            google_ad_info = await get_crawl_info()
+            tasks = []
+            current_jobs = {job.id: job for job in scheduler.get_jobs()}
 
-        for info in google_ad_info:
-            crawl_id = info["crawl_id"]
-            vada_uid = info["vada_uid"]
-            account_name = info["account_name"]
-            index_name = info["index_name"]
-            refresh_token = info["refresh_token"]
-            crawl_interval = info["crawl_interval"]
-            last_crawl_time = info["last_crawl_time"]
-            first_crawl = not last_crawl_time
+            for info in google_ad_info:
+                crawl_id = info["crawl_id"]
+                vada_uid = info["vada_uid"]
+                account_name = info["account_name"]
+                index_name = info["index_name"]
+                refresh_token = info["refresh_token"]
+                crawl_interval = info["crawl_interval"]
+                last_crawl_time = info["last_crawl_time"]
+                first_crawl = not last_crawl_time
 
-            job_id = f"fetch_gga_reports_job_{crawl_id}"
+                job_id = f"fetch_gga_reports_job_{crawl_id}"
 
-            job = scheduler.get_job(job_id)
-            should_update = False
-            # job exists
-            if job:
-                job_refresh_token = job.kwargs.get("refresh_token")
-                job_crawl_interval = (
-                    job.trigger.interval.total_seconds() // 60
-                    if hasattr(job.trigger, "interval")
-                    else None
-                )
-                # Only update if refresh_token or crawl_interval changed
-                if (
-                    job_refresh_token != refresh_token
-                    or job_crawl_interval != crawl_interval
-                ):
+                job = scheduler.get_job(job_id)
+                should_update = False
+                # job exists
+                if job:
+                    job_refresh_token = job.kwargs.get("refresh_token")
+                    job_crawl_interval = (
+                        job.trigger.interval.total_seconds() // 60
+                        if hasattr(job.trigger, "interval")
+                        else None
+                    )
+                    # Only update if refresh_token or crawl_interval changed
+                    if (
+                        job_refresh_token != refresh_token
+                        or job_crawl_interval != crawl_interval
+                    ):
+                        should_update = True
+                # new job
+                else:
                     should_update = True
-            # new job
-            else:
-                should_update = True
 
-            if should_update:
-                tasks.append(
-                    asyncio.create_task(
-                        add_google_ad_crawl_job(
-                            scheduler=scheduler,
-                            job_id=job_id,
-                            crawl_id=crawl_id,
-                            refresh_token=refresh_token,
-                            index_name=index_name,
-                            vada_uid=vada_uid,
-                            account_name=account_name,
-                            crawl_interval=crawl_interval,
-                            first_crawl=first_crawl,
+                if should_update:
+                    tasks.append(
+                        asyncio.create_task(
+                            add_google_ad_crawl_job(
+                                scheduler=scheduler,
+                                job_id=job_id,
+                                crawl_id=crawl_id,
+                                refresh_token=refresh_token,
+                                index_name=index_name,
+                                vada_uid=vada_uid,
+                                account_name=account_name,
+                                crawl_interval=crawl_interval,
+                                first_crawl=first_crawl,
+                            )
                         )
                     )
-                )
-            else:
-                logging.info(
-                    f"[Scheduler] Google Ads Reports job for Account: {account_name}, Index: {index_name} already exists and is up-to-date."
-                )
+                else:
+                    logging.info(f"[Scheduler] Job {job_id} not updating")
 
-            # Remove the old job from current_jobs if it was processed
-            if job_id in current_jobs:
-                del current_jobs[job_id]
+                # Remove the old job from current_jobs if it was processed
+                if job_id in current_jobs:
+                    del current_jobs[job_id]
 
-        # Remove jobs that are no longer in the google_ad_info
-        for job_id in current_jobs:
-            # dont remove update_jobs
-            if job_id != "update_jobs":
-                scheduler.remove_job(job_id)
-                logging.info(
-                    f"[Scheduler] Removed Google Ads Reports job with ID: {job_id} as it is no longer valid"
-                )
+            # Remove jobs that are no longer in the google_ad_info
+            for job_id in current_jobs:
+                # dont remove update_jobs
+                if job_id != "update_jobs":
+                    scheduler.remove_job(job_id)
+                    logging.info(
+                        f"[Scheduler] Removed Job ID: {job_id} as it is no longer valid"
+                    )
 
-        # Wait for all add_google_ad_crawl_job tasks to finish
-        if tasks:
-            await asyncio.gather(*tasks)
+            # Wait for all add_google_ad_crawl_job tasks to finish
+            if tasks:
+                await asyncio.gather(*tasks)
+
+        except Exception as e:
+            logging.error(
+                f"[Scheduler] Error updating Google Ads Reports jobs: {str(e)}",
+                exc_info=True,
+            )
 
     # Schedule the update_jobs function to run every 1m
     scheduler.add_job(

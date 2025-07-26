@@ -121,6 +121,8 @@ async def init_scheduler():
                             first_crawl=first_crawl,
                         )
                     )
+                else:
+                    logger.info(f"[Scheduler] Job {job_id} not updating")
 
                 if job_id in current_jobs:
                     del current_jobs[job_id]
