@@ -19,7 +19,7 @@ async def crawl_new_client(
     """Split the first 1-year crawl into jobs, each handling 30 days (backward from now)."""
     now = datetime.now()
     days_in_year = 365
-    window = 2
+    window = 1
     num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
 
     for i in range(num_jobs):
