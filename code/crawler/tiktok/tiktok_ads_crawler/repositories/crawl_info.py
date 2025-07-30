@@ -14,7 +14,7 @@ async def insert_crawl_info(
     account_name: str,
     index_name: str,
     access_token: str,
-    crawl_interval: int = 1440,
+    crawl_interval: int,
 ) -> Dict:
     """
     Inserts a new record into the TTACrawlInfo table.
@@ -24,7 +24,7 @@ async def insert_crawl_info(
         INSERT INTO TTACrawlInfo (
             crawl_id, account_id, account_name, vada_uid, index_name, 
             access_token, crawl_interval, next_crawl_time
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW() + INTERVAL %s MINUTE)
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW() + INTERVAL %s MINUTE)
     """
 
     try:
