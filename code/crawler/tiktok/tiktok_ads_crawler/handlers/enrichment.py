@@ -55,7 +55,6 @@ def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
         "_vada": {
             "ingest": {
                 "destination": {"type": "elasticsearch", "index": index_name},
-                "vada_client_id": "a_quang_nguyen",
                 "doc_id": doc_id,
             }
         }

@@ -18,6 +18,9 @@ async def get_order_list(
     """
     Fetch the order list from the new TikTok Shop API (202309 version) with paging.
     Also enrich each line_item with product_detail.
+
+    Limitations:
+    - The API supports a maximum of 50 orders per page, 100 pages per request -> max 5k orders
     """
     api_version = "202309"
     path = f"/order/{api_version}/orders/search"
