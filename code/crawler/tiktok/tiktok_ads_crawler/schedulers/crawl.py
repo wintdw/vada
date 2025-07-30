@@ -10,14 +10,15 @@ logger = get_logger(__name__)
 async def crawl_first_tiktok_ad(
     crawl_id: str, access_token: str, index_name: str, crawl_interval: int
 ):
-    # Crawl 1 year of data, split into 30-day chunks
-    start_date = datetime.now() - timedelta(days=365)
+    # Crawl 1 year of data, split into 30-day chunks (from latest to oldest)
     end_date = datetime.now()
+    start_date = end_date - timedelta(days=365)
     chunk = timedelta(days=30)
-    current_start = start_date
+    current_end = end_date
 
-    while current_start < end_date:
-        current_end = min(current_start + chunk, end_date)
+    while current_end > start_date:
+        current_start = max(current_end - chunk, start_date)
+
         crawl_response = await crawl_tiktok_business(
             index_name,
             access_token,
@@ -27,7 +28,8 @@ async def crawl_first_tiktok_ad(
         logger.info(
             f"[First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response}"
         )
-        current_start = current_end
+
+        current_end = current_start  # move backward
 
     await update_crawl_time(crawl_id, crawl_interval)
 
