@@ -88,6 +88,7 @@ class AsyncESProcessor:
         mappings_props = mappings.get("mappings", {}).get("properties", {})
         mappings_props = remove_fields(mappings_props, ["_vada"])
         mappings["mappings"]["properties"] = mappings_props
+
         async with self.session.put(es_url, json=mappings, auth=self.auth) as response:
             if response.status == 200:
                 logging.info("Mappings set successfully: %s", mappings)
@@ -101,34 +102,37 @@ class AsyncESProcessor:
 
             return {"status": response.status, "detail": await response.json()}
 
+    async def create_index(self, index_name: str, mappings: Dict) -> Dict:
+        """Create an index with initial settings and mappings."""
+        await self._create_session()
+
+        # remove unnecessary meta field
+        mappings_props = mappings.get("mappings", {}).get("properties", {})
+        mappings_props = remove_fields(mappings_props, ["_vada"])
+        mappings["mappings"]["properties"] = mappings_props
+
+        body = {
+            "settings": {"index.mapping.ignore_malformed": True},
+            "mappings": mappings,
+        }
+
+        url = f"{self.es_baseurl}/{index_name}"
+        async with self.session.put(url, json=body, auth=self.auth) as response:
+            if response.status == 200:
+                logging.info("Index created successfully: %s", index_name)
+            else:
+                raise ESException(response.status, await response.text())
+            return {"status": response.status, "detail": await response.json()}
+
     async def create_mappings(self, index_name: str, mappings: Dict) -> Dict:
         """Create a new Elasticsearch index with mappings.
         If the index already exists, it will not be changed
         """
         if not await self.check_index_exists(index_name):
-            response = await self.set_mappings(index_name, mappings)
+            response = await self.create_index(index_name, mappings)
             return response
         else:
             return {"status": 204, "detail": "Index already exists"}
-
-    async def set_index_settings(self, index_name: str, settings: Dict) -> Dict:
-        """Set the index settings for a specific Elasticsearch index."""
-        es_url = f"{self.es_baseurl}/{index_name}/_settings"
-
-        await self._create_session()
-
-        async with self.session.put(es_url, json=settings, auth=self.auth) as response:
-            if response.status == 200:
-                logging.info("Index settings updated successfully: %s", settings)
-            else:
-                logging.error(
-                    "Failed to update index settings. Status: %s - %s",
-                    response.status,
-                    await response.text(),
-                )
-                raise ESException(response.status, await response.text())
-
-            return {"status": response.status, "detail": await response.json()}
 
     async def index_doc(self, index_name: str, doc: Dict, doc_id: str = None) -> Dict:
         """Send data to a specific Elasticsearch index."""

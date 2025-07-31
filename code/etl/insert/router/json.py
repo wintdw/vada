@@ -71,13 +71,6 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
                 detail=mappings_response["detail"],
             )
 
-        # Set index settings to ignore malformed fields
-        # This is useful for cases where the data might have unexpected formats
-        # that should not block the indexing process.
-        await es_processor.set_index_settings(
-            index_name, settings={"settings": {"index.mapping.ignore_malformed": True}}
-        )
-
         index_response = await es_processor.bulk_index_docs(
             index_name, json_converted_docs
         )
