@@ -61,10 +61,6 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
 
         logging.info("Field types: %s", field_types)
 
-        await es_processor.set_index_settings(
-            index_name, settings={"settings": {"index.mapping.ignore_malformed": True}}
-        )
-
         # Create index mappings if not exist
         mappings_response = await es_processor.create_mappings(index_name, mappings)
         if mappings_response["status"] > 400:
@@ -74,6 +70,13 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
                 status_code=500,
                 detail=mappings_response["detail"],
             )
+
+        # Set index settings to ignore malformed fields
+        # This is useful for cases where the data might have unexpected formats
+        # that should not block the indexing process.
+        await es_processor.set_index_settings(
+            index_name, settings={"settings": {"index.mapping.ignore_malformed": True}}
+        )
 
         index_response = await es_processor.bulk_index_docs(
             index_name, json_converted_docs
