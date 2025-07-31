@@ -1,12 +1,30 @@
+import re
 import time
 import logging
 
-from typing import Dict
+from typing import Dict, Any
 
 from .order import get_orders
 from .product import get_products
 
 
+def camel_to_snake(name: str) -> str:
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def convert_keys_to_snake_case(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {
+            camel_to_snake(k): convert_keys_to_snake_case(v) for k, v in obj.items()
+        }
+    elif isinstance(obj, list):
+        return [convert_keys_to_snake_case(item) for item in obj]
+    else:
+        return obj
+
+
+# Main function
 async def crawl_nhanh_data(
     business_id: str, access_token: str, from_date: str, to_date: str
 ) -> Dict:
@@ -42,7 +60,7 @@ async def crawl_nhanh_data(
         order["saleChannelName"] = sale_channel_mapping.get(sale_channel, "Unknown")
 
         # Sanitize fields
-        if order["packed"]["datetime"] == "":
+        if order.get("packed", {}).get("datetime", "") == "":
             order["packed"]["datetime"] = "2000-01-01 00:00:00"
 
         # Customize fields
@@ -58,6 +76,9 @@ async def crawl_nhanh_data(
                 )
                 total_import_money += product["importMoney"]
         order["TotalImportMoney"] = total_import_money
+
+    # Convert all order fields to snake_case
+    orders = [convert_keys_to_snake_case(order) for order in orders]
 
     return_dict = {
         "status": "success",
