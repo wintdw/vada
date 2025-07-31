@@ -102,34 +102,12 @@ class AsyncESProcessor:
 
             return {"status": response.status, "detail": await response.json()}
 
-    async def create_index(self, index_name: str, mappings: Dict) -> Dict:
-        """Create an index with initial settings and mappings."""
-        await self._create_session()
-
-        # remove unnecessary meta field
-        mappings_props = mappings.get("mappings", {}).get("properties", {})
-        mappings_props = remove_fields(mappings_props, ["_vada"])
-        mappings["mappings"]["properties"] = mappings_props
-
-        body = {
-            "settings": {"index.mapping.ignore_malformed": True},
-            "mappings": mappings,
-        }
-
-        url = f"{self.es_baseurl}/{index_name}"
-        async with self.session.put(url, json=body, auth=self.auth) as response:
-            if response.status == 200:
-                logging.info("Index created successfully: %s", index_name)
-            else:
-                raise ESException(response.status, await response.text())
-            return {"status": response.status, "detail": await response.json()}
-
     async def create_mappings(self, index_name: str, mappings: Dict) -> Dict:
         """Create a new Elasticsearch index with mappings.
         If the index already exists, it will not be changed
         """
         if not await self.check_index_exists(index_name):
-            response = await self.create_index(index_name, mappings)
+            response = await self.set_mappings(index_name, mappings)
             return response
         else:
             return {"status": 204, "detail": "Index already exists"}
