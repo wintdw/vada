@@ -13,33 +13,35 @@ def get_optimal_batch_size(
 ) -> int:
     """
     Find the most balanced batch size between min_batch and max_batch
-    that evenly splits total_docs into batches with minimal remainder.
+    such that the batch count is minimized and the last batch isn't too small.
 
     Returns:
         int: Best-fit batch size
     """
-    best_batch_size = max_batch
-    min_remainder = total_docs
+    best_batch_size = None
+    best_score = float("inf")
 
     for batch_size in range(min_batch, max_batch + 1):
+        full_batches = total_docs // batch_size
         remainder = total_docs % batch_size
-        num_batches = total_docs // batch_size
-        if num_batches == 0:
-            continue  # skip batch sizes larger than total_docs
 
-        # Prefer batch sizes with:
-        # - minimal remainder
-        # - fewer batches (larger batch size)
-        if remainder < min_remainder or (
-            remainder == min_remainder and batch_size > best_batch_size
-        ):
+        if full_batches == 0:
+            continue  # too large
+
+        last_batch_size = remainder if remainder > 0 else batch_size
+        if last_batch_size < min_batch:
+            continue  # reject if final batch is too small
+
+        total_batches = full_batches + (1 if remainder > 0 else 0)
+
+        # Score by how even the batches are (lower is better)
+        score = total_batches * batch_size - total_docs
+
+        if score < best_score:
+            best_score = score
             best_batch_size = batch_size
-            min_remainder = remainder
 
-            if remainder == 0:
-                break  # perfect fit
-
-    return best_batch_size
+    return best_batch_size if best_batch_size else min(total_docs, max_batch)
 
 
 def enrich_doc(doc: Dict) -> Dict:
