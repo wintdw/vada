@@ -24,10 +24,9 @@ services:
       MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
 
       NHANH_APP_ID: 75154
-      NHANH_BASE_URL: https://open.nhanh.vn/api
+      NHANH_BASE_URL: https://pos.open.nhanh.vn/api
       NHANH_RETURN_LINK: https://api-dev.vadata.vn/ingest/partner/nhanh/platform/callback
       NHANH_SECRET_KEY_FILE: /run/secrets/nhanh_secret_key
 
-      INSERT_SERVICE_URL: http://insert-dev.internal.vadata.vn/json
-      
+      INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn/json
       CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
