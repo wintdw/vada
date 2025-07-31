@@ -1,3 +1,4 @@
+import math
 import logging
 import aiohttp  # type: ignore
 
@@ -49,13 +50,23 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     Returns:
         Dict: Last response from insert service
     """
-    batch_size = 1000
+    min_batch = 500
+    max_batch = 1000
     total_docs = len(docs)
-    total_batches = (total_docs + batch_size - 1) // batch_size
+
+    # Find best batch size to minimize uneven distribution
+    for batch_size in range(max_batch, min_batch - 1, -1):
+        if total_docs // batch_size >= 1:
+            total_batches = math.ceil(total_docs / batch_size)
+            break
+    else:
+        batch_size = min(total_docs, max_batch)
+        total_batches = 1
+
     last_response = {}
 
     logging.info(
-        f"Sending {total_batches} batches ({total_docs} total docs) to insert service"
+        f"Sending {total_batches} batches (~{batch_size} docs each, total {total_docs} docs) to insert service"
     )
 
     for i in range(0, total_docs, batch_size):

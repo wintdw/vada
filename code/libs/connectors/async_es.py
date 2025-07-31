@@ -111,6 +111,25 @@ class AsyncESProcessor:
         else:
             return {"status": 204, "detail": "Index already exists"}
 
+    async def set_index_settings(self, index_name: str, settings: Dict) -> Dict:
+        """Set the index settings for a specific Elasticsearch index."""
+        es_url = f"{self.es_baseurl}/{index_name}/_settings"
+
+        await self._create_session()
+
+        async with self.session.put(es_url, json=settings, auth=self.auth) as response:
+            if response.status == 200:
+                logging.info("Index settings updated successfully: %s", settings)
+            else:
+                logging.error(
+                    "Failed to update index settings. Status: %s - %s",
+                    response.status,
+                    await response.text(),
+                )
+                raise ESException(response.status, await response.text())
+
+            return {"status": response.status, "detail": await response.json()}
+
     async def index_doc(self, index_name: str, doc: Dict, doc_id: str = None) -> Dict:
         """Send data to a specific Elasticsearch index."""
         await self._create_session()

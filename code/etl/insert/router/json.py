@@ -61,6 +61,10 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
 
         logging.info("Field types: %s", field_types)
 
+        await es_processor.set_index_settings(
+            index_name, settings={"settings": {"index.mapping.ignore_malformed": True}}
+        )
+
         # Create index mappings if not exist
         mappings_response = await es_processor.create_mappings(index_name, mappings)
         if mappings_response["status"] > 400:
