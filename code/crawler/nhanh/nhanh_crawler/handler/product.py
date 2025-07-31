@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Dict, List
 
 from model.settings import settings
@@ -35,7 +36,10 @@ async def get_products(business_id: str, access_token: str) -> List[Dict]:
         if current_page >= total_pages:
             break
 
+        logging.info(f"Fetched page {current_page} of {total_pages}")
         page += 1
+
+    logging.info(f"Total products fetched: {len(products)}")
 
     return products
 

@@ -40,6 +40,9 @@ async def get_orders(
         if current_page >= total_pages:
             break
 
+        logging.info(f"Fetched page {current_page} of {total_pages}")
         page += 1
+
+    logging.info(f"Total orders fetched: {len(orders)}")
 
     return orders

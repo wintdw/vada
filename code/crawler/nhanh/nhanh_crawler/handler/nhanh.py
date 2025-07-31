@@ -17,7 +17,7 @@ async def crawl_nhanh_data(
     product_cache = {product["idNhanh"]: product for product in product_list}
 
     orders = await get_orders(business_id, access_token, from_date, to_date)
-    logging.debug(f"Received total {len(orders)} orders")
+    logging.info(f"Received total {len(orders)} orders")
 
     for order in orders:
         # Map saleChannel to saleChannelName

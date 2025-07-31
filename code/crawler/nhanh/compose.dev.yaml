@@ -28,5 +28,5 @@ services:
       NHANH_RETURN_LINK: https://api-dev.vadata.vn/ingest/partner/nhanh/platform/callback
       NHANH_SECRET_KEY_FILE: /run/secrets/nhanh_secret_key
 
-      INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn/json
+      INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn
       CONNECTOR_CALLBACK_URL: https://qa.vadata.vn/callback.html
