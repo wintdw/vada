@@ -13,8 +13,10 @@ async def crawl_nhanh_data(
     start_time = time.time()
 
     # Fetch product cache once
-    product_list = await get_products(business_id, access_token)
-    product_cache = {product["idNhanh"]: product for product in product_list}
+    logging.info("Fetching product cache...")
+    products = await get_products(business_id, access_token)
+    product_cache = {product["idNhanh"]: product for product in products}
+    logging.info(f"Total products cached: {len(product_cache)}")
 
     orders = await get_orders(business_id, access_token, from_date, to_date)
     logging.info(f"Received total {len(orders)} orders")
