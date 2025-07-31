@@ -41,6 +41,11 @@ async def crawl_nhanh_data(
         sale_channel = str(order.get("saleChannel", ""))
         order["saleChannelName"] = sale_channel_mapping.get(sale_channel, "Unknown")
 
+        # Sanitize fields
+        if order["packed"]["datetime"] == "":
+            order["packed"]["datetime"] = "2000-01-01 00:00:00"
+
+        # Customize fields
         total_import_money = 0
         for product in order.get("products", []):
             product_id = product.get("productId")
