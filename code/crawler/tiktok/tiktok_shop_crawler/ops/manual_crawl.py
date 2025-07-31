@@ -1,6 +1,6 @@
+import time
 import requests
 from datetime import datetime, timedelta
-import time
 
 # Config
 BASE_URL = "http://localhost:8148/ingest/partner/tiktok/shop/crawl"  # update if needed

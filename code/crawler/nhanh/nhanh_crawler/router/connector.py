@@ -5,10 +5,18 @@ from fastapi.responses import RedirectResponse  # type: ignore
 
 from model.settings import settings
 from model.index_mappings import index_mappings_data
-from handler.nhanh import get_access_token
+from handler.token import get_access_token
 from handler.crawl_info import set_crawl_info, update_vada_uid, get_crawl_info
 
 router = APIRouter()
+
+
+@router.get("/ingest/partner/nhanh/platform/auth", tags=["Connector"])
+async def get_auth_url():
+    oauth_vesion = "2.0"
+    return RedirectResponse(
+        url=f"https://nhanh.vn/oauth?version={oauth_vesion}&appId={settings.NHANH_APP_ID}&returnLink={settings.NHANH_RETURN_LINK}"
+    )
 
 
 @router.get("/ingest/partner/nhanh/platform/callback", tags=["Connector"])
@@ -78,14 +86,6 @@ async def get_auth(accessCode: str):
             status_code=500,
             detail="Internal Server Error during OAuth callback processing",
         )
-
-
-@router.get("/ingest/partner/nhanh/platform/auth", tags=["Connector"])
-async def get_auth_url():
-    oauth_vesion = "2.0"
-    return RedirectResponse(
-        url=f"https://nhanh.vn/oauth?version={oauth_vesion}&appId={settings.NHANH_APP_ID}&returnLink={settings.NHANH_RETURN_LINK}"
-    )
 
 
 @router.post("/ingest/partner/nhanh/platform/vada", tags=["Connector"])

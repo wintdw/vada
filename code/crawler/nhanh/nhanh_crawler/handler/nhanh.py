@@ -1,133 +1,18 @@
-import json
 import time
-import aiohttp  # type: ignore
 import logging
 
-from typing import Dict, List
-from datetime import datetime
+from typing import Dict
 
-from model.settings import settings
-from .persist import enrich_doc, post_processing
-
-
-async def get_access_token(access_code: str) -> Dict:
-    """
-    API documentation at https://open.nhanh.vn/api/oauth/access_token
-    """
-    url = f"{settings.NHANH_BASE_URL}/oauth/access_token"
-    oauth_version = "2.0"
-    app_id = settings.NHANH_APP_ID
-    secret_key = settings.NHANH_SECRET_KEY
-
-    # Prepare the request payload
-    payload = {
-        "appId": app_id,
-        "version": oauth_version,
-        "secretKey": secret_key,
-        "accessCode": access_code,
-    }
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=payload) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result
-                else:
-                    # Log the error response for debugging
-                    error_text = await response.text()
-                    logging.debug(
-                        f"Error getting access token. Status: {response.status}, Response: {error_text}",
-                        exc_info=True,
-                    )
-                    return {}
-
-    except Exception as e:
-        logging.debug(
-            f"Unexpected error while getting access token: {e}", exc_info=True
-        )
-        raise
-
-
-async def get_product_detail(
-    business_id: str,
-    access_token: str,
-    product_id: str,
-) -> Dict:
-    url = f"{settings.NHANH_BASE_URL}/product/detail"
-    oauth_version = "2.0"
-
-    headers = {"Accept": "application/json"}
-    payload = {
-        "version": oauth_version,
-        "appId": settings.NHANH_APP_ID,
-        "businessId": business_id,
-        "accessToken": access_token,
-        "data": product_id,
-    }
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, data=payload) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get("data", {}).get(product_id, {})
-                else:
-                    error_text = await response.text()
-                    logging.debug(
-                        f"Error getting product detail. Status: {response.status}, Response: {error_text}",
-                        exc_info=True,
-                    )
-                    return {}
-    except Exception as e:
-        logging.debug(
-            f"Unexpected error while getting product detail: {e}", exc_info=True
-        )
-        raise
-
-
-async def get_orders(
-    business_id: str, access_token: str, from_date: str, to_date: str, page: int = 1
-):
-    url = f"{settings.NHANH_BASE_URL}/order/index"
-    oauth_version = "2.0"
-    headers = {"Accept": "application/json"}
-    payload = {"fromDate": from_date, "toDate": to_date, "page": page}
-    data = {
-        "version": oauth_version,
-        "appId": settings.NHANH_APP_ID,
-        "businessId": business_id,
-        "accessToken": access_token,
-        "data": json.dumps(payload),
-    }
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, data=data) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get("data", {})
-                else:
-                    error_text = await response.text()
-                    logging.debug(
-                        f"Error getting orders. Status: {response.status}, Response: {error_text}"
-                    )
-                    return {}
-    except aiohttp.ClientError as e:
-        logging.debug(f"HTTP client error while getting orders: {e}")
-        raise
-    except Exception as e:
-        logging.debug(f"Unexpected error while getting orders: {e}")
-        raise
+from .order import get_product_detail, get_orders
 
 
 async def crawl_nhanh_data(
-    index_name: str, business_id: str, access_token: str, from_date: str, to_date: str
-) -> List[Dict]:
-    try:
-        start_time = time.time()
+    business_id: str, access_token: str, from_date: str, to_date: str
+) -> Dict:
+    start_time = time.time()
 
-        detailed_data = []
+    try:
+        orders = []
         total_pages = 1
         page = 1
 
@@ -139,9 +24,9 @@ async def crawl_nhanh_data(
             data = await get_orders(business_id, access_token, from_date, to_date, page)
 
             total_pages = data.get("totalPages", 1)
-            orders = data.get("orders", {})
+            returned_orders = data.get("orders", {})
 
-            for order_id, order in orders.items():
+            for order_id, order in returned_orders.items():
                 # Map saleChannel to saleChannelName
                 sale_channel_mapping = {
                     "1": "Admin",
@@ -176,47 +61,25 @@ async def crawl_nhanh_data(
                             product["detail"]["importPrice"]
                         ) * int(product["quantity"])
                         import_money += product["importMoney"]
-                    time.sleep(0.2)  # avoid API overuse
                 order["TotalImportMoney"] = import_money
 
-                order_snake_case = convert_keys_to_snake_case(order)
-                orders[order_id] = order_snake_case
-
-                detailed_data.append(
-                    enrich_report(order_snake_case, index_name, doc_id)
-                )
+                orders.append(order)
             page += 1
-
-        batch_size = 1000
-
-        # Send reports in batches
-        total_reports = len(detailed_data)
-        logging.debug(f"Sending {total_reports} reports in batches of {batch_size}")
-
-        for i in range(0, total_reports, batch_size):
-            batch = detailed_data[i : i + batch_size]
-            current_batch = i // batch_size + 1
-            total_batches = (total_reports + batch_size - 1) // batch_size
-
-            logging.debug(f"Sending batch {current_batch} of {total_batches}")
-            await send_batch(index_name, batch)
-
-            # Calculate total spending
-            total_spend = sum(
-                float(report.get("calcTotalMoney", 0)) for report in detailed_data
-            )
-
-        end_time = time.time()
-        execution_time = round(end_time - start_time, 2)
 
         return {
             "status": "success",
-            "total_reports": total_reports,
-            "total_spend": round(total_spend, 2),
+            "total_orders": len(orders),
+            "orders": orders,
             "date_start": from_date,
             "date_end": to_date,
-            "execution_time": execution_time,
+            "execution_time": time.time() - start_time,
         }
     except Exception as e:
-        logging.debug(f"Error while crawling Nhanh data: {e}")
-        raise
+        logging.error(f"Error while crawling Nhanh data: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": str(e),
+            "date_start": from_date,
+            "date_end": to_date,
+            "execution_time": time.time() - start_time,
+        }

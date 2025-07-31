@@ -1,10 +1,7 @@
 uvicorn
 fastapi
-aiomysql
-cryptography
-python-json-logger
 aiohttp
+aiomysql
+apscheduler
 pydantic-settings
-fastapi-utils
-typing-inspect
 prometheus-client
