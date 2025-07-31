@@ -31,9 +31,10 @@ async def send_to_insert_service(docs: List[Dict], index_name: str) -> Dict:
             json=payload,
             headers={"Content-Type": "application/json"},
         ) as response:
+            resp_json = await response.json()
             return {
                 "status": response.status,
-                "detail": await response.json()["detail"],
+                "detail": resp_json["detail"],
             }
 
 

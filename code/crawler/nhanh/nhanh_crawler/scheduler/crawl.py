@@ -34,13 +34,8 @@ async def crawl_first_nhanh(crawl_id: str):
             to_date=current_end.strftime("%Y-%m-%d"),
         )
         logging.info(
-            f"[First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response}"
+            f"[First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response.get("status")}"
         )
-
-        # Check if the crawl response is successful
-        if crawl_response.get("status") != "success":
-            logging.error(f"[First Crawl] Error: {crawl_response}", exc_info=True)
-            return
 
         # Send to the datastore
         await post_processing(
@@ -74,11 +69,6 @@ async def crawl_daily_nhanh(crawl_id: str):
         to_date=end_date,
     )
 
-    # Check if the crawl response is successful
-    if crawl_response.get("status") != "success":
-        logging.error(f"[First Crawl] Error: {crawl_response}", exc_info=True)
-        return
-
     # Send to the datastore
     await post_processing(
         [enrich_doc(order) for order in crawl_response.get("orders", [])],
@@ -87,5 +77,5 @@ async def crawl_daily_nhanh(crawl_id: str):
     await update_crawl_time(crawl_id, crawl_interval)
 
     logging.info(
-        f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response}"
+        f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response.get("status")}"
     )
