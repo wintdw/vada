@@ -17,16 +17,17 @@ async def crawl_nhanh_data(
         page = 1
 
         while page <= total_pages:
-            logging.debug(
-                f"Fetching page {page} for orders from {from_date} to {to_date}"
-            )
             # Get orders for the current page
             data = await get_orders(business_id, access_token, from_date, to_date, page)
 
             total_pages = data.get("totalPages", 1)
             returned_orders = data.get("orders", {})
+            logging.debug(
+                f"Received {len(returned_orders)} orders on page {page} of {total_pages}"
+            )
+            logging.debug(f"Sample data: {returned_orders[0]}")
 
-            for order_id, order in returned_orders.items():
+            for _, order in returned_orders.items():
                 # Map saleChannel to saleChannelName
                 sale_channel_mapping = {
                     "1": "Admin",
@@ -66,7 +67,7 @@ async def crawl_nhanh_data(
                 orders.append(order)
             page += 1
 
-        return {
+        return_dict = {
             "status": "success",
             "total_orders": len(orders),
             "orders": orders,
@@ -74,6 +75,11 @@ async def crawl_nhanh_data(
             "date_end": to_date,
             "execution_time": time.time() - start_time,
         }
+        logging.debug(
+            f"Total orders: {len(orders)} in {return_dict['execution_time']} seconds"
+        )
+
+        return return_dict
     except Exception as e:
         logging.error(f"Error while crawling Nhanh data: {e}", exc_info=True)
         return {
