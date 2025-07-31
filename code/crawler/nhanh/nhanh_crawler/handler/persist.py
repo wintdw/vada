@@ -46,7 +46,9 @@ def get_optimal_batch_size(
 
 def enrich_doc(doc: Dict) -> Dict:
     # Create doc_id based on the document's id and createdDateTime
-    ts = int(datetime.strptime(doc["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
+    ts = int(
+        datetime.strptime(doc["created_date_time"], "%Y-%m-%d %H:%M:%S").timestamp()
+    )
     doc_id = f"{doc['id']}_{ts}"
 
     metadata = {
