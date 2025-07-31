@@ -329,6 +329,8 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
                     }
                 },
             }
+        elif field_type == "date":
+            current[last_part] = {"type": "date", "ignore_malformed": True}
         elif field_type == "nested":
             current[last_part] = {"type": "nested", "properties": {}}
         elif field_type == "object":
