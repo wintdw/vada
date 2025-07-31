@@ -25,7 +25,6 @@ async def crawl_nhanh_data(
             logging.debug(
                 f"Received {len(returned_orders)} orders on page {page} of {total_pages}"
             )
-            logging.debug(f"Sample data: {returned_orders[0]}")
 
             for _, order in returned_orders.items():
                 # Map saleChannel to saleChannelName

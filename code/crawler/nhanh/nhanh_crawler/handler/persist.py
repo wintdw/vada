@@ -45,7 +45,7 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     Returns:
         Dict: Last response from insert service
     """
-    batch_size = 1000
+    batch_size = 300
     total_docs = len(docs)
     total_batches = (total_docs + batch_size - 1) // batch_size
     last_response = {}
