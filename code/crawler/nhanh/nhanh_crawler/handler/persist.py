@@ -8,6 +8,40 @@ from typing import Dict, List
 from model.settings import settings
 
 
+def get_optimal_batch_size(
+    total_docs: int, min_batch: int = 500, max_batch: int = 1000
+) -> int:
+    """
+    Find the most balanced batch size between min_batch and max_batch
+    that evenly splits total_docs into batches with minimal remainder.
+
+    Returns:
+        int: Best-fit batch size
+    """
+    best_batch_size = max_batch
+    min_remainder = total_docs
+
+    for batch_size in range(min_batch, max_batch + 1):
+        remainder = total_docs % batch_size
+        num_batches = total_docs // batch_size
+        if num_batches == 0:
+            continue  # skip batch sizes larger than total_docs
+
+        # Prefer batch sizes with:
+        # - minimal remainder
+        # - fewer batches (larger batch size)
+        if remainder < min_remainder or (
+            remainder == min_remainder and batch_size > best_batch_size
+        ):
+            best_batch_size = batch_size
+            min_remainder = remainder
+
+            if remainder == 0:
+                break  # perfect fit
+
+    return best_batch_size
+
+
 def enrich_doc(doc: Dict) -> Dict:
     # Create doc_id based on the document's id and createdDateTime
     ts = int(datetime.strptime(doc["createdDateTime"], "%Y-%m-%d %H:%M:%S").timestamp())
@@ -50,23 +84,13 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     Returns:
         Dict: Last response from insert service
     """
-    min_batch = 500
-    max_batch = 1000
     total_docs = len(docs)
-
-    # Find best batch size to minimize uneven distribution
-    for batch_size in range(max_batch, min_batch - 1, -1):
-        if total_docs // batch_size >= 1:
-            total_batches = math.ceil(total_docs / batch_size)
-            break
-    else:
-        batch_size = min(total_docs, max_batch)
-        total_batches = 1
-
+    batch_size = get_optimal_batch_size(total_docs)
+    total_batches = (total_docs + batch_size - 1) // batch_size
     last_response = {}
 
     logging.info(
-        f"Sending {total_batches} batches (~{batch_size} docs each, total {total_docs} docs) to insert service"
+        f"Sending {total_batches} batches (~{batch_size} docs each, total {total_docs} docs) to Insert service"
     )
 
     for i in range(0, total_docs, batch_size):
