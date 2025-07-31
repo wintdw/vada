@@ -7,7 +7,7 @@ from typing import Dict, List
 from datetime import datetime
 
 from model.settings import settings
-from .persist import enrich_report, send_batch
+from .persist import enrich_doc, post_processing
 
 
 async def get_access_token(access_code: str) -> Dict:
@@ -141,24 +141,6 @@ async def crawl_nhanh_data(
             total_pages = data.get("totalPages", 1)
             orders = data.get("orders", {})
 
-            # Convert keys from camelCase to snake_case
-            def camel_to_snake(name):
-                import re
-
-                s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
-                return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
-
-            def convert_keys_to_snake_case(data):
-                if isinstance(data, dict):
-                    return {
-                        camel_to_snake(k): convert_keys_to_snake_case(v)
-                        for k, v in data.items()
-                    }
-                elif isinstance(data, list):
-                    return [convert_keys_to_snake_case(item) for item in data]
-                else:
-                    return data
-
             for order_id, order in orders.items():
                 # Map saleChannel to saleChannelName
                 sale_channel_mapping = {
@@ -182,13 +164,6 @@ async def crawl_nhanh_data(
                 order["saleChannelName"] = sale_channel_mapping.get(
                     sale_channel, "Unknown"
                 )
-
-                timestamp = int(
-                    datetime.strptime(
-                        order["createdDateTime"], "%Y-%m-%d %H:%M:%S"
-                    ).timestamp()
-                )
-                doc_id = f"{order['id']}_{timestamp}"
 
                 import_money = 0
                 for product in order.get("products", []):

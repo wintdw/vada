@@ -37,14 +37,17 @@ async def crawl_first_tiktok_ad(
 async def crawl_daily_tiktok_ad(
     crawl_id: str, access_token: str, index_name: str, crawl_interval: int
 ):
+    start_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+
     crawl_response = await crawl_tiktok_business(
         index_name,
         access_token,
-        (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d"),
-        datetime.now().strftime("%Y-%m-%d"),
+        start_date,
+        end_date,
     )
     logger.info(
-        f"[Daily Crawl] CrawlID {crawl_id} from {(datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')} to {datetime.now().strftime('%Y-%m-%d')}: {crawl_response}"
+        f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response}"
     )
 
     await update_crawl_time(crawl_id, crawl_interval)
