@@ -17,6 +17,7 @@ async def get_orders(
     page = 1
     orders = []
 
+    logging.info(f"Fetching orders from {from_date} to {to_date}...")
     while True:
         payload = {"fromDate": from_date, "toDate": to_date, "page": page}
 
@@ -40,7 +41,6 @@ async def get_orders(
         if current_page >= total_pages:
             break
 
-        logging.info(f"Fetched page {current_page} of {total_pages}")
         page += 1
 
     logging.info(f"Total orders fetched: {len(orders)}")
