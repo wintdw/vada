@@ -12,10 +12,8 @@ async def add_nhanh_crawl_job(
     scheduler: AsyncIOScheduler,
     job_id: str,
     crawl_id: str,
-    access_token: str,
-    index_name: str,
+    business_id: str,
     crawl_interval: int,
-    account_name: str,  # For logging purpose
     first_crawl: bool = False,  # Whether to start the crawl immediately
 ):
     """Add a Nhanh crawl job to the scheduler.
@@ -25,28 +23,18 @@ async def add_nhanh_crawl_job(
     try:
         if first_crawl:
             logging.info(
-                f"[First Crawl] Processing job for: {account_name} with crawl_id: {crawl_id}"
+                f"[First Crawl] Processing job for: {business_id} with crawl_id: {crawl_id}"
             )
             # Split 1-year crawl into 12 jobs of 1 month each
-            await crawl_first_nhanh(
-                crawl_id=crawl_id,
-                access_token=access_token,
-                index_name=index_name,
-                crawl_interval=crawl_interval,
-            )
+            await crawl_first_nhanh(crawl_id=crawl_id)
 
         # The regular job will crawl T-1 -> T0 with 2h interval
         scheduler.add_job(
             crawl_daily_nhanh,
             trigger=IntervalTrigger(minutes=crawl_interval),
-            kwargs={
-                "crawl_id": crawl_id,
-                "access_token": access_token,
-                "index_name": index_name,
-                "crawl_interval": crawl_interval,
-            },
+            kwargs={"crawl_id": crawl_id},
             id=job_id,
-            name=f"Fetch Nhanh for {account_name} every {crawl_interval} minutes",
+            name=f"Fetch Nhanh for {business_id} every {crawl_interval} minutes",
             replace_existing=True,
             misfire_grace_time=30,
             max_instances=1,
@@ -54,11 +42,11 @@ async def add_nhanh_crawl_job(
         # We may create another job for crawling ealier T with longer interval
 
         logging.info(
-            f"[Scheduler] Added Nhanh job for: {account_name} every {crawl_interval} minutes"
+            f"[Scheduler] Added Nhanh job for: {business_id} every {crawl_interval} minutes"
         )
     except Exception as e:
         logging.error(
-            f"[Scheduler] Error adding Nhanh job for: {account_name}: {str(e)}",
+            f"[Scheduler] Error adding Nhanh job for: {business_id}: {str(e)}",
             exc_info=True,
         )
 
@@ -75,8 +63,7 @@ async def init_scheduler():
 
             for info in crawl_infos:
                 crawl_id = info["crawl_id"]
-                account_name = info["account_name"]
-                index_name = info["index_name"]
+                business_id = info["business_id"]
                 access_token = info["access_token"]
                 crawl_interval = info["crawl_interval"]
                 last_crawl_time = info["last_crawl_time"]
@@ -84,7 +71,7 @@ async def init_scheduler():
                 if not last_crawl_time:
                     first_crawl = True
 
-                job_id = f"crawl_tta_{crawl_id}"
+                job_id = f"crawl_nhanh_{crawl_id}"
 
                 job = scheduler.get_job(job_id)
                 should_update = False
@@ -96,7 +83,7 @@ async def init_scheduler():
                         if hasattr(job.trigger, "interval")
                         else None
                     )
-                    # Only update if refresh_token or crawl_interval changed
+                    # Only update if access_token or crawl_interval changed
                     if (
                         job_access_token != access_token
                         or job_crawl_interval != crawl_interval
@@ -112,10 +99,8 @@ async def init_scheduler():
                             scheduler=scheduler,
                             job_id=job_id,
                             crawl_id=crawl_id,
-                            access_token=access_token,
-                            index_name=index_name,
+                            business_id=business_id,
                             crawl_interval=crawl_interval,
-                            account_name=account_name,
                             first_crawl=first_crawl,
                         )
                     )
