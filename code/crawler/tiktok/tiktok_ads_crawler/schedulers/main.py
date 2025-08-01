@@ -82,31 +82,33 @@ async def init_scheduler():
                 access_token = info["access_token"]
                 crawl_interval = info["crawl_interval"]
                 last_crawl_time = info["last_crawl_time"]
+
+                job_id = f"crawl_tta_{crawl_id}"
+                job = scheduler.get_job(job_id)
+                should_update = False
+
                 first_crawl = False
                 if not last_crawl_time:
                     first_crawl = True
-
-                job_id = f"crawl_tta_{crawl_id}"
-
-                job = scheduler.get_job(job_id)
-                should_update = False
-                # job exists
-                if job:
-                    job_access_token = job.kwargs.get("access_token")
-                    job_crawl_interval = (
-                        job.trigger.interval.total_seconds() // 60
-                        if hasattr(job.trigger, "interval")
-                        else None
-                    )
-                    # Only update if refresh_token or crawl_interval changed
-                    if (
-                        job_access_token != access_token
-                        or job_crawl_interval != crawl_interval
-                    ):
-                        should_update = True
-                # new job
-                else:
                     should_update = True
+                else:
+                    # job exists
+                    if job:
+                        job_access_token = job.kwargs.get("access_token")
+                        job_crawl_interval = (
+                            job.trigger.interval.total_seconds() // 60
+                            if hasattr(job.trigger, "interval")
+                            else None
+                        )
+                        # Only update if refresh_token or crawl_interval changed
+                        if (
+                            job_access_token != access_token
+                            or job_crawl_interval != crawl_interval
+                        ):
+                            should_update = True
+                    # new job
+                    else:
+                        should_update = True
 
                 if should_update:
                     tasks.append(
