@@ -82,8 +82,10 @@ async def crawl_daily_nhanh(
     )
     await update_crawl_time(crawl_id, crawl_interval)
 
+    crawl_response.pop("orders", None)
+
     logging.info(
-        f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response.get("status")}"
+        f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response}"
     )
 
     return crawl_response
