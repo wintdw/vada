@@ -48,14 +48,20 @@ async def crawl_first_nhanh(crawl_id: str):
     await update_crawl_time(crawl_id, crawl_interval)
 
 
-async def crawl_daily_nhanh(crawl_id: str):
-    start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
+async def crawl_daily_nhanh(
+    crawl_id: str, start_date: str = "", end_date: str = ""
+) -> Dict:
+    """
+    start_date and end_date are for manual crawl only
+    """
+    if not start_date or not end_date:
+        start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        end_date = datetime.now().strftime("%Y-%m-%d")
 
     crawl_info = await get_crawl_info(crawl_id=crawl_id)
     if not crawl_info:
         logging.error(f"Wrong crawl ID: {crawl_id}")
-        return
+        return {}
 
     index_name = crawl_info[0]["index_name"]
     business_id = crawl_info[0]["business_id"]
@@ -79,3 +85,5 @@ async def crawl_daily_nhanh(crawl_id: str):
     logging.info(
         f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response.get("status")}"
     )
+
+    return crawl_response

@@ -2,7 +2,7 @@ import asyncio
 import logging
 from fastapi import FastAPI  # type: ignore
 
-from router import connector, schedule, metrics
+from router import connector, metrics, crawl
 from scheduler.main import init_scheduler
 
 
@@ -21,7 +21,7 @@ async def check_health():
 
 app.include_router(metrics.router)
 app.include_router(connector.router)
-app.include_router(schedule.router)
+app.include_router(crawl.router)
 
 
 async def init_scheduler_background():

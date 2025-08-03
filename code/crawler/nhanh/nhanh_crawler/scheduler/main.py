@@ -64,7 +64,6 @@ async def init_scheduler():
             for info in crawl_infos:
                 crawl_id = info["crawl_id"]
                 business_id = info["business_id"]
-                access_token = info["access_token"]
                 crawl_interval = info["crawl_interval"]
                 last_crawl_time = info["last_crawl_time"]
                 first_crawl = False
@@ -77,17 +76,13 @@ async def init_scheduler():
                 should_update = False
                 # job exists
                 if job:
-                    job_access_token = job.kwargs.get("access_token")
                     job_crawl_interval = (
                         job.trigger.interval.total_seconds() // 60
                         if hasattr(job.trigger, "interval")
                         else None
                     )
-                    # Only update if access_token or crawl_interval changed
-                    if (
-                        job_access_token != access_token
-                        or job_crawl_interval != crawl_interval
-                    ):
+                    # Only update if crawl_interval changed
+                    if job_crawl_interval != crawl_interval:
                         should_update = True
                 # new job
                 else:
