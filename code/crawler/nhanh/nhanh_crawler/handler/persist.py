@@ -108,7 +108,7 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
         detail = insert_json.get("detail", "")
 
         if status != "success":
-            logging.error(
+            logging.debug(
                 f"Batch {current_batch}/{total_batches} - Status: {status} - Detail: {detail}"
             )
 
