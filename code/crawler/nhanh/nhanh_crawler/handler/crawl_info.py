@@ -121,7 +121,6 @@ async def get_crawl_info(
                 "crawl_id": row["crawl_id"],
                 "vada_uid": row["vada_uid"],
                 "business_id": row["business_id"],
-                "depot_ids": row["depot_ids"],
                 "index_name": row["index_name"],
                 "access_token": row["access_token"],
                 "expired_datetime": (
