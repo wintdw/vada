@@ -14,7 +14,7 @@ services:
       - "3001:80"
 
   crm:
-    image: vada898989.azurecr.io/central-api:qa-3509233
+    image: vada898989.azurecr.io/central-api:qa-8f68e87
     container_name: crm
     ports:
       - "8080:8080"
@@ -34,7 +34,7 @@ services:
       - ENABLE_SERVICE_PACKAGE=false
 
   qe: &qe
-    image: vada898989.azurecr.io/vada-query-engine:0e80e716
+    image: vada898989.azurecr.io/query-engine:dev-latest
     container_name: qe
     pull_policy: always
     ports:
