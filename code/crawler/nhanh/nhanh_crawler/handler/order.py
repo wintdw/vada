@@ -17,7 +17,7 @@ async def get_orders(
     page = 1
     orders = []
 
-    logging.info(f"Fetching orders from {from_date} to {to_date}...")
+    logging.info(f"[{business_id}] Fetching orders from {from_date} to {to_date}...")
     while True:
         payload = {"fromDate": from_date, "toDate": to_date, "page": page}
 
@@ -29,7 +29,7 @@ async def get_orders(
         )
 
         if not response_data:
-            logging.warning(f"No response for page {page}")
+            logging.warning(f"[{business_id}] No response for page {page}")
             break
 
         page_orders = response_data.get("orders", {})
@@ -43,6 +43,6 @@ async def get_orders(
 
         page += 1
 
-    logging.info(f"Total orders fetched: {len(orders)}")
+    logging.info(f"[{business_id}] Total orders fetched: {len(orders)}")
 
     return orders

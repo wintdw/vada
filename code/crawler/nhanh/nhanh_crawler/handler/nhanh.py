@@ -31,7 +31,7 @@ async def crawl_nhanh_data(
     start_time = time.time()
 
     # Fetch product cache once
-    logging.info("Fetching product cache...")
+    logging.info(f"[{business_id}] Fetching product cache...")
     products = await get_products(business_id, access_token)
     product_cache = {str(product["idNhanh"]): product for product in products}
 
@@ -89,7 +89,7 @@ async def crawl_nhanh_data(
         "execution_time": time.time() - start_time,
     }
     logging.debug(
-        f"Total orders: {len(orders)} in {return_dict['execution_time']} seconds"
+        f"[{business_id}] Total orders: {len(orders)} in {return_dict['execution_time']} seconds"
     )
 
     return return_dict

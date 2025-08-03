@@ -15,7 +15,7 @@ async def get_products(business_id: str, access_token: str) -> List[Dict]:
     products = []
     page = 1
 
-    logging.info("Fetching products...")
+    logging.info(f"[{business_id}] Fetching products...")
     while True:
         payload = {"page": page}
         response_data = await retry_post(
@@ -39,7 +39,7 @@ async def get_products(business_id: str, access_token: str) -> List[Dict]:
 
         page += 1
 
-    logging.info(f"Total products fetched: {len(products)}")
+    logging.info(f"[{business_id}] Total products fetched: {len(products)}")
 
     return products
 
