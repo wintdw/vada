@@ -95,8 +95,9 @@ async def crawl_daily_nhanh_scheduler(crawl_id: str):
         logging.error(f"Wrong crawl ID: {crawl_id}")
         return
 
-    next_crawl_time = crawl_info[0]["next_crawl_time"]
     business_id = crawl_info[0]["business_id"]
+
+    next_crawl_time = datetime.fromisoformat(crawl_info[0]["next_crawl_time"])
     now = datetime.now()
 
     # If not yet time for next crawl, skip
