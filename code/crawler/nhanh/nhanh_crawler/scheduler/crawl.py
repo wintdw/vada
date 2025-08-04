@@ -10,7 +10,7 @@ from handler.crawl_info import update_crawl_time, get_crawl_info
 async def crawl_first_nhanh(crawl_id: str):
     # Crawl 1 year of data, split into 30-day chunks (from latest to oldest)
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=365)
+    start_date = end_date - timedelta(days=90)
     chunk = timedelta(days=2)
     current_end = end_date
 
@@ -34,7 +34,7 @@ async def crawl_first_nhanh(crawl_id: str):
             to_date=current_end.strftime("%Y-%m-%d"),
         )
         logging.info(
-            f"[First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response.get("status")}"
+            f"[{business_id}] [First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response.get("status")}"
         )
 
         # Send to the datastore
@@ -81,11 +81,32 @@ async def crawl_daily_nhanh(
         index_name,
     )
     await update_crawl_time(crawl_id, crawl_interval)
-
     crawl_response.pop("orders", None)
 
-    logging.info(
-        f"[Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response}"
-    )
-
     return crawl_response
+
+
+async def crawl_daily_nhanh_scheduler(crawl_id: str):
+    """
+    This will call crawl_daily_nhanh if the time condition is met
+    """
+    crawl_info = await get_crawl_info(crawl_id=crawl_id)
+    if not crawl_info:
+        logging.error(f"Wrong crawl ID: {crawl_id}")
+        return
+
+    next_crawl_time = crawl_info[0]["next_crawl_time"]
+    business_id = crawl_info[0]["business_id"]
+    now = datetime.now()
+
+    # If not yet time for next crawl, skip
+    if now < next_crawl_time:
+        logging.debug(
+            f"[{business_id}] [Daily Crawl Scheduler] CrawlID {crawl_id}: skip (now={now}, next={next_crawl_time})"
+        )
+        return
+
+    crawl_response = await crawl_daily_nhanh(crawl_id)
+    logging.info(
+        f"[{business_id}] [Daily Crawl Scheduler] Finish {crawl_id}: {crawl_response}"
+    )

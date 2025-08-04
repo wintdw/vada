@@ -5,119 +5,45 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.crawl_info import get_crawl_info
-from .crawl import crawl_first_nhanh, crawl_daily_nhanh
+from .crawl import crawl_first_nhanh, crawl_daily_nhanh_scheduler
 
 
-async def add_nhanh_crawl_job(
-    scheduler: AsyncIOScheduler,
-    job_id: str,
+async def schedule_nhanh_crawl_job(
     crawl_id: str,
-    business_id: str,
-    crawl_interval: int,
     first_crawl: bool = False,  # Whether to start the crawl immediately
 ):
-    """Add a Nhanh crawl job to the scheduler.
-    If first_crawl is True, it will crawl the first year of data.
-    Otherwise, it will set up a regular job to crawl daily data.
-    """
-    try:
-        if first_crawl:
-            logging.info(
-                f"[First Crawl] Processing job for: {business_id} with crawl_id: {crawl_id}"
-            )
-            # Split 1-year crawl into 12 jobs of 1 month each
-            await crawl_first_nhanh(crawl_id=crawl_id)
+    tasks = []
+    if first_crawl:
+        tasks.append(asyncio.create_task(crawl_first_nhanh(crawl_id=crawl_id)))
 
-        # The regular job will crawl T-1 -> T0 with 2h interval
-        scheduler.add_job(
-            crawl_daily_nhanh,
-            trigger=IntervalTrigger(minutes=crawl_interval),
-            kwargs={"crawl_id": crawl_id},
-            id=job_id,
-            name=f"Fetch Nhanh for {business_id} every {crawl_interval} minutes",
-            replace_existing=True,
-            misfire_grace_time=30,
-            max_instances=1,
-        )
-        # We may create another job for crawling ealier T with longer interval
+    tasks.append(asyncio.create_task(crawl_daily_nhanh_scheduler(crawl_id=crawl_id)))
 
-        logging.info(
-            f"[Scheduler] Added Nhanh job for: {business_id} every {crawl_interval} minutes"
-        )
-    except Exception as e:
-        logging.error(
-            f"[Scheduler] Error adding Nhanh job for: {business_id}: {str(e)}",
-            exc_info=True,
-        )
+    await asyncio.gather(*tasks)
 
 
 async def init_scheduler():
-    scheduler = AsyncIOScheduler()
+    running_tasks = {}
 
     async def update_jobs():
-        try:
-            # Fetch crawl info specific to TikTok Shop
-            crawl_infos = await get_crawl_info()
-            tasks = []
-            current_jobs = {job.id: job for job in scheduler.get_jobs()}
+        crawl_infos = await get_crawl_info()
 
-            for info in crawl_infos:
-                crawl_id = info["crawl_id"]
-                business_id = info["business_id"]
-                crawl_interval = info["crawl_interval"]
-                last_crawl_time = info["last_crawl_time"]
-                first_crawl = False
-                if not last_crawl_time:
-                    first_crawl = True
+        for info in crawl_infos:
+            crawl_id = info["crawl_id"]
+            last_crawl_time = info["last_crawl_time"]
+            first_crawl = not bool(last_crawl_time)
 
-                job_id = f"crawl_nhanh_{crawl_id}"
+            existing = running_tasks.get(crawl_id)
+            if existing and not existing.done():
+                logging.info(f"[{crawl_id}] skipping - task still running")
+                continue
 
-                job = scheduler.get_job(job_id)
-                should_update = False
-                # job exists
-                if job:
-                    job_crawl_interval = (
-                        job.trigger.interval.total_seconds() // 60
-                        if hasattr(job.trigger, "interval")
-                        else None
-                    )
-                    # Only update if crawl_interval changed
-                    if job_crawl_interval != crawl_interval:
-                        should_update = True
-                # new job
-                else:
-                    should_update = True
-
-                if should_update:
-                    tasks.append(
-                        add_nhanh_crawl_job(
-                            scheduler=scheduler,
-                            job_id=job_id,
-                            crawl_id=crawl_id,
-                            business_id=business_id,
-                            crawl_interval=crawl_interval,
-                            first_crawl=first_crawl,
-                        )
-                    )
-
-                if job_id in current_jobs:
-                    del current_jobs[job_id]
-
-            # Remove jobs that are no longer in the crawl_info
-            for left_job_id in current_jobs:
-                if left_job_id != "update_jobs":
-                    scheduler.remove_job(left_job_id)
-                    logging.info(
-                        f"[Scheduler] Removed Nhanh job_id '{left_job_id}' as it is no longer valid"
-                    )
-
-            # Wait for all add_google_ad_crawl_job tasks to finish
-            if tasks:
-                await asyncio.gather(*tasks)
-        except Exception as e:
-            logging.error(f"[Scheduler] Error Nhanh jobs: {str(e)}", exc_info=True)
+            task = asyncio.create_task(
+                schedule_nhanh_crawl_job(crawl_id=crawl_id, first_crawl=first_crawl)
+            )
+            running_tasks[crawl_id] = task
 
     # Schedule the update_jobs function to run every 1m
+    scheduler = AsyncIOScheduler()
     scheduler.add_job(
         update_jobs,
         trigger=IntervalTrigger(minutes=1),
