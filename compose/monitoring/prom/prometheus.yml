@@ -19,8 +19,8 @@ scrape_configs:
       - proxy02.internal.vadata.vn:9100
       - backend00.internal.vadata.vn:9100
       - backend01.internal.vadata.vn:9100
+      - backend02.internal.vadata.vn:9100
       - mysql00.internal.vadata.vn:9100
-      - bus00.internal.vadata.vn:9100
       - es00.internal.vadata.vn:9100
       - es01.internal.vadata.vn:9100
       - es02.internal.vadata.vn:9100
@@ -40,12 +40,12 @@ scrape_configs:
     static_configs:
     - targets:
       - mysql00.internal.vadata.vn:9104
-  - job_name: kafka
-    static_configs:
-    - targets:
-      - bus00.internal.vadata.vn:9308
-      - bus01.internal.vadata.vn:9308
-      - bus02.internal.vadata.vn:9308
+  # - job_name: kafka
+  #   static_configs:
+  #   - targets:
+  #     - bus00.internal.vadata.vn:9308
+  #     - bus01.internal.vadata.vn:9308
+  #     - bus02.internal.vadata.vn:9308
   - job_name: elasticsearch
     static_configs:
     - targets:
