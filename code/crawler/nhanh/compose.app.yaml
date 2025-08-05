@@ -18,6 +18,8 @@ services:
       - mysql_crawler_prod
       - nhanh_secret_key
     environment:
+      APP_ENV: app
+
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler_prod
       MYSQL_DB: crawler_prod
