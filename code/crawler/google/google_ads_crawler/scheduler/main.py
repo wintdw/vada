@@ -6,7 +6,7 @@ from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.crawl_metrics import update_crawl_metrics
 from handler.mysql import get_crawl_info
-from .crawl import crawl_new_client, crawl_daily
+from .crawl import crawl_new_client, schedule_daily_crawl
 
 
 async def schedule_google_ad_crawl_job(
@@ -17,7 +17,7 @@ async def schedule_google_ad_crawl_job(
     if first_crawl:
         tasks.append(asyncio.create_task(crawl_new_client(crawl_id=crawl_id)))
 
-    tasks.append(asyncio.create_task(crawl_daily(crawl_id=crawl_id)))
+    tasks.append(asyncio.create_task(schedule_daily_crawl(crawl_id=crawl_id)))
     await asyncio.gather(*tasks)
 
 
