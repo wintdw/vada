@@ -181,7 +181,6 @@ class AsyncESProcessor:
                 raise ESException(response.status, await response.text())
 
             response_json = await response.json()
-            logging.info("Bulk response: %s", response_json)
 
             # For accounting purposes
             success = 0
