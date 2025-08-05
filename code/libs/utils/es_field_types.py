@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from dateutil import parser  # type: ignore
@@ -111,8 +110,6 @@ def determine_es_field_types(
             most_probable_type = "double"
 
         field_types[field] = most_probable_type
-
-    logging.info("Field types: %s", field_types)
 
     return field_types
 

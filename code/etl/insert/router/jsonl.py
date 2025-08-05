@@ -20,7 +20,9 @@ router = APIRouter()
 # This function can deal with duplicate messages
 # It's being used for facebook crawler, deprecated!
 @router.post("/jsonl")
-async def receive_jsonl(request: Request) -> JSONResponse:
+async def receive_jsonl(
+    request: Request, skip_es_mappings: bool = False
+) -> JSONResponse:
     """
     Main function to process jsonl received from HTTP endpoint
 
@@ -50,11 +52,14 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             json_docs.append(vada_doc.get_doc())
 
         # convert
-        field_types = determine_es_field_types(json_docs)
-        json_converted_docs = convert_es_field_types(json_docs, field_types)
-        mappings = construct_es_mappings(field_types)
+        if not skip_es_mappings:
+            field_types = determine_es_field_types(json_docs)
+            json_converted_docs = convert_es_field_types(json_docs, field_types)
+            mappings = construct_es_mappings(field_types)
+        else:
+            json_converted_docs = json_docs
+            mappings = None
 
-        logging.info("Field types: %s", field_types)
         # We expect all the messages received in one chunk will be in the same index
         # so we take only the first message to get the index name
         vada_doc = VadaDocument(json_lines[0])
@@ -64,15 +69,18 @@ async def receive_jsonl(request: Request) -> JSONResponse:
             logging.error("Missing index name: %s", vada_doc.get_doc())
             raise HTTPException(status_code=400, detail="Missing index name")
 
-        # Create index mappings if not exist
-        mappings_response = await es_processor.create_mappings(index_name, mappings)
-        if mappings_response["status"] > 400:
-            status_msg = "mappings failure"
-            logging.error("Failed to create mappings: %s", mappings_response["detail"])
-            raise HTTPException(
-                status_code=500,
-                detail=mappings_response["detail"],
-            )
+        # Create index mappings if not skipped
+        if not skip_es_mappings and mappings is not None:
+            mappings_response = await es_processor.create_mappings(index_name, mappings)
+            if mappings_response["status"] > 400:
+                status_msg = "mappings failure"
+                logging.error(
+                    "Failed to create mappings: %s", mappings_response["detail"]
+                )
+                raise HTTPException(
+                    status_code=500,
+                    detail=mappings_response["detail"],
+                )
 
         index_response = await es_processor.bulk_index_docs(
             index_name, json_converted_docs
