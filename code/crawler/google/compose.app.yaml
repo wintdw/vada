@@ -15,11 +15,15 @@ services:
     ports:
       - "8146:8146"
     environment:
-      API_BASE_URL: https://api-app.vadata.vn
+      APP_ENV: app
+
       GOOGLE_APP_SECRET_FILE: /run/secrets/google_app_secret
       GOOGLE_DEVELOPER_TOKEN: "3WREvqoZUexzpH_oDUjOPw"
+
       INSERT_SERVICE_BASEURL: http://insert-app.internal.vadata.vn
       CALLBACK_FINAL_URL: https://app.vadata.vn/callback.html
+      API_BASE_URL: https://api-app.vadata.vn
+
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler_prod
       MYSQL_DB: crawler_prod
