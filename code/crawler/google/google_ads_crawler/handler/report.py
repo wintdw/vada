@@ -1,8 +1,7 @@
 import logging
 import asyncio
 from typing import Dict, List
-from datetime import datetime, timedelta
-from prometheus_client import Counter, Histogram  # type: ignore
+from datetime import datetime
 
 from google.ads.googleads.client import GoogleAdsClient  # type: ignore
 
@@ -12,23 +11,6 @@ from .metric import METRIC_FIELDS
 from .query import build_report_query
 from .account import get_all_account_hierarchies, get_non_manager_accounts
 from .persist import post_processing
-
-
-google_ad_crawl = Counter(
-    "google_ad_crawl",
-    "Total number of crawls",
-    ["account_name", "vada_uid"],
-)
-google_ad_crawl_success = Counter(
-    "google_ad_crawl_success",
-    "Total number of successful crawls",
-    ["account_name", "vada_uid"],
-)
-google_ad_crawl_latency = Histogram(
-    "google_ad_crawl_latency_seconds",
-    "Latency of Google Ad crawls in seconds",
-    ["account_name", "vada_uid"],
-)
 
 
 def get_metrics_from_row(metrics_obj) -> Dict:
@@ -198,16 +180,12 @@ async def get_reports(
 async def fetch_google_reports(
     refresh_token: str,
     persist: bool,
-    start_date: str = "",
-    end_date: str = "",
+    start_date: str,
+    end_date: str,
     index_name: str = "",
     account_name: str = "",
     vada_uid: str = "",
-):
-    if not start_date or not end_date:
-        start_date = (datetime.now() - timedelta(days=1)).date().strftime("%Y-%m-%d")
-        end_date = datetime.now().date().strftime("%Y-%m-%d")
-
+) -> Dict:
     logging.info(
         f"Fetching Google Ads reports from {start_date} to {end_date} "
         f"for account {account_name} (Vada UID: {vada_uid})"
@@ -215,7 +193,6 @@ async def fetch_google_reports(
 
     # Prometheus metrics
     start_time = datetime.now()
-    google_ad_crawl.labels(account_name=account_name, vada_uid=vada_uid).inc()
 
     # Initialize client
     ga_client = await get_google_ads_client(refresh_token)
@@ -243,6 +220,8 @@ async def fetch_google_reports(
                 insert_response,
             )
 
+    latency = (datetime.now() - start_time).total_seconds()
+
     # Build response with hierarchy information
     response_data = {
         "date_range": {
@@ -258,15 +237,8 @@ async def fetch_google_reports(
             "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
             "total_ads": len(set(r["ad_group_ad"]["ad_id"] for r in ad_reports)),
             "total_reports": len(ad_reports),
-            "reports": ad_reports,
         },
+        "crawl_duration": latency,
     }
-
-    # Prometheus metrics
-    google_ad_crawl_success.labels(account_name=account_name, vada_uid=vada_uid).inc()
-    latency = (datetime.now() - start_time).total_seconds()
-    google_ad_crawl_latency.labels(
-        account_name=account_name, vada_uid=vada_uid
-    ).observe(latency)
 
     return response_data
