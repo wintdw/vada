@@ -4,6 +4,7 @@ import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
+from handler.metrics import update_crawl_metrics
 from handler.crawl_info import get_crawl_info
 from .crawl import crawl_first_nhanh, crawl_daily_nhanh_scheduler
 
@@ -25,6 +26,8 @@ async def init_scheduler():
     running_tasks = {}
 
     async def update_jobs():
+        await update_crawl_metrics()
+
         crawl_infos = await get_crawl_info()
 
         for info in crawl_infos:
