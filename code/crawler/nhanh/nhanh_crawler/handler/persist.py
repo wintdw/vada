@@ -110,11 +110,11 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
         insert_json = await send_to_insert_service(batch, index_name)
 
         # Aggregate results
-        total_took += insert_json.get("took", 0)
-        total_success += insert_json.get("success", 0)
-        total_failure += insert_json.get("failure", 0)
-        any_errors = any_errors or insert_json.get("errors", False)
-        all_error_msgs.extend(insert_json.get("error_msgs", []))
+        total_took += insert_json["detail"].get("took", 0)
+        total_success += insert_json["detail"].get("success", 0)
+        total_failure += insert_json["detail"].get("failure", 0)
+        any_errors = any_errors or insert_json["detail"].get("errors", False)
+        all_error_msgs.extend(insert_json["detail"].get("error_msgs", []))
 
         logging.debug(
             f"Batch {current_batch}/{total_batches} - Response: {insert_json}"
