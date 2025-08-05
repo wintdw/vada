@@ -8,7 +8,6 @@ from handler.crawl_info import update_crawl_time, get_crawl_info
 
 
 async def crawl_first_nhanh(crawl_id: str):
-    # Crawl 1 year of data, split into 30-day chunks (from latest to oldest)
     end_date = datetime.now()
     start_date = end_date - timedelta(days=90)
     chunk = timedelta(days=2)
@@ -24,6 +23,10 @@ async def crawl_first_nhanh(crawl_id: str):
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
+    logging.info(
+        f"[{business_id}] [First Crawl] Crawling from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+    )
+
     while current_end > start_date:
         current_start = max(current_end - chunk, start_date)
 
@@ -34,7 +37,7 @@ async def crawl_first_nhanh(crawl_id: str):
             to_date=current_end.strftime("%Y-%m-%d"),
         )
         logging.info(
-            f"[{business_id}] [First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response.get("status")}"
+            f"[{business_id}] [First Crawl Chunk] Result from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response.get('status')}"
         )
 
         # Send to the datastore
@@ -68,6 +71,10 @@ async def crawl_daily_nhanh(
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
+    logging.info(
+        f"[{business_id}] [Daily Crawl] Crawling from {start_date} to {end_date}"
+    )
+
     crawl_response = await crawl_nhanh_data(
         business_id=business_id,
         access_token=access_token,
@@ -82,6 +89,10 @@ async def crawl_daily_nhanh(
     )
     await update_crawl_time(crawl_id, crawl_interval)
     crawl_response.pop("orders", None)
+
+    logging.info(
+        f"[{business_id}] [Daily Crawl] Result from {start_date} to {end_date}: {crawl_response}"
+    )
 
     return crawl_response
 
@@ -109,5 +120,5 @@ async def crawl_daily_nhanh_scheduler(crawl_id: str):
 
     crawl_response = await crawl_daily_nhanh(crawl_id)
     logging.info(
-        f"[{business_id}] [Daily Crawl Scheduler] Finish {crawl_id}: {crawl_response}"
+        f"[{business_id}] [Daily Crawl Scheduler] Finish crawl ID {crawl_id}: {crawl_response}"
     )

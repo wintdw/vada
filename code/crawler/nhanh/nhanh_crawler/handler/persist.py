@@ -91,11 +91,16 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     total_docs = len(docs)
     batch_size = get_optimal_batch_size(total_docs)
     total_batches = (total_docs + batch_size - 1) // batch_size
-    last_response = {}
 
     logging.info(
         f"Sending {total_batches} batches (~{batch_size} docs each, total {total_docs} docs) to Insert service"
     )
+
+    total_took = 0
+    total_success = 0
+    total_failure = 0
+    any_errors = False
+    all_error_msgs = []
 
     for i in range(0, total_docs, batch_size):
         batch = docs[i : i + batch_size]
@@ -104,14 +109,27 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
         logging.debug(f"Sending batch {current_batch} of {total_batches}")
         insert_json = await send_to_insert_service(batch, index_name)
 
-        status = insert_json.get("status", "unknown")
-        detail = insert_json.get("detail", "")
+        # Aggregate results
+        total_took += insert_json.get("took", 0)
+        total_success += insert_json.get("success", 0)
+        total_failure += insert_json.get("failure", 0)
+        any_errors = any_errors or insert_json.get("errors", False)
+        all_error_msgs.extend(insert_json.get("error_msgs", []))
 
-        if status != "success":
-            logging.debug(
-                f"Batch {current_batch}/{total_batches} - Status: {status} - Detail: {detail}"
-            )
+        logging.debug(
+            f"Batch {current_batch}/{total_batches} - Response: {insert_json}"
+        )
 
-        last_response = insert_json
+    return_dict = {
+        "took": total_took,
+        "error": any_errors,
+        "success": total_success,
+        "failure": total_failure,
+        "error_msgs": all_error_msgs,
+    }
 
-    return last_response
+    logging.info(
+        f"Finished processing {total_docs} docs in {total_batches} batches. Response: {return_dict}"
+    )
+
+    return return_dict
