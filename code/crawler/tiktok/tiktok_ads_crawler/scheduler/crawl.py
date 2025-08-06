@@ -43,14 +43,21 @@ async def crawl_first_tiktokad(crawl_id: str):
     await update_crawl_time(crawl_id, crawl_interval)
 
 
-async def crawl_daily_tiktokad(crawl_id: str) -> Dict:
+async def crawl_daily_tiktokad(
+    crawl_id: str, start_date: str = "", end_date: str = ""
+) -> Dict:
+    """
+    start_date and end_date are for manual crawl only
+    """
     crawl_info = await get_crawl_info(crawl_id=crawl_id)
     if not crawl_info:
         logging.error(f"Wrong crawl ID: {crawl_id}")
         return {}
 
-    start_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
+    if not start_date or not end_date:
+        start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        end_date = datetime.now().strftime("%Y-%m-%d")
+
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
     index_name = crawl_info[0]["index_name"]

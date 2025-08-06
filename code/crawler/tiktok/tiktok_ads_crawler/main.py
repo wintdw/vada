@@ -1,16 +1,19 @@
 import asyncio
-
+import logging
 from fastapi import FastAPI  # type: ignore
 
-from routers import connector, health
-from tools.logger import get_logger
-from schedulers.main import init_scheduler
+from router import connector, health, metrics, crawl
+from scheduler.main import init_scheduler
 
-logger = get_logger(__name__)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 app = FastAPI()
 app.include_router(connector.router)
 app.include_router(health.router)
+app.include_router(metrics.router)
+app.include_router(crawl.router)
 
 
 async def init_scheduler_background():
