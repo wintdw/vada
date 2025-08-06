@@ -24,6 +24,10 @@ async def crawl_first_tiktokad(crawl_id: str):
     index_name = crawl_info[0]["index_name"]
     account_name = crawl_info[0]["account_name"]
 
+    logging.info(
+        f"[{account_name}] [First Crawl] Crawling from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+    )
+
     while current_end > start_date:
         current_start = max(current_end - chunk, start_date)
 
@@ -62,6 +66,10 @@ async def crawl_daily_tiktokad(
     crawl_interval = crawl_info[0]["crawl_interval"]
     index_name = crawl_info[0]["index_name"]
     account_name = crawl_info[0]["account_name"]
+
+    logging.info(
+        f"[{account_name}] [Daily Crawl] Crawling from {start_date} to {end_date}"
+    )
 
     crawl_response = await crawl_tiktok_business(
         access_token,
