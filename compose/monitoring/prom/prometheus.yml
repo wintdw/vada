@@ -62,6 +62,8 @@ scrape_configs:
       - backend02.internal.vadata.vn:8149
       - backend00.internal.vadata.vn:8146 # ggad
       - backend02.internal.vadata.vn:8146
+      - backend00.internal.vadata.vn:8145 # tta
+      - backend02.internal.vadata.vn:8145
   - job_name: blackbox_exporter  # collect blackbox exporter's operational metrics.
     static_configs:
       - targets: ['mon.internal.vadata.vn:9115']
