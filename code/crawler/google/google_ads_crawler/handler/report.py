@@ -138,17 +138,17 @@ async def process_single_account_report(
 @log_execution_time
 async def get_reports(
     ga_client: GoogleAdsClient,
-    start_date: str = "",
-    end_date: str = "",
-    customer_ads_accounts: List = [],
+    customer_ads_accounts: List,
+    start_date: str,
+    end_date: str,
 ) -> List[Dict]:
     """Fetch Google Ads reports for all accounts through hierarchy.
 
     Args:
         ga_client: Google Ads API client
+        customer_ads_accounts: Flatten list of customer accounts (non manager)
         start_date: Start date for report data
         end_date: End date for report data
-        customer_ads_accounts: Flatten list of customer accounts (non manager)
 
     Returns:
         List of campaign/ad group performance data with metrics
@@ -179,24 +179,15 @@ async def get_reports(
 
 async def fetch_google_reports(
     refresh_token: str,
-    persist: bool,
     start_date: str,
     end_date: str,
-    index_name: str = "",
-    account_name: str = "",
-    vada_uid: str = "",
 ) -> Dict:
-    logging.info(
-        f"Fetching Google Ads reports from {start_date} to {end_date} "
-        f"for account {account_name} (Vada UID: {vada_uid})"
-    )
-
-    # Prometheus metrics
-    start_time = datetime.now()
-
+    """
+    Full flow for fetching google ads reports.
+    """
     # Initialize client
     ga_client = await get_google_ads_client(refresh_token)
-    logging.info(f"Fetching reports from {start_date} to {end_date}")
+    logging.info(f"Fetching Google Ads reports from {start_date} to {end_date}")
 
     # Get account hierarchies
     hierarchies = await get_all_account_hierarchies(ga_client)
@@ -204,23 +195,24 @@ async def fetch_google_reports(
 
     # Get report data
     ad_reports = await get_reports(
-        ga_client, start_date, end_date, customer_ads_accounts
+        ga_client=ga_client,
+        customer_ads_accounts=customer_ads_accounts,
+        start_date=start_date,
+        end_date=end_date,
     )
 
     logging.info(f"Returning {len(ad_reports)} reports")
 
-    # Process and send reports to insert service if any ads
-    if ad_reports:
-        if persist and index_name:
-            insert_response = await post_processing(ad_reports, index_name)
-            logging.info(
-                "Sending %d records to Insert service. Index: %s. Response: %s",
-                len(ad_reports),
-                index_name,
-                insert_response,
-            )
-
-    latency = (datetime.now() - start_time).total_seconds()
+    # # Process and send reports to insert service if any ads
+    # if ad_reports:
+    #     if persist and index_name:
+    #         insert_response = await post_processing(ad_reports, index_name)
+    #         logging.info(
+    #             "Sending %d records to Insert service. Index: %s. Response: %s",
+    #             len(ad_reports),
+    #             index_name,
+    #             insert_response,
+    #         )
 
     # Build response with hierarchy information
     response_data = {
@@ -237,8 +229,8 @@ async def fetch_google_reports(
             "total_ad_groups": len(set(r["ad_group"]["id"] for r in ad_reports)),
             "total_ads": len(set(r["ad_group_ad"]["ad_id"] for r in ad_reports)),
             "total_reports": len(ad_reports),
+            "reports": ad_reports,
         },
-        "crawl_duration": latency,
     }
 
     return response_data

@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict
 
+from handler.persist import post_processing
 from handler.report import fetch_google_reports
 from handler.mysql import update_crawl_time, get_crawl_info
 
@@ -18,7 +19,6 @@ async def crawl_new_client(crawl_id: str):
 
     refresh_token = crawl_info[0]["refresh_token"]
     index_name = crawl_info[0]["index_name"]
-    vada_uid = crawl_info[0]["vada_uid"]
     account_name = crawl_info[0]["account_name"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
@@ -32,17 +32,17 @@ async def crawl_new_client(crawl_id: str):
     )
     while current_start < now:
         current_end = min(current_start + chunk, now)
-        await fetch_google_reports(
+        report_response = await fetch_google_reports(
             refresh_token=refresh_token,
             start_date=current_start.strftime("%Y-%m-%d"),
             end_date=current_end.strftime("%Y-%m-%d"),
-            persist=True,
-            index_name=index_name,
-            vada_uid=vada_uid,
-            account_name=account_name,
         )
         logging.info(
-            f"[{account_name}] [First Crawl Chunk] Chunk Crawl from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')} completed"
+            f"[{account_name}] [First Crawl Chunk] Chunk Crawl from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {report_response.get('report', {}).get('total_reports', 0)} reports"
+        )
+        await post_processing(
+            report_response.get("report", {}).get("reports", []),
+            index_name,
         )
         current_start = current_end
 
@@ -64,7 +64,6 @@ async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -
 
     refresh_token = crawl_info[0]["refresh_token"]
     index_name = crawl_info[0]["index_name"]
-    vada_uid = crawl_info[0]["vada_uid"]
     account_name = crawl_info[0]["account_name"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
@@ -73,19 +72,13 @@ async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -
     )
 
     crawl_response = await fetch_google_reports(
-        refresh_token=refresh_token,
-        start_date=start_date,
-        end_date=end_date,
-        persist=True,
-        index_name=index_name,
-        vada_uid=vada_uid,
-        account_name=account_name,
+        refresh_token=refresh_token, start_date=start_date, end_date=end_date
+    )
+    await post_processing(
+        crawl_response.get("report", {}).get("reports", []),
+        index_name,
     )
     await update_crawl_time(crawl_id, crawl_interval)
-
-    logging.info(
-        f"[{account_name}] [Daily Crawl] Result from {start_date} to {end_date}: {crawl_response}"
-    )
 
     return crawl_response
 

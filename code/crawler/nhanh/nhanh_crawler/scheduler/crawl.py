@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict
 
 from handler.nhanh import crawl_nhanh_data
-from handler.persist import post_processing, enrich_doc
+from handler.persist import post_processing
 from handler.crawl_info import update_crawl_time, get_crawl_info
 
 
@@ -42,7 +42,7 @@ async def crawl_first_nhanh(crawl_id: str):
 
         # Send to the datastore
         await post_processing(
-            [enrich_doc(order) for order in crawl_response.get("orders", [])],
+            crawl_response.get("orders", []),
             index_name,
         )
 
@@ -84,7 +84,7 @@ async def crawl_daily_nhanh(
 
     # Send to the datastore
     await post_processing(
-        [enrich_doc(order) for order in crawl_response.get("orders", [])],
+        crawl_response.get("orders", []),
         index_name,
     )
     await update_crawl_time(crawl_id, crawl_interval)

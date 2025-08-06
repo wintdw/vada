@@ -1,4 +1,3 @@
-import math
 import logging
 import aiohttp  # type: ignore
 
@@ -78,8 +77,9 @@ async def send_to_insert_service(docs: List[Dict], index_name: str) -> Dict:
 
 
 async def post_processing(docs: List[Dict], index_name: str) -> Dict:
-    """Produce data to insert service in batches
-    Note: The process is after doc enrichment (enrich_doc)
+    """
+    Produce data to insert service in batches, after enrichments
+    This function includes all above funcs, so need to call this only
 
     Args:
         docs: List of processed data to be sent
@@ -88,7 +88,10 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     Returns:
         Dict: Last response from insert service
     """
-    total_docs = len(docs)
+
+    # Enrich docs before batching
+    enriched_docs = [enrich_doc(doc) for doc in docs]
+    total_docs = len(enriched_docs)
     batch_size = get_optimal_batch_size(total_docs)
     total_batches = (total_docs + batch_size - 1) // batch_size
 
@@ -103,7 +106,7 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     all_error_msgs = []
 
     for i in range(0, total_docs, batch_size):
-        batch = docs[i : i + batch_size]
+        batch = enriched_docs[i : i + batch_size]
         current_batch = i // batch_size + 1
 
         logging.debug(f"Sending batch {current_batch} of {total_batches}")
