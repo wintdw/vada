@@ -88,6 +88,17 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     Returns:
         Dict: Last response from insert service
     """
+    if not docs:
+        logging.info(
+            "No documents to process for index '%s'. Skipping insert.", index_name
+        )
+        return {
+            "took": 0,
+            "error": False,
+            "success": 0,
+            "failure": 0,
+            "error_msgs": [],
+        }
 
     # Enrich docs before batching
     enriched_docs = [enrich_doc(doc) for doc in docs]
