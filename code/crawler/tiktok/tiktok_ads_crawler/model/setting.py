@@ -3,8 +3,6 @@ from pydantic_settings import BaseSettings  # type: ignore
 
 
 class Settings(BaseSettings):
-    LOG_LEVEL: int = 20
-
     MYSQL_HOST: str
     MYSQL_USER: str
     MYSQL_DB: str

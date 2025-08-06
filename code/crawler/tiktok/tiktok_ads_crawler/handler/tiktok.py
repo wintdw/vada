@@ -1,13 +1,8 @@
-import time
-import uuid
 import asyncio
+import logging
+from typing import Dict
 
-from datetime import datetime
-
-from tools.logger import get_logger, request_id
-from .enrichment import construct_detailed_report, enrich_report
-from .persist import send_batch
-from services.tiktok import (
+from service.tiktok import (
     tiktok_biz_get_advertiser,
     tiktok_biz_info_advertiser,
     tiktok_biz_get_report_integrated,
@@ -16,28 +11,52 @@ from services.tiktok import (
     tiktok_biz_get_adgroup,
 )
 
-logger = get_logger(__name__)
+
+def construct_detailed_report(
+    report: Dict,
+    advertiser_info: Dict,
+    campaign_info: Dict,
+    adgroup_info: Dict,
+    ad_info: Dict,
+) -> Dict:
+    """
+    Enhance a report with nested dictionaries for advertiser, campaign, ad group and ad.
+
+    Args:
+        report (dict): The original report data
+        advertiser_info (dict): Complete advertiser information
+        campaign_info (dict): Complete campaign information
+        adgroup_info (dict): Complete ad group information
+        ad_info (dict): Complete ad information
+
+    Returns:
+        dict: Enhanced report with nested entity information
+    """
+    enhanced_report = report.copy()
+
+    # Create nested dictionaries for each entity
+    enhanced_report["advertiser"] = advertiser_info
+    enhanced_report["campaign"] = campaign_info
+    enhanced_report["adgroup"] = adgroup_info
+    enhanced_report["ad"] = ad_info
+
+    return enhanced_report
 
 
 async def crawl_tiktok_business(
-    index_name: str, access_token: str, start_date: str, end_date: str
-):
-    # Generate and set request ID at the start of each request
-    req_id = str(uuid.uuid4())[:8]  # Take first 8 characters
-    request_id.set(req_id)
-    start_time = time.time()
-
+    access_token: str, start_date: str, end_date: str
+) -> Dict:
     try:
         # Get all advertisers
         advertisers = await tiktok_biz_get_advertiser(access_token)
         total_advertisers = len(advertisers)
-        logger.debug(f"Found {total_advertisers} advertisers to process")
-        logger.debug(advertisers)
+        logging.debug(f"Found {total_advertisers} advertisers to process")
+        logging.debug(advertisers)
 
-        all_enriched_reports = []
+        detailed_reports = []
 
         for idx, advertiser in enumerate(advertisers, 1):
-            logger.debug(
+            logging.debug(
                 f"Processing advertiser {idx}/{total_advertisers} - ID: {advertiser['advertiser_id']}"
             )
 
@@ -45,10 +64,10 @@ async def crawl_tiktok_business(
             advertiser_info = await tiktok_biz_info_advertiser(
                 access_token, [advertiser["advertiser_id"]]
             )
-            logger.debug(
+            logging.debug(
                 f"  → Advertiser name: {advertiser_info[0].get('name', 'N/A')}"
             )
-            logger.debug(advertiser_info)
+            logging.debug(advertiser_info)
 
             # Get integrated report
             reports = await tiktok_biz_get_report_integrated(
@@ -58,20 +77,20 @@ async def crawl_tiktok_business(
                 end_date=end_date,
             )
             total_reports = len(reports)
-            logger.debug(f"  → Found {total_reports} reports for this advertiser")
+            logging.debug(f"  → Found {total_reports} reports for this advertiser")
 
             for report_idx, report in enumerate(reports, 1):
-                logger.debug(f"  → Processing report {report_idx}/{total_reports}")
-                logger.debug(f"    • Ad ID: {report.get('ad_id')}")
-                logger.debug(f"    • Date: {report.get('stat_time_day')}")
-                logger.debug(f"    • Spend: {report.get('spend', '0')}")
+                logging.debug(f"  → Processing report {report_idx}/{total_reports}")
+                logging.debug(f"    • Ad ID: {report.get('ad_id')}")
+                logging.debug(f"    • Date: {report.get('stat_time_day')}")
+                logging.debug(f"    • Spend: {report.get('spend', '0')}")
 
                 if float(report.get("spend", "0")) == 0:
-                    logger.debug("    ✗ Skipping report with zero spend")
+                    logging.debug("    ✗ Skipping report with zero spend")
                     continue
 
                 # Get ad information
-                logger.debug(
+                logging.debug(
                     f"  → Getting campaign / adgroup / ad information for Ad ID: {report['ad_id']}"
                 )
                 ads = await tiktok_biz_get_ad(
@@ -110,60 +129,37 @@ async def crawl_tiktok_business(
                     ad_info=ads[0] if ads else {},
                 )
 
-                timestamp = int(
-                    datetime.strptime(
-                        report["stat_time_day"], "%Y-%m-%d %H:%M:%S"
-                    ).timestamp()
-                )
-                doc_id = f"{report['ad_id']}_{timestamp}"
-                enriched_report = enrich_report(detailed_report, index_name, doc_id)
-                all_enriched_reports.append(enriched_report)
+                detailed_reports.append(detailed_report)
 
         # Send reports in batches
-        total_reports = len(all_enriched_reports)
-
-        # Accounting
-        end_time = time.time()
-        execution_time = round(end_time - start_time, 2)
+        total_reports = len(detailed_reports)
 
         if total_reports == 0:
             # Do not send batch to Datastore if no reports
             return {
                 "status": "success",
-                "request_id": req_id,
-                "execution_time": execution_time,
-                "total_reports": 0,
-                "total_spend": 0.0,
                 "date_start": start_date,
                 "date_end": end_date,
+                "report": {
+                    "total_reports": 0,
+                    "total_spend": 0.0,
+                    "reports": [],
+                },
             }
 
-        send_batches = await send_batch(
-            batch_report=all_enriched_reports, index_name=index_name
-        )
-        # Log the response from the insert service
-        logger.debug(
-            f"Send {total_reports} reports to Datastore: {send_batches.get('status', '')} - {send_batches.get('detail', '')}"
-        )
         # Calculate total spending
-        total_spend = sum(
-            float(report.get("spend", 0)) for report in all_enriched_reports
-        )
+        total_spend = sum(float(report.get("spend", 0)) for report in detailed_reports)
 
         return {
             "status": "success",
-            "request_id": req_id,
-            "execution_time": execution_time,
-            "total_reports": total_reports,
-            "total_spend": round(total_spend, 2),
             "date_start": start_date,
             "date_end": end_date,
+            "report": {
+                "total_reports": total_reports,
+                "total_spend": round(total_spend, 2),
+                "reports": detailed_reports,
+            },
         }
     except Exception as e:
-        logger.error(f"Error occurred: {e}", exc_info=True)
-        return {
-            "status": "failure",
-            "request_id": req_id,
-            "date_start": start_date,
-            "date_end": end_date,
-        }
+        logging.error(f"Error occurred: {e}", exc_info=True)
+        raise Exception(f"Failed to crawl TikTok business data: {str(e)}")

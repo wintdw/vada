@@ -1,13 +1,14 @@
+import logging
+
 from fastapi import APIRouter, HTTPException  # type: ignore
 from fastapi.responses import RedirectResponse  # type: ignore
 
-from tools.logger import get_logger
-from models.settings import settings
-from repositories.crawl_info import set_crawl_info
-from services.tiktok import tiktok_biz_get_access_token, tiktok_biz_get_user_info
+from model.setting import settings
+from model.index_mappings import index_mappings_data
+from repository.crawl_info import set_crawl_info
+from service.tiktok import tiktok_biz_get_access_token, tiktok_biz_get_user_info
 
 router = APIRouter()
-logger = get_logger(__name__)
 
 
 @router.get("/ingest/partner/tiktok/ad/callback", tags=["Connector"])
@@ -19,7 +20,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
         access_token = access_token_response["access_token"]
 
         user_info = await tiktok_biz_get_user_info(access_token=access_token)
-        logger.info(user_info)
+        logging.info(user_info)
 
         account_id = user_info["core_user_id"]
         account_name = user_info["display_name"]
@@ -34,13 +35,13 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             access_token=access_token,
             crawl_interval=1440,
         )
-        logger.info(crawl_info)
+        logging.info(crawl_info)
 
         return RedirectResponse(
             url=f"{settings.CONNECTOR_CALLBACK_URL}?account_id={account_id}&account_name={account_name}&index_name={index_name}&friendly_index_name={friendly_index_name}"
         )
     except Exception as e:
-        logger.error(f"Error during TikTok Ads callback: {e}", exc_info=True)
+        logging.error(f"Error during TikTok Ads callback: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
@@ -53,6 +54,4 @@ async def ingest_partner_tiktok_ad_auth(vada_uid: str):
 
 @router.get("/ingest/partner/tiktok/ad/config", tags=["Connector"])
 async def ingest_partner_tiktok_ad_config():
-    from models.index_mappings import index_mappings_data
-
     return {"mappings": index_mappings_data["mappings"]}

@@ -2,8 +2,8 @@ import json
 
 from typing import List, Dict, Optional
 
-from tools.requests import get, post
-from models.settings import settings
+from tool.requests import get, post
+from model.setting import settings
 
 
 async def tiktok_biz_get_user_info(access_token: str) -> Dict:

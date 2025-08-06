@@ -1,11 +1,8 @@
 import uuid
-
+import logging
 from typing import Dict, List
 
-from tools.logger import get_logger
-from tools.mysql import get_mysql_connection, get_mysql_cursor
-
-logger = get_logger(__name__)
+from tool.mysql import get_mysql_connection, get_mysql_cursor
 
 
 async def insert_crawl_info(
@@ -45,14 +42,14 @@ async def insert_crawl_info(
                     ),
                 )
                 await connection.commit()
-                logger.info(
+                logging.info(
                     f"Inserted crawl info for account_name: {account_name} and vada_uid: {vada_uid}"
                 )
 
         return {"crawl_id": crawl_id}
 
     except Exception as e:
-        logger.error(f"Error inserting crawl info: {str(e)}", exc_info=True)
+        logging.error(f"Error inserting crawl info: {str(e)}", exc_info=True)
         return {}
 
 
@@ -113,7 +110,7 @@ async def get_crawl_info(
         ]
 
     except Exception as e:
-        logger.error(f"Error fetching crawl info: {str(e)}", exc_info=True)
+        logging.error(f"Error fetching crawl info: {str(e)}", exc_info=True)
         return []
 
 
@@ -134,7 +131,7 @@ async def update_crawl_time(crawl_id: str, crawl_interval: int) -> Dict:
                 await connection.commit()
         return {"crawl_id": crawl_id}
     except Exception as e:
-        logger.error(f"Error updating crawl time: {str(e)}")
+        logging.error(f"Error updating crawl time: {str(e)}")
         return {}
 
 
@@ -151,12 +148,12 @@ async def update_crawl_token(crawl_id: str, access_token: str) -> Dict:
             async with get_mysql_cursor(connection) as cursor:
                 await cursor.execute(query, (access_token, crawl_id))
                 await connection.commit()
-                logger.info(f"Updated tokens and expiry for crawl_id: {crawl_id}")
+                logging.info(f"Updated tokens and expiry for crawl_id: {crawl_id}")
 
         return {"crawl_id": crawl_id}
 
     except Exception as e:
-        logger.error(f"Error updating crawl tokens: {str(e)}", exc_info=True)
+        logging.error(f"Error updating crawl tokens: {str(e)}", exc_info=True)
         return {}
 
 
@@ -183,7 +180,7 @@ async def set_crawl_info(
 
             if access_token:
                 await update_crawl_token(crawl_id, access_token)
-                logger.info(
+                logging.info(
                     f"Updated tokens for account_name: {account_name} and vada_uid: {vada_uid}"
                 )
 
@@ -198,10 +195,10 @@ async def set_crawl_info(
                 access_token,
                 crawl_interval,
             )
-            logger.info(
+            logging.info(
                 f"Inserted crawl info for account_name: {account_name} and vada_uid: {vada_uid}"
             )
             return insert_result
     except Exception as e:
-        logger.error(f"Error setting crawl info: {str(e)}", exc_info=True)
+        logging.error(f"Error setting crawl info: {str(e)}", exc_info=True)
         return {}

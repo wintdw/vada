@@ -1,65 +1,31 @@
-import json
+from datetime import datetime
+from typing import Dict
 
 
-def save_report(data, filename):
-    with open(filename, "a", encoding="utf-8") as f:  # Changed "a" to "w"
-        json.dump(data, f, ensure_ascii=False)
-        f.write("\n")
-
-
-def construct_detailed_report(
-    report: dict,
-    advertiser_info: dict,
-    campaign_info: dict,
-    adgroup_info: dict,
-    ad_info: dict,
-) -> dict:
-    """
-    Enhance a report with nested dictionaries for advertiser, campaign, ad group and ad.
-
-    Args:
-        report (dict): The original report data
-        advertiser_info (dict): Complete advertiser information
-        campaign_info (dict): Complete campaign information
-        adgroup_info (dict): Complete ad group information
-        ad_info (dict): Complete ad information
-
-    Returns:
-        dict: Enhanced report with nested entity information
-    """
-    enhanced_report = report.copy()
-
-    # Create nested dictionaries for each entity
-    enhanced_report["advertiser"] = advertiser_info
-    enhanced_report["campaign"] = campaign_info
-    enhanced_report["adgroup"] = adgroup_info
-    enhanced_report["ad"] = ad_info
-
-    return enhanced_report
-
-
-def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
+def enrich_doc(doc: Dict) -> Dict:
     """
     Enrich a report with vada ingest metadata and, if applicable, company-specific metadata.
 
     Args:
         report (dict): The original or already enriched report
-        index_name (str): Elasticsearch index name
-        doc_id (str): Document ID
 
     Returns:
         dict: Enriched report
     """
     # Base vada ingest metadata
+    timestamp = int(
+        datetime.strptime(doc["stat_time_day"], "%Y-%m-%d %H:%M:%S").timestamp()
+    )
+    doc_id = f"{doc['ad_id']}_{timestamp}"
+
     metadata = {
         "_vada": {
             "ingest": {
-                "destination": {"type": "elasticsearch", "index": index_name},
                 "doc_id": doc_id,
             }
         }
     }
-    enriched = report | metadata
+    enriched = doc | metadata
 
     # Company-specific enrichment rules
     company_enrichers = {
@@ -76,7 +42,7 @@ def enrich_report(report: dict, index_name: str, doc_id: str) -> dict:
     return enriched
 
 
-def enrich_anchi_metadata(enriched_report: dict) -> dict:
+def enrich_anchi_metadata(enriched_report: Dict) -> Dict:
     """
     Enrich report with vada metadata for ANCHI GROUP VIET NAM JOINT STOCK COMPANY.
     """

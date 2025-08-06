@@ -1,18 +1,15 @@
 import aiomysql  # type: ignore
-
+import logging
 from contextlib import asynccontextmanager
 
-from models.settings import settings
-from .logger import get_logger
-
-logger = get_logger(__name__)
+from model.setting import settings
 
 
 @asynccontextmanager
 async def get_mysql_connection():
     connection = None
     try:
-        logger.debug("Initializing MySQL connection...")
+        logging.debug("Initializing MySQL connection...")
         connection = await aiomysql.connect(
             host=settings.MYSQL_HOST,
             user=settings.MYSQL_USER,
@@ -23,7 +20,7 @@ async def get_mysql_connection():
     finally:
         if connection:
             await connection.ensure_closed()
-            logger.debug("MySQL connection closed")
+            logging.debug("MySQL connection closed")
 
 
 @asynccontextmanager
