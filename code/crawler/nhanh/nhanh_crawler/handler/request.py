@@ -43,4 +43,4 @@ async def retry_post(
             await asyncio.sleep(retry_delay)
 
     logging.error(f"Failed to query {url} after {max_retries} attempts")
-    return {}
+    raise Exception(f"Failed to query {url} after {max_retries} attempts")
