@@ -1,11 +1,8 @@
 from datetime import datetime
 from prometheus_client import Gauge  # type: ignore
-from fastapi import APIRouter  # type: ignore
 
 from model.setting import settings
 from .mysql import get_crawl_info
-
-router = APIRouter()
 
 # Define Prometheus Gauges
 ggad_last_crawl_time = Gauge(
