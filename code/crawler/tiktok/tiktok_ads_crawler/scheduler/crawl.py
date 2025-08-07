@@ -77,14 +77,14 @@ async def crawl_daily_tiktokad(
         end_date,
     )
     await post_processing(crawl_response["report"]["reports"], index_name)
-
-    logging.info(
-        f"[{account_name}] [Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response['report'].pop('reports', None)}"
-    )
-
     await update_crawl_time(crawl_id, crawl_interval)
 
-    return crawl_response["report"].pop("reports", None)
+    # remove unnecessary fields from the response
+    crawl_response["report"].pop("reports", None)
+    logging.info(
+        f"[{account_name}] [Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response}"
+    )
+    return crawl_response
 
 
 async def crawl_daily_tiktokad_scheduler(crawl_id: str):
@@ -108,7 +108,4 @@ async def crawl_daily_tiktokad_scheduler(crawl_id: str):
         )
         return
 
-    crawl_response = await crawl_daily_tiktokad(crawl_id)
-    logging.info(
-        f"[{account_name}] [Daily Crawl Scheduler] Finish crawl ID {crawl_id}: {crawl_response}"
-    )
+    await crawl_daily_tiktokad(crawl_id)
