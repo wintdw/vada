@@ -49,7 +49,7 @@ async def crawl_new_client(crawl_id: str):
     await update_crawl_time(crawl_id, crawl_interval)
 
 
-async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -> int:
+async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -> Dict:
     """
     start_date and end_date are for manual crawl only
     """
@@ -60,7 +60,7 @@ async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -
     crawl_info = await get_crawl_info(crawl_id=crawl_id)
     if not crawl_info:
         logging.error(f"Wrong crawl ID: {crawl_id}")
-        return 0
+        return {}
 
     refresh_token = crawl_info[0]["refresh_token"]
     index_name = crawl_info[0]["index_name"]
@@ -80,7 +80,12 @@ async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -
     )
     await update_crawl_time(crawl_id, crawl_interval)
 
-    return crawl_response["report"]["total_reports"]
+    return {
+        "status": "success",
+        "date_start": start_date,
+        "date_end": end_date,
+        "total_reports": crawl_response["report"]["total_reports"],
+    }
 
 
 async def schedule_daily_crawl(crawl_id: str):
