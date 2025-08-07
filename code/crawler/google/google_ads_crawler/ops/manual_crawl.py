@@ -7,6 +7,7 @@ BASE_URL = "http://localhost:8146/ingest/partner/google/ad/crawl"
 CRAWL_IDS = [
     "03fb1890-1396-41bc-8786-6b9d23df0ecf",
     "dcf99728-1371-4400-b186-b6bcac631514",
+    "727b0dd0-17f3-4e24-b4a2-562e98979a56",
 ]  # Add as many as you want
 DATE_FORMAT = "%Y-%m-%d"
 REQUEST_DELAY = 1  # seconds
