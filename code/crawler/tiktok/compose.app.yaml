@@ -29,7 +29,7 @@ services:
       TIKTOK_BIZ_SECRET: 6fd63e3c5a39cffd0dd2d73c872840008b587148
       TIKTOK_BIZ_REDIRECT_URI: https://api-app.vadata.vn/ingest/partner/tiktok/ad/callback
 
-      INSERT_SERVICE_URL: http://insert-app.internal.vadata.vn
+      INSERT_SERVICE_BASEURL: http://insert-app.internal.vadata.vn
       CONNECTOR_CALLBACK_URL: https://app.vadata.vn/callback.html
 
   tiktok_shop_crawler:

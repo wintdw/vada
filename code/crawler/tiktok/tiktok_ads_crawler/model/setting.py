@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     TIKTOK_BIZ_SECRET: str
     TIKTOK_BIZ_REDIRECT_URI: str
 
-    INSERT_SERVICE_URL: str
+    INSERT_SERVICE_BASEURL: str
     CONNECTOR_CALLBACK_URL: str
 
     @property
