@@ -19,7 +19,7 @@ next_crawl_time_gauge = Gauge(
 
 crawl_info_gauge = Gauge(
     "tiktokshop_crawl_info",
-    "Crawl info labels for TikTok Shop",
+    "Crawl info for TikTok Shop",
     [
         "crawl_id",
         "account_name",
@@ -27,6 +27,17 @@ crawl_info_gauge = Gauge(
         "vada_uid",
         "index_name",
         "note",
+        "app_env",
+    ],
+)
+
+token_expiry_gauge = Gauge(
+    "tiktokshop_token_expiry",
+    "Access and refresh token expiry for TikTok Shop",
+    [
+        "crawl_id",
+        "access_token_expiry",
+        "refresh_token_expiry",
         "app_env",
     ],
 )
@@ -43,6 +54,8 @@ async def update_crawl_metrics():
         note = info.get("note", "")
         last_crawl_time = info.get("last_crawl_time")
         next_crawl_time = info.get("next_crawl_time")
+        access_token_expiry = info.get("access_token_expiry")
+        refresh_token_expiry = info.get("refresh_token_expiry")
 
         # Set crawl_info_gauge to 1 for each crawl_id (can be used for label-only metrics)
         crawl_info_gauge.labels(
@@ -52,6 +65,14 @@ async def update_crawl_metrics():
             vada_uid=vada_uid,
             index_name=index_name,
             note=note,
+            app_env=settings.APP_ENV,
+        ).set(1)
+
+        # Set token_expiry_gauge to 1 for each crawl_id (label-only metric)
+        token_expiry_gauge.labels(
+            crawl_id=crawl_id,
+            access_token_expiry=access_token_expiry,
+            refresh_token_expiry=refresh_token_expiry,
             app_env=settings.APP_ENV,
         ).set(1)
 
