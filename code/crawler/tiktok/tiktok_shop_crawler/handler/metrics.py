@@ -16,7 +16,6 @@ next_crawl_time_gauge = Gauge(
     "Next crawl time (epoch seconds)",
     ["crawl_id", "app_env"],
 )
-
 crawl_info_gauge = Gauge(
     "tiktokshop_crawl_info",
     "Crawl info for TikTok Shop",
@@ -29,16 +28,15 @@ crawl_info_gauge = Gauge(
         "app_env",
     ],
 )
-
-token_expiry_gauge = Gauge(
-    "tiktokshop_token_expiry",
-    "Access and refresh token expiry for TikTok Shop",
-    [
-        "crawl_id",
-        "access_token_expiry",
-        "refresh_token_expiry",
-        "app_env",
-    ],
+refresh_token_expiry_gauge = Gauge(
+    "tiktokshop_refresh_token_expiry",
+    "Refresh token expiry for TikTok Shop",
+    ["crawl_id", "app_env"],
+)
+access_token_expiry_gauge = Gauge(
+    "tiktokshop_access_token_expiry",
+    "Access token expiry for TikTok Shop",
+    ["crawl_id", "app_env"],
 )
 
 
@@ -66,12 +64,12 @@ async def update_crawl_metrics():
         ).set(1)
 
         # Set token_expiry_gauge to 1 for each crawl_id (label-only metric)
-        token_expiry_gauge.labels(
-            crawl_id=crawl_id,
-            access_token_expiry=access_token_expiry,
-            refresh_token_expiry=refresh_token_expiry,
-            app_env=settings.APP_ENV,
-        ).set(1)
+        refresh_token_expiry_gauge.labels(
+            crawl_id=crawl_id, app_env=settings.APP_ENV
+        ).set(refresh_token_expiry)
+        access_token_expiry_gauge.labels(
+            crawl_id=crawl_id, app_env=settings.APP_ENV
+        ).set(access_token_expiry)
 
         # Convert ISO8601 to epoch seconds if present
         if last_crawl_time:
