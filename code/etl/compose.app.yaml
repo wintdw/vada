@@ -5,7 +5,7 @@ secrets:
     file: /var/secret/docker/ingest/jwt
 
 services:
-  insert:
+  insert: &insert
     build:
       context: ../
       dockerfile: etl/Dockerfile.insert
@@ -25,24 +25,10 @@ services:
     ports:
       - "8000:8000"
   insert_replica:
-    build:
-      context: ../
-      dockerfile: etl/Dockerfile.insert
-    image: insert:latest
+    <<: *insert
     container_name: insert_replica
-    restart: always
-    environment:
-      PORT: "8002"
-      APP_ENV: app
-      ELASTIC_PASSWD_FILE: /run/secrets/es
-      ELASTIC_USER: elastic
-      ELASTIC_URL: http://es-app.internal.vadata.vn
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-    secrets:
-      - es
     ports:
-      - "8002:8002"
+      - "8002:8000"
     depends_on:
       insert:
         condition: service_healthy
