@@ -62,7 +62,6 @@ async def update_crawl_metrics():
             account_id=account_id,
             vada_uid=vada_uid,
             index_name=index_name,
-            note=note,
             app_env=settings.APP_ENV,
         ).set(1)
 

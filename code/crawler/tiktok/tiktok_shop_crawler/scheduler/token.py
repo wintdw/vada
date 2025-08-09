@@ -19,7 +19,7 @@ async def refresh_token_scheduler(crawl_id: str) -> Dict:
         access_days_left = check_days_left_to_expiry(access_token_expiry)
         refresh_days_left = check_days_left_to_expiry(refresh_token_expiry)
 
-        logging.info(
+        logging.debug(
             f"[{account_name}] [Token] Access token expiry: {access_days_left}d, Refresh token expiry: {refresh_days_left}d"
         )
 
@@ -37,7 +37,7 @@ async def refresh_token_scheduler(crawl_id: str) -> Dict:
                 access_token_expiry=new_tokens["access_token_expire_in"],
                 refresh_token_expiry=new_tokens["refresh_token_expire_in"],
             )
-            logging.info(f"[{account_name}] [Token] Updated crawl info: {crawl_info}")
+            logging.info(f"[{account_name}] [Token] Refreshed crawl info: {crawl_info}")
 
             return new_tokens
         else:
