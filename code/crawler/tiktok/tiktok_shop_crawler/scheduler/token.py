@@ -2,12 +2,12 @@ import logging
 from typing import Dict
 
 from handler.auth import refresh_tokens, check_days_left_to_expiry
-from handler.mysql import update_crawl_token
+from handler.crawl_info import update_crawl_token
 
 TOKEN_REFRESH_THRESHOLD_DAYS = 1
 
 
-async def scheduled_refresh_token(
+async def refresh_token_scheduler(
     crawl_id: str,
     refresh_token: str,
     access_token_expiry: int,
