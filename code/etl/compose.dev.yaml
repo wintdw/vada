@@ -5,25 +5,25 @@ secrets:
     file: /var/secret/docker/ingest/jwt
 
 services:
-  log:
-    build:
-      context: ../
-      dockerfile: etl/Dockerfile.log
-    image: log:latest
-    container_name: log
-    restart: always
-    environment:
-      PORT: "8003"
-      APP_ENV: dev
-      ELASTIC_PASSWD_FILE: /run/secrets/es
-      ELASTIC_USER: elastic
-      ELASTIC_URL: http://demo.internal.vadata.vn:9200
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-    secrets:
-      - es
-    ports:
-      - "8003:8003"
+  # log:
+  #   build:
+  #     context: ../
+  #     dockerfile: etl/Dockerfile.log
+  #   image: log:latest
+  #   container_name: log
+  #   restart: always
+  #   environment:
+  #     PORT: "8003"
+  #     APP_ENV: dev
+  #     ELASTIC_PASSWD_FILE: /run/secrets/es
+  #     ELASTIC_USER: elastic
+  #     ELASTIC_URL: http://demo.internal.vadata.vn:9200
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+  #   secrets:
+  #     - es
+  #   ports:
+  #     - "8003:8003"
 
   insert:
     build:
@@ -44,6 +44,28 @@ services:
       - es
     ports:
       - "8000:8000"
+  insert_replica:
+    build:
+      context: ../
+      dockerfile: etl/Dockerfile.insert
+    image: insert:latest
+    container_name: insert_replica
+    restart: always
+    environment:
+      PORT: "8002"
+      APP_ENV: dev
+      ELASTIC_PASSWD_FILE: /run/secrets/es
+      ELASTIC_USER: elastic
+      ELASTIC_URL: http://demo.internal.vadata.vn:9200
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+    secrets:
+      - es
+    ports:
+      - "8002:8002"
+    depends_on:
+      insert:
+        condition: service_healthy
 
   ingest:
     build:
