@@ -26,7 +26,6 @@ crawl_info_gauge = Gauge(
         "account_id",
         "vada_uid",
         "index_name",
-        "note",
         "app_env",
     ],
 )
@@ -51,7 +50,6 @@ async def update_crawl_metrics():
         account_id = info.get("account_id")
         vada_uid = info.get("vada_uid")
         index_name = info.get("index_name")
-        note = info.get("note", "")
         last_crawl_time = info.get("last_crawl_time")
         next_crawl_time = info.get("next_crawl_time")
         access_token_expiry = info.get("access_token_expiry")
