@@ -7,6 +7,7 @@ from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 from handler.metrics import update_crawl_metrics
 from handler.crawl_info import get_crawl_info
 from .order import crawl_first_tiktokshop, crawl_daily_tiktokshop_scheduler
+from .token import refresh_token_scheduler
 
 
 async def schedule_tiktokshop_crawl_job(
@@ -42,6 +43,7 @@ async def init_scheduler():
                 logging.info(f"[{crawl_id}] skipping - task still running")
                 continue
 
+            await refresh_token_scheduler(crawl_id=crawl_id)
             task = asyncio.create_task(
                 schedule_tiktokshop_crawl_job(
                     crawl_id=crawl_id, first_crawl=first_crawl
