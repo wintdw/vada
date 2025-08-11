@@ -70,12 +70,10 @@ async def crawl_daily_tiktokshop(
     # Update Prometheus metrics for insert success/failure
     insert_success_gauge.labels(
         crawl_id=crawl_id,
-        index_name=index_name,
         app_env=settings.APP_ENV,
     ).set(insert_response.get("success", 0))
     insert_failure_gauge.labels(
         crawl_id=crawl_id,
-        index_name=index_name,
         app_env=settings.APP_ENV,
     ).set(insert_response.get("failure", 0))
 
