@@ -52,7 +52,7 @@ def generate_partner_signature(
 
 
 def _get_domain(sandbox: bool) -> str:
-    return "partner.test-stable.shopeemobile.com" if sandbox else "partner.shopeemobile.com"
+    return "openplatform.sandbox.test-stable.shopee.sg" if sandbox else "partner.shopeemobile.com"
 
 
 def generate_shopee_auth_url(
@@ -60,16 +60,18 @@ def generate_shopee_auth_url(
     custom_redirect_params: Optional[dict] = None,
     sandbox: bool = True
 ) -> str:
-    path = "/api/v2/shop/auth_partner"
+    path = "/auth"
     timestamp = int(time.time())
     sign = _generate_signature(path, timestamp)
-    domain = _get_domain(sandbox)
+    domain = 'open.sandbox.test-stable.shopee.com'
 
     query_params = {
+        "auth_type": "seller",
         "partner_id": settings.SHOPEE_PARTNER_ID,
         "timestamp": timestamp,
+        "response_type": "code",
         "sign": sign,
-        "redirect": redirect_url
+        "redirect_uri": redirect_url
     }
 
     if custom_redirect_params:

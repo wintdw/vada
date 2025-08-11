@@ -53,15 +53,19 @@ async def add_shopee_shop_crawl_job(
     account_name: str,
     crawl_interval: int,
 ):
-    now = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-    ninety_days_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
-
+    now = datetime.now().date()
+    
     try:
-        # Crawl immediately for the first time
+        # Instead of crawling 90 days at once, crawl recent 14 days first
+        # (15 days is max, but we use 14 to be safe)
+        recent_start = (now - timedelta(days=14)).strftime("%Y-%m-%d")
+        recent_end = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        # Crawl recent orders immediately for the first time
         await scheduled_fetch_all_orders(
             access_token=access_token,
-            start_date=ninety_days_ago,
-            end_date=now,
+            start_date=recent_start,
+            end_date=recent_end,
             index_name=index_name,
             vada_uid=vada_uid,
             account_id=account_id,

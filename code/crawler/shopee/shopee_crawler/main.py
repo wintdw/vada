@@ -4,6 +4,7 @@ from fastapi import FastAPI  # type: ignore
 
 from router import auth, config
 from scheduler.main import init_scheduler
+from init_db import main as init_database
 
 
 logging.basicConfig(
@@ -24,6 +25,10 @@ async def init_scheduler_background():
 
 @app.on_event("startup")
 async def startup_event():
+    # Initialize database tables first
+    logging.info("🔧 Initializing database...")
+    await init_database()
+    
     # Create background task for scheduler initialization
     app.state.scheduler_task = asyncio.create_task(init_scheduler_background())
 

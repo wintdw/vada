@@ -17,6 +17,9 @@ async def get_authorized_shop(
     sign = _generate_signature_shop(path, timestamp, access_token, shop_id)
     domain = _get_domain(True)
  
+ 
+    logging.info(f"all_signed_info::path={path} and timestamp: {timestamp} and sign: {sign} and token: {access_token} and shop_id: {shop_id}")
+
     logging.info(f"get_authorized_shop::sign: {sign} and timestamp: {timestamp}")
     
     query = {

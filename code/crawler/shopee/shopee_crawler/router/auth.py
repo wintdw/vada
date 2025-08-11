@@ -26,7 +26,7 @@ async def get_auth_url(
         custom_redirect_params=custom_params,
         sandbox=True
     )
-    logging.info(f"Generated Shopee Auth URL: {auth_url}")
+    logging.info(f"Generated Shopee Auth : {auth_url}")
     return RedirectResponse(url=auth_url, status_code=302)
 
 
@@ -36,6 +36,9 @@ async def get_auth(
     shop_id: int = Query(..., description="Shop Id from TikTok Shop"),
     vada_uid: str = Query(..., description="Vada UID requesting the authorization"),
 ) -> RedirectResponse:
+    logging.info(
+            f"Code: {code}"
+        ) 
     try:
         tokens = await get_access_token(code, shop_id)
         logging.info(
