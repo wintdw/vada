@@ -88,6 +88,7 @@ class AsyncESProcessor:
         mappings_props = mappings.get("mappings", {}).get("properties", {})
         mappings_props = remove_fields(mappings_props, ["_vada"])
         mappings["mappings"]["properties"] = mappings_props
+
         async with self.session.put(es_url, json=mappings, auth=self.auth) as response:
             if response.status == 200:
                 logging.info("Mappings set successfully: %s", mappings)
@@ -180,7 +181,6 @@ class AsyncESProcessor:
                 raise ESException(response.status, await response.text())
 
             response_json = await response.json()
-            logging.info("Bulk response: %s", response_json)
 
             # For accounting purposes
             success = 0

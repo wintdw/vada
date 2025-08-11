@@ -19,8 +19,8 @@ scrape_configs:
       - proxy02.internal.vadata.vn:9100
       - backend00.internal.vadata.vn:9100
       - backend01.internal.vadata.vn:9100
+      - backend02.internal.vadata.vn:9100
       - mysql00.internal.vadata.vn:9100
-      - bus00.internal.vadata.vn:9100
       - es00.internal.vadata.vn:9100
       - es01.internal.vadata.vn:9100
       - es02.internal.vadata.vn:9100
@@ -40,12 +40,12 @@ scrape_configs:
     static_configs:
     - targets:
       - mysql00.internal.vadata.vn:9104
-  - job_name: kafka
-    static_configs:
-    - targets:
-      - bus00.internal.vadata.vn:9308
-      - bus01.internal.vadata.vn:9308
-      - bus02.internal.vadata.vn:9308
+  # - job_name: kafka
+  #   static_configs:
+  #   - targets:
+  #     - bus00.internal.vadata.vn:9308
+  #     - bus01.internal.vadata.vn:9308
+  #     - bus02.internal.vadata.vn:9308
   - job_name: elasticsearch
     static_configs:
     - targets:
@@ -58,7 +58,16 @@ scrape_configs:
   - job_name: ingest_crawler
     static_configs:
     - targets:
-      - backend00.internal.vadata.vn:8146
+      - backend00.internal.vadata.vn:8145 # tta
+      - backend02.internal.vadata.vn:8145
+      - backend00.internal.vadata.vn:8146 # ggad
+      - backend02.internal.vadata.vn:8146
+      - backend00.internal.vadata.vn:8147 # metaad
+      - backend02.internal.vadata.vn:8147
+      - backend00.internal.vadata.vn:8148 # tts
+      - backend02.internal.vadata.vn:8148
+      - backend00.internal.vadata.vn:8149 # nhanh
+      - backend02.internal.vadata.vn:8149
   - job_name: blackbox_exporter  # collect blackbox exporter's operational metrics.
     static_configs:
       - targets: ['mon.internal.vadata.vn:9115']

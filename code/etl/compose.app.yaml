@@ -5,7 +5,7 @@ secrets:
     file: /var/secret/docker/ingest/jwt
 
 services:
-  insert:
+  insert: &insert
     build:
       context: ../
       dockerfile: etl/Dockerfile.insert
@@ -24,6 +24,14 @@ services:
       - es
     ports:
       - "8000:8000"
+  insert_replica:
+    <<: *insert
+    container_name: insert_replica
+    ports:
+      - "8002:8000"
+    depends_on:
+      insert:
+        condition: service_healthy
 
   ingest:
     build:

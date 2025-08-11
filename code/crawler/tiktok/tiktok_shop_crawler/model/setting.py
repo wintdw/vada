@@ -5,6 +5,8 @@ from pydantic_settings import BaseSettings  # type: ignore
 
 class Settings(BaseSettings):
     # Required settings (must be set in env or .env)
+    APP_ENV: str
+
     MYSQL_HOST: str
     MYSQL_USER: str
     MYSQL_DB: str

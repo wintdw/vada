@@ -18,16 +18,17 @@ services:
       - mysql_crawler_prod
       - nhanh_secret_key
     environment:
+      APP_ENV: app
+
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler_prod
       MYSQL_DB: crawler_prod
       MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler_prod
 
-      NHANH_OAUTH_VERSION: 2.0
       NHANH_APP_ID: 75154
+      NHANH_BASE_URL: https://pos.open.nhanh.vn/api
       NHANH_RETURN_LINK: https://api-app.vadata.vn/ingest/partner/nhanh/platform/callback
       NHANH_SECRET_KEY_FILE: /run/secrets/nhanh_secret_key
 
-      INSERT_SERVICE_URL: http://insert-app.internal.vadata.vn/json
-      
-      CONNECTOR_CALLBACK_URL: https://app.vadata.vn/callback.html
+      INSERT_SERVICE_BASEURL: http://insert-app.internal.vadata.vn
+      CONNECTOR_CALLBACK_URL: https://client.vadata.vn/callback.html

@@ -59,7 +59,7 @@ async def insert_json(request: InsertRequest) -> JSONResponse:
         json_converted_docs = convert_es_field_types(json_docs, field_types)
         mappings = construct_es_mappings(field_types)
 
-        logging.info("Field types: %s", field_types)
+        logging.debug("Field types: %s", field_types)
 
         # Create index mappings if not exist
         mappings_response = await es_processor.create_mappings(index_name, mappings)
