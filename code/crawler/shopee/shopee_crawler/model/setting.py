@@ -18,10 +18,13 @@ class Settings(BaseSettings):
     SHOPEE_PARTNER_KEY: str
     API_BASE_URL: str
     
-    SHOPEE_AUTH_BASEURL: str
-    SHOPEE_AUTH_LINK: str
     SHOPEE_SHOP_AUTH_CALLBACK: str
-    SHOPEE_OPEN_API_BASEURL: str
+    
+    # New environment variables for different domains
+    SHOPEE_PRODUCTION_API_DOMAIN: str = "partner.shopeemobile.com"
+    SHOPEE_SANDBOX_API_DOMAIN: str = "openplatform.sandbox.test-stable.shopee.sg"
+    SHOPEE_PRODUCTION_AUTH_DOMAIN: str = "open.shopeemobile.com"
+    SHOPEE_SANDBOX_AUTH_DOMAIN: str = "open.sandbox.test-stable.shopee.com"
 
     class Config:
         # Load .env.local first (highest priority), then .env as fallback

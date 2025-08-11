@@ -4,6 +4,7 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from utils import generate_partner_signature
+from utils.utils import _get_domain
 
 from model.setting import settings
 
@@ -29,7 +30,7 @@ async def get_order_list(
         response_optional_fields: Optional fields to include in response
     """
     path = "/api/v2/order/get_order_list"
-    base_url = f"{settings.SHOPEE_OPEN_API_BASEURL}{path}"
+    base_url = f"https://{_get_domain(sandbox=True)}{path}"
 
     all_orders = []
     cursor = ""
@@ -122,7 +123,7 @@ async def get_order_detail(
         response_optional_fields: Optional fields to include in response
     """
     path = "/api/v2/order/get_order_detail"
-    base_url = f"{settings.SHOPEE_OPEN_API_BASEURL}{path}"
+    base_url = f"https://{_get_domain(sandbox=True)}{path}"
     timestamp = int(time.time())
 
     # Default optional fields if not provided
@@ -212,7 +213,7 @@ async def get_price_detail(
     order_sn: str,
 ) -> Dict[str, Any]:
     path = f"/api/v2/order/get_invoice_info"
-    base_url = f"{settings.SHOPEE_OPEN_API_BASEURL}{path}"
+    base_url = f"https://{_get_domain(sandbox=True)}{path}"
     timestamp = int(time.time())
 
     query = {

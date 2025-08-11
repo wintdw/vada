@@ -52,7 +52,7 @@ def generate_partner_signature(
 
 
 def _get_domain(sandbox: bool) -> str:
-    return "openplatform.sandbox.test-stable.shopee.sg" if sandbox else "partner.shopeemobile.com"
+    return settings.SHOPEE_SANDBOX_API_DOMAIN if sandbox else settings.SHOPEE_PRODUCTION_API_DOMAIN
 
 
 def generate_shopee_auth_url(
@@ -63,7 +63,7 @@ def generate_shopee_auth_url(
     path = "/auth"
     timestamp = int(time.time())
     sign = _generate_signature(path, timestamp)
-    domain = 'open.sandbox.test-stable.shopee.com'
+    domain = settings.SHOPEE_SANDBOX_AUTH_DOMAIN if sandbox else settings.SHOPEE_PRODUCTION_AUTH_DOMAIN
 
     query_params = {
         "auth_type": "seller",
