@@ -25,25 +25,30 @@ async def init_scheduler():
     running_tasks = {}
 
     async def update_jobs():
-        await update_crawl_metrics()
+        try:
+            await update_crawl_metrics()
 
-        google_ad_info = await get_crawl_info()
+            google_ad_info = await get_crawl_info()
 
-        for info in google_ad_info:
-            crawl_id = info["crawl_id"]
-            last_crawl_time = info["last_crawl_time"]
-            first_crawl = not bool(last_crawl_time)
+            for info in google_ad_info:
+                crawl_id = info["crawl_id"]
+                last_crawl_time = info["last_crawl_time"]
+                first_crawl = not bool(last_crawl_time)
 
-            # Avoid duplicate tasks
-            existing = running_tasks.get(crawl_id)
-            if existing and not existing.done():
-                logging.info(f"[{crawl_id}] skipping - task still running")
-                continue
+                # Avoid duplicate tasks
+                existing = running_tasks.get(crawl_id)
+                if existing and not existing.done():
+                    logging.info(f"[{crawl_id}] skipping - task still running")
+                    continue
 
-            task = asyncio.create_task(
-                schedule_google_ad_crawl_job(crawl_id=crawl_id, first_crawl=first_crawl)
-            )
-            running_tasks[crawl_id] = task
+                task = asyncio.create_task(
+                    schedule_google_ad_crawl_job(
+                        crawl_id=crawl_id, first_crawl=first_crawl
+                    )
+                )
+                running_tasks[crawl_id] = task
+        except Exception as e:
+            logging.error(f"Exception in update jobs: {e}", exc_info=True)
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(

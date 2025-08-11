@@ -57,10 +57,12 @@ async def update_crawl_metrics():
             app_env=settings.APP_ENV,
         ).set(1)
 
-        # Set token_expiry_gauge to 1 for each crawl_id (label-only metric)
-        access_token_expiry_gauge.labels(
-            crawl_id=crawl_id, app_env=settings.APP_ENV
-        ).set(expired_datetime)
+        # Set token_expiry_gauge to expiry timestamp for each crawl_id
+        if expired_datetime:
+            dt = datetime.fromisoformat(expired_datetime)
+            access_token_expiry_gauge.labels(
+                crawl_id=crawl_id, app_env=settings.APP_ENV
+            ).set(dt.timestamp())
 
         # Convert ISO8601 to epoch seconds if present
         if last_crawl_time:
