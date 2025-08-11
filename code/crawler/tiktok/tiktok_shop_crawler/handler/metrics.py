@@ -38,6 +38,16 @@ access_token_expiry_gauge = Gauge(
     "Access token expiry for TikTok Shop",
     ["crawl_id", "app_env"],
 )
+insert_success_gauge = Gauge(
+    "tiktokshop_insert_success",
+    "Number of successfully persisted docs",
+    ["crawl_id", "app_env"],
+)
+insert_failure_gauge = Gauge(
+    "tiktokshop_insert_failure",
+    "Number of failed docs to persist",
+    ["crawl_id", "app_env"],
+)
 
 
 async def update_crawl_metrics():

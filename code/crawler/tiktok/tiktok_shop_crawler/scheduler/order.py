@@ -2,15 +2,15 @@ import logging
 from typing import Dict
 from datetime import datetime, timedelta
 
+from model.setting import settings
 from handler.crawl_info import update_crawl_time, get_crawl_info
 from handler.main import get_orders
 from handler.persist import post_processing
+from handler.metrics import insert_success_gauge, insert_failure_gauge
 
 
 async def crawl_first_tiktokshop(crawl_id: str):
-    """Split the first 1-year crawl into jobs, each handling 30 days (backward from now)."""
-    crawl_info = await get_crawl_info(crawl_id)
-
+    """Split the first 1-year crawl into jobs (backward from now)"""
     now = datetime.now()
     days_in_year = 365
     window = 1
@@ -62,10 +62,23 @@ async def crawl_daily_tiktokshop(
     )
 
     # Send to the datastore
-    await post_processing(
+    insert_response = await post_processing(
         crawl_response.get("orders", []),
         index_name,
     )
+
+    # Update Prometheus metrics for insert success/failure
+    insert_success_gauge.labels(
+        crawl_id=crawl_id,
+        index_name=index_name,
+        app_env=settings.APP_ENV,
+    ).set(insert_response.get("success", 0))
+    insert_failure_gauge.labels(
+        crawl_id=crawl_id,
+        index_name=index_name,
+        app_env=settings.APP_ENV,
+    ).set(insert_response.get("failure", 0))
+
     await update_crawl_time(crawl_id, crawl_interval)
     crawl_response.pop("orders", None)
 
