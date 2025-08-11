@@ -41,7 +41,7 @@ async def init_scheduler():
 
                 existing = running_tasks.get(crawl_id)
                 if existing and not existing.done():
-                    logging.info(f"[{crawl_id}] skipping - task still running")
+                    logging.debug(f"[{crawl_id}] skipping - task still running")
                     continue
 
                 await refresh_token_scheduler(crawl_id=crawl_id)
