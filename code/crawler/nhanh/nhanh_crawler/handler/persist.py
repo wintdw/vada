@@ -8,7 +8,7 @@ from model.settings import settings
 
 
 def get_optimal_batch_size(
-    total_docs: int, min_batch: int = 500, max_batch: int = 1000
+    total_docs: int, min_batch: int = 300, max_batch: int = 500
 ) -> int:
     """
     Find the most balanced batch size between min_batch and max_batch
