@@ -58,7 +58,7 @@ async def crawl_daily_nhanh(
     start_date and end_date are for manual crawl only
     """
     if not start_date or not end_date:
-        start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        start_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
         end_date = datetime.now().strftime("%Y-%m-%d")
 
     crawl_info = await get_crawl_info(crawl_id=crawl_id)
@@ -70,10 +70,6 @@ async def crawl_daily_nhanh(
     business_id = crawl_info[0]["business_id"]
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
-
-    logging.info(
-        f"[{business_id}] [Daily Crawl] Crawling from {start_date} to {end_date}"
-    )
 
     crawl_response = await crawl_nhanh_data(
         business_id=business_id,
@@ -120,5 +116,5 @@ async def crawl_daily_nhanh_scheduler(crawl_id: str):
 
     crawl_response = await crawl_daily_nhanh(crawl_id)
     logging.info(
-        f"[{business_id}] [Daily Crawl Scheduler] Finish crawl ID {crawl_id}: {crawl_response}"
+        f"[{business_id}] [Daily Crawl Scheduler] Finish crawling with ID {crawl_id}"
     )

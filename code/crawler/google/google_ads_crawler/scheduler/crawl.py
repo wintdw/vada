@@ -54,7 +54,7 @@ async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -
     start_date and end_date are for manual crawl only
     """
     if not start_date or not end_date:
-        start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        start_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
         end_date = datetime.now().strftime("%Y-%m-%d")
 
     crawl_info = await get_crawl_info(crawl_id=crawl_id)

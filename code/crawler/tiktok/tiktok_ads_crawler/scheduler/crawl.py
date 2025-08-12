@@ -59,7 +59,7 @@ async def crawl_daily_tiktokad(
         return {}
 
     if not start_date or not end_date:
-        start_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        start_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
         end_date = datetime.now().strftime("%Y-%m-%d")
 
     access_token = crawl_info[0]["access_token"]

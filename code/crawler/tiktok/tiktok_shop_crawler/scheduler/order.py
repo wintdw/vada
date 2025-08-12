@@ -36,12 +36,21 @@ async def crawl_daily_tiktokshop(
     crawl_id: str, start_date: str = "", end_date: str = ""
 ) -> Dict:
     """
-    start_date and end_date are for manual crawl only
+    start_date and end_date are for manual crawl only.
+    For daily run, crawl the last 8 hours using timestamps.
     """
     if not start_date or not end_date:
-        # today -> tmr: this will crawl today only
-        start_date = datetime.now().strftime("%Y-%m-%d")
-        end_date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        # Crawl the last 8 hours
+        end_dt = datetime.now()
+        start_dt = end_dt - timedelta(hours=8)
+        start_ts = int(start_dt.timestamp())
+        end_ts = int(end_dt.timestamp())
+        start_date = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+        end_date = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        # Convert date strings to timestamps
+        start_ts = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
+        end_ts = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
 
     crawl_info = await get_crawl_info(crawl_id=crawl_id)
     if not crawl_info:
@@ -53,12 +62,8 @@ async def crawl_daily_tiktokshop(
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
-    logging.info(
-        f"[{account_name}] [Daily Crawl] Crawling from {start_date} to {end_date}"
-    )
-
     crawl_response = await get_orders(
-        access_token=access_token, start_date=start_date, end_date=end_date
+        access_token=access_token, start_ts=start_ts, end_ts=end_ts
     )
 
     # Send to the datastore
@@ -110,5 +115,5 @@ async def crawl_daily_tiktokshop_scheduler(crawl_id: str):
 
     crawl_response = await crawl_daily_tiktokshop(crawl_id)
     logging.info(
-        f"[{account_name}] [Daily Crawl Scheduler] Finish crawl ID {crawl_id}: {crawl_response}"
+        f"[{account_name}] [Daily Crawl Scheduler] Finish crawling with ID {crawl_id}"
     )
