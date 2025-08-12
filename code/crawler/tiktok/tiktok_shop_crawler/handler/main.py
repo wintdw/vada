@@ -7,8 +7,8 @@ from .order_apis import get_order_list
 from .shop_apis import get_authorized_shop
 
 
-async def get_orders(access_token: str, start_date: str, end_date: str) -> Dict:
-    """Fetch orders from TikTok Shop API.
+async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
+    """Fetch orders from TikTok Shop API using timestamps.
 
     This function overcomes the TikTok Shop API's 5000 orders per request limit
     by using a range-splitting algorithm:
@@ -21,8 +21,8 @@ async def get_orders(access_token: str, start_date: str, end_date: str) -> Dict:
 
     Args:
         access_token: TikTok Shop access token
-        start_date: Start date in '%Y-%m-%d' format
-        end_date: End date in '%Y-%m-%d' format
+        start_ts: Start timestamp (epoch seconds)
+        end_ts: End timestamp (epoch seconds)
 
     Returns:
         Dict: Orders response after post-processing
@@ -33,14 +33,10 @@ async def get_orders(access_token: str, start_date: str, end_date: str) -> Dict:
     if not shop_info:
         raise Exception("No shop information found. Please check your access token.")
 
-    # Convert date strings to timestamps
-    start_ts = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
-    end_ts = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
-
     logging.info(
         "Fetching orders from %s to %s for shop ID: %s",
-        start_date,
-        end_date,
+        datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
+        datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
         shop_info["id"],
     )
 
@@ -70,8 +66,8 @@ async def get_orders(access_token: str, start_date: str, end_date: str) -> Dict:
         "status": "success",
         "total_orders": len(all_orders),
         "orders": all_orders,
-        "date_start": start_date,
-        "date_end": end_date,
+        "time_start": datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
+        "time_end": datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
         "execution_time": time.time() - profiling_start_time,
     }
 

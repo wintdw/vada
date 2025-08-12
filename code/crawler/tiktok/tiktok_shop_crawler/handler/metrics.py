@@ -39,12 +39,12 @@ access_token_expiry_gauge = Gauge(
     ["crawl_id", "app_env"],
 )
 insert_success_gauge = Gauge(
-    "tiktokshop_insert_success",
+    "tiktokshop_insert_success_total",
     "Number of successfully persisted docs",
     ["crawl_id", "app_env"],
 )
 insert_failure_gauge = Gauge(
-    "tiktokshop_insert_failure",
+    "tiktokshop_insert_failure_total",
     "Number of failed docs to persist",
     ["crawl_id", "app_env"],
 )
