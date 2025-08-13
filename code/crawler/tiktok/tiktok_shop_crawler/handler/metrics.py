@@ -1,5 +1,5 @@
 from datetime import datetime
-from prometheus_client import Gauge  # type: ignore
+from prometheus_client import Gauge, Counter  # type: ignore
 
 from model.setting import settings
 from .crawl_info import get_crawl_info
@@ -38,13 +38,13 @@ access_token_expiry_gauge = Gauge(
     "Access token expiry for TikTok Shop",
     ["crawl_id", "app_env"],
 )
-insert_success_gauge = Gauge(
-    "tiktokshop_insert_success_total",
+insert_success_counter = Counter(
+    "tiktokshop_insert_success",
     "Number of successfully persisted docs",
     ["crawl_id", "app_env"],
 )
-insert_failure_gauge = Gauge(
-    "tiktokshop_insert_failure_total",
+insert_failure_counter = Counter(
+    "tiktokshop_insert_failure",
     "Number of failed docs to persist",
     ["crawl_id", "app_env"],
 )
