@@ -10,43 +10,25 @@ from handler.metrics import insert_success_counter, insert_failure_counter
 
 
 async def crawl_first_tiktokad(crawl_id: str):
-    crawl_info = await get_crawl_info(crawl_id=crawl_id)
-    if not crawl_info:
-        logging.error(f"Wrong crawl ID: {crawl_id}")
-        return
-
     # Crawl 1 year of data, split into 30-day chunks (from latest to oldest)
     end_date = datetime.now()
     start_date = end_date - timedelta(days=365)
     chunk = timedelta(days=30)
     current_end = end_date
 
-    access_token = crawl_info[0]["access_token"]
-    crawl_interval = crawl_info[0]["crawl_interval"]
-    index_name = crawl_info[0]["index_name"]
-    account_name = crawl_info[0]["account_name"]
-
     logging.info(
-        f"[{account_name}] [First Crawl] Crawling from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+        f"[{crawl_id}] [First Crawl] Crawling from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
     )
 
     while current_end > start_date:
         current_start = max(current_end - chunk, start_date)
-
-        crawl_response = await crawl_tiktok_business(
-            access_token,
-            current_start.strftime("%Y-%m-%d"),
-            current_end.strftime("%Y-%m-%d"),
+        # Call crawl_daily_tiktokad for each chunk
+        await crawl_daily_tiktokad(
+            crawl_id,
+            start_date=current_start.strftime("%Y-%m-%d"),
+            end_date=current_end.strftime("%Y-%m-%d"),
         )
-        await post_processing(crawl_response["report"]["reports"], index_name)
-
-        logging.info(
-            f"[{account_name}] [First Crawl] CrawlID {crawl_id} from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response['report']['total_reports']} reports"
-        )
-
         current_end = current_start  # move backward
-
-    await update_crawl_time(crawl_id, crawl_interval)
 
 
 async def crawl_daily_tiktokad(

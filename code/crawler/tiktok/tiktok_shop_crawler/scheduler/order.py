@@ -16,6 +16,9 @@ async def crawl_first_tiktokshop(crawl_id: str):
     window = 1
     num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
 
+    logging.info(
+        f"[First Crawl] Crawling {days_in_year}d backward from {now.strftime('%Y-%m-%d')}"
+    )
     for i in range(num_jobs):
         start_offset = i * window
         end_offset = (i + 1) * window

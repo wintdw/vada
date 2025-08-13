@@ -1,5 +1,5 @@
 from datetime import datetime
-from prometheus_client import Gauge  # type: ignore
+from prometheus_client import Gauge, Counter  # type: ignore
 
 from model.settings import settings
 from .crawl_info import get_crawl_info
@@ -31,6 +31,16 @@ crawl_info_gauge = Gauge(
 access_token_expiry_gauge = Gauge(
     "nhanh_access_token_expiry",
     "Access token expiry for Nhanh",
+    ["crawl_id", "app_env"],
+)
+insert_success_counter = Counter(
+    "nhanh_insert_success",
+    "Number of successfully persisted docs",
+    ["crawl_id", "app_env"],
+)
+insert_failure_counter = Counter(
+    "nhanh_insert_failure",
+    "Number of failed docs to persist",
     ["crawl_id", "app_env"],
 )
 
