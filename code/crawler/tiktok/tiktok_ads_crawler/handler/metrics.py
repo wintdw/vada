@@ -1,5 +1,5 @@
 from datetime import datetime
-from prometheus_client import Gauge  # type: ignore
+from prometheus_client import Gauge, Counter  # type: ignore
 
 from model.setting import settings
 from repository.crawl_info import get_crawl_info
@@ -27,6 +27,16 @@ crawl_info_gauge = Gauge(
         "index_name",
         "app_env",
     ],
+)
+insert_success_counter = Counter(
+    "tiktokad_insert_success",
+    "Number of successfully persisted docs",
+    ["crawl_id", "app_env"],
+)
+insert_failure_counter = Counter(
+    "tiktokad_insert_failure",
+    "Number of failed docs to persist",
+    ["crawl_id", "app_env"],
 )
 
 

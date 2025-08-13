@@ -2,9 +2,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict
 
+from model.setting import settings
 from handler.tiktok import crawl_tiktok_business
 from handler.persist import post_processing
 from repository.crawl_info import update_crawl_time, get_crawl_info
+from handler.metrics import insert_success_counter, insert_failure_counter
 
 
 async def crawl_first_tiktokad(crawl_id: str):
@@ -76,7 +78,20 @@ async def crawl_daily_tiktokad(
         start_date,
         end_date,
     )
-    await post_processing(crawl_response["report"]["reports"], index_name)
+    # Get number of docs to insert
+    reports = crawl_response["report"].get("reports", [])
+    insert_response = await post_processing(reports, index_name)
+
+    # Update Prometheus metrics for insert success/failure
+    insert_success_counter.labels(
+        crawl_id=crawl_id,
+        app_env=settings.APP_ENV,
+    ).inc(insert_response.get("success", 0))
+    insert_failure_counter.labels(
+        crawl_id=crawl_id,
+        app_env=settings.APP_ENV,
+    ).inc(insert_response.get("failure", 0))
+
     await update_crawl_time(crawl_id, crawl_interval)
 
     # remove unnecessary fields from the response
