@@ -29,12 +29,12 @@ crawl_info_gauge = Gauge(
     ],
 )
 insert_success_counter = Counter(
-    "ggad_insert_success",
+    "googlead_insert_success",
     "Number of successfully persisted docs",
     ["crawl_id", "app_env"],
 )
 insert_failure_counter = Counter(
-    "ggad_insert_failure",
+    "googlead_insert_failure",
     "Number of failed docs to persist",
     ["crawl_id", "app_env"],
 )
