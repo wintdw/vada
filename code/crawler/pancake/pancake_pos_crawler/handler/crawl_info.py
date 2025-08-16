@@ -46,7 +46,7 @@ async def insert_crawl_info(
     Inserts a new record into the PCP table.
     """
     query = """
-        INSERT INTO NhanhCrawlInfo (
+        INSERT INTO PCPCrawlInfo (
             crawl_id, vada_uid, index_name,
             api_token, crawl_interval, next_crawl_time
         )
@@ -87,7 +87,7 @@ async def get_crawl_info(
     Only returns records where disabled = 0.
     If crawl_id is provided, index_name and vada_uid are ignored.
     """
-    query = "SELECT * FROM NhanhCrawlInfo"
+    query = "SELECT * FROM PCPCrawlInfo"
     params = []
 
     conditions = ["disabled = 0"]  # Always filter for enabled records
