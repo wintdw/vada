@@ -1,0 +1,579 @@
+{
+  "mappings": {
+      "dynamic": "true",
+      "properties": {
+        "affiliate_bonus_cash": {
+          "type": "long"
+        },
+        "affiliate_bonus_percent": {
+          "type": "long"
+        },
+        "affiliate_code": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "calc_total_money": {
+          "type": "long"
+        },
+        "carrier_code": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "carrier_id": {
+          "type": "long"
+        },
+        "carrier_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "carrier_service_type": {
+          "type": "long"
+        },
+        "carrier_service_type_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "channel": {
+          "type": "long"
+        },
+        "cod_fee": {
+          "type": "long"
+        },
+        "created_by_id": {
+          "type": "long"
+        },
+        "created_by_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "created_by_user_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "created_date_time": {
+          "type": "date"
+        },
+        "credit_account": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "credit_amount": {
+          "type": "long"
+        },
+        "customer_address": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "customer_city": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "customer_city_id": {
+          "type": "long"
+        },
+        "customer_district": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "customer_district_id": {
+          "type": "long"
+        },
+        "customer_id": {
+          "type": "long"
+        },
+        "customer_mobile": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "customer_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "customer_ship_fee": {
+          "type": "long"
+        },
+        "customer_ward": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "declared_fee": {
+          "type": "long"
+        },
+        "delivery_date": {
+          "type": "date"
+        },
+        "deposit_account": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "depot_id": {
+          "type": "long"
+        },
+        "depot_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "description": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "ecom_shop_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "facebook": {
+          "properties": {
+            "ad_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "conversation_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "fanpage_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "page_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "post_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "ps_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "long"
+        },
+        "merchant_tracking_number": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "money_deposit": {
+          "type": "long"
+        },
+        "money_discount": {
+          "type": "long"
+        },
+        "money_transfer": {
+          "type": "long"
+        },
+        "money_used_points": {
+          "type": "long"
+        },
+        "over_weight_ship_fee": {
+          "type": "long"
+        },
+        "packed": {
+          "properties": {
+            "datetime": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "id": {
+              "type": "long"
+            }
+          }
+        },
+        "private_description": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "private_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "products": {
+          "type": "nested",
+          "properties": {
+            "avg_cost": {
+              "type": "long"
+            },
+            "description": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "discount": {
+              "type": "float"
+            },
+            "imei": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "price": {
+              "type": "long"
+            },
+            "price_original": {
+              "type": "long"
+            },
+            "product_barcode": {
+              "type": "long"
+            },
+            "product_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "product_id": {
+              "type": "long"
+            },
+            "product_image": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "product_money": {
+              "type": "long"
+            },
+            "product_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "quantity": {
+              "type": "long"
+            },
+            "vat": {
+              "type": "long"
+            },
+            "weight": {
+              "type": "long"
+            }
+          }
+        },
+        "return_fee": {
+          "type": "long"
+        },
+        "return_from_order_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "sale_channel": {
+          "type": "long"
+        },
+        "sale_channel_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "sale_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "service_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "ship_fee": {
+          "type": "long"
+        },
+        "ship_to_city_location_id": {
+          "type": "long"
+        },
+        "ship_to_district_location_id": {
+          "type": "long"
+        },
+        "ship_to_ward_location_id": {
+          "type": "long"
+        },
+        "shop_order_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "status_code": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "status_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "tags": {
+          "type": "text"
+        },
+        "traffic_source_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "transfer_account": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "type": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "eager_global_ordinals": true,
+              "ignore_above": 256
+            }
+          }
+        },
+        "type_id": {
+          "type": "long"
+        },
+        "updated_at": {
+          "type": "date"
+        },
+        "used_point_amount": {
+          "type": "long"
+        },
+        "used_points": {
+          "type": "long"
+        },
+        "utm_campaign": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "utm_medium": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "utm_source": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      }
+    }
+}

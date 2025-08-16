@@ -1,0 +1,7 @@
+uvicorn
+fastapi
+aiohttp
+aiomysql
+apscheduler
+pydantic-settings
+prometheus-client
