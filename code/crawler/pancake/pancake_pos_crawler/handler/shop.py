@@ -1,6 +1,7 @@
-import aiohttp
+import aiohttp # type: ignore
 import logging
 from typing import List, Dict
+from model.settings import settings
 
 async def get_shop_info(api_token: str) -> List[Dict]:
     """
