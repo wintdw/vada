@@ -3,7 +3,7 @@ import logging
 from .order import get_pancake_orders
 from .shop import get_shop_info
 
-async def crawl_pancake_orders(api_token: str, from_date: str, to_date: str) -> list:
+async def crawl_pancake_pos_data(api_token: str, from_date: str, to_date: str) -> list:
     """
     Crawl orders for all shops associated with the API token.
     """
