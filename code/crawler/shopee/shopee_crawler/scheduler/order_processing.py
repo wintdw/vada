@@ -17,16 +17,15 @@ async def scheduled_fetch_all_orders(
     account_id: int = 0,
     account_name: str = "",
 ) -> List[Dict]:
-    shop_info = await get_authorized_shop(
-            access_token,
-            account_id
-        )
-    
+    shop_info = await get_authorized_shop(access_token, account_id)
+
     logging.info("Shop Info: %s", json.dumps(shop_info, indent=2))
 
     # Check if shop_info has error
     if "error" in shop_info and shop_info["error"] != "":
-        logging.error("Failed to get shop info: %s", shop_info.get("message", "Unknown error"))
+        logging.error(
+            "Failed to get shop info: %s", shop_info.get("message", "Unknown error")
+        )
         return  # Exit early if can't get shop info
 
     # end_date should be the next day
@@ -37,14 +36,16 @@ async def scheduled_fetch_all_orders(
     # Validate date range (Shopee API allows max 15 days)
     start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
     end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
-    
+
     if start_dt >= end_dt:
         logging.error("Start date must be earlier than end date")
         return
-        
+
     date_diff = (end_dt - start_dt).days
     if date_diff > 15:
-        logging.warning(f"Date range is {date_diff} days, but Shopee API allows max 15 days. Adjusting end date.")
+        logging.warning(
+            f"Date range is {date_diff} days, but Shopee API allows max 15 days. Adjusting end date."
+        )
         end_date = (start_dt + timedelta(days=15)).strftime("%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
 
@@ -54,7 +55,7 @@ async def scheduled_fetch_all_orders(
 
     # Use shop_name from shop_info or account_name as fallback
     shop_name = shop_info.get("shop_name", account_name)
-    
+
     logging.info(
         "Fetching orders from %s to %s for shop ID: %s (%s)",
         start_date,
@@ -84,37 +85,39 @@ async def scheduled_fetch_all_orders(
     for order in orders:
         if "order_sn" in order:
             order_sns.append(order["order_sn"])
-    
+
     if not order_sns:
         logging.warning("No valid order serial numbers found in orders")
         return orders
 
     logging.info(f"Fetching details for {len(order_sns)} orders")
-    
+
     # Shopee API allows max 50 orders per request for get_order_detail
     detailed_orders = []
     batch_size = 50
-    
+
     for i in range(0, len(order_sns), batch_size):
-        batch_sns = order_sns[i:i + batch_size]
+        batch_sns = order_sns[i : i + batch_size]
         logging.info(f"Processing batch {i//batch_size + 1}: {len(batch_sns)} orders")
-        
+
         try:
             order_details_response = await get_order_detail(
-                access_token=access_token,
-                shop_id=account_id,
-                order_sn_list=batch_sns
+                access_token=access_token, shop_id=account_id, order_sn_list=batch_sns
             )
-            
+
             # order_details_response should contain "order_list"
             if "order_list" in order_details_response:
                 detailed_orders.extend(order_details_response["order_list"])
-                logging.info(f"Successfully fetched details for {len(order_details_response['order_list'])} orders")
+                logging.info(
+                    f"Successfully fetched details for {len(order_details_response['order_list'])} orders"
+                )
             else:
                 logging.warning("No order_list in order details response")
-                
+
         except Exception as e:
-            logging.error(f"Failed to fetch order details for batch {i//batch_size + 1}: {str(e)}")
+            logging.error(
+                f"Failed to fetch order details for batch {i//batch_size + 1}: {str(e)}"
+            )
             # Continue with next batch even if one fails
             continue
 
@@ -122,7 +125,7 @@ async def scheduled_fetch_all_orders(
 
     # Use detailed orders for processing instead of basic order list
     orders_to_process = detailed_orders if detailed_orders else orders
-    
+
     insert_response = await post_processing(orders_to_process, index_name)
     logging.info("Insert response: %s", insert_response)
 

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Dict, List
 
 from tiktok_api.order_api import get_product_detail, get_price_detail, list_order
-from tiktok_api.shop_api import get_authorized_shop
+from tiktok_api.auth_api import get_authorized_shops
 
 
 async def get_order_all(
@@ -85,7 +85,7 @@ async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
     """
     profiling_start_time = time.time()
 
-    shop_info = await get_authorized_shop(access_token)
+    shop_info = await get_authorized_shops(access_token)
     if not shop_info:
         raise Exception("No shop information found. Please check your access token.")
 
