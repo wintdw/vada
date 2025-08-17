@@ -28,6 +28,15 @@
         "activated_promotion_advances": {
           "type": "text"
         },
+        "ad_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
         "ads_source": {
           "type": "text",
           "fields": {
@@ -130,6 +139,46 @@
             }
           }
         },
+        "creator": {
+          "properties": {
+            "email": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "fb_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
         "customer": {
           "properties": {
             "active_levera_pay": {
@@ -144,8 +193,35 @@
                 }
               }
             },
+            "conversation_tags": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
             "count_referrals": {
               "type": "long"
+            },
+            "creator_id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "currency": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
             },
             "current_debts": {
               "type": "long"
@@ -194,6 +270,9 @@
             },
             "is_discount_by_level": {
               "type": "boolean"
+            },
+            "last_order_at": {
+              "type": "date"
             },
             "name": {
               "type": "text",
@@ -285,6 +364,61 @@
                     "keyword": {
                       "type": "keyword",
                       "ignore_above": 256
+                    }
+                  }
+                },
+                "removed_at": {
+                  "type": "long"
+                },
+                "removed_by": {
+                  "properties": {
+                    "application": {
+                      "type": "long"
+                    },
+                    "fb_id": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "fb_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "session_id": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "token_for_business": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "uid": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
                     }
                   }
                 }
@@ -404,6 +538,9 @@
         "customer_pay_fee": {
           "type": "boolean"
         },
+        "estimate_delivery_date": {
+          "type": "date"
+        },
         "exchange_payment": {
           "type": "long"
         },
@@ -443,6 +580,52 @@
                 }
               }
             },
+            "bill_full_name": {
+              "properties": {
+                "new": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "old": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "cod": {
+              "properties": {
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
+            "customer_pay_fee": {
+              "properties": {
+                "new": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "discount": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
             "editor_id": {
               "type": "text",
               "fields": {
@@ -452,10 +635,247 @@
                 }
               }
             },
+            "estimate_delivery_date": {
+              "properties": {
+                "new": {
+                  "type": "date"
+                }
+              }
+            },
+            "extend_code": {
+              "properties": {
+                "new": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "old": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "general_discount": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
             "is_customer_level": {
               "properties": {
                 "new": {
                   "type": "boolean"
+                }
+              }
+            },
+            "is_free_shipping": {
+              "properties": {
+                "new": {
+                  "type": "boolean"
+                },
+                "old": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "is_lock_order_by_system": {
+              "properties": {
+                "new": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "items": {
+              "properties": {
+                "new": {
+                  "properties": {
+                    "discount_each_product": {
+                      "type": "long"
+                    },
+                    "id": {
+                      "type": "long"
+                    },
+                    "is_discount_percent": {
+                      "type": "boolean"
+                    },
+                    "quantity": {
+                      "type": "long"
+                    },
+                    "variation_info": {
+                      "properties": {
+                        "name": {
+                          "type": "text",
+                          "fields": {
+                            "keyword": {
+                              "type": "keyword",
+                              "ignore_above": 256
+                            }
+                          }
+                        },
+                        "retail_price": {
+                          "type": "long"
+                        },
+                        "weight": {
+                          "type": "long"
+                        }
+                      }
+                    }
+                  }
+                },
+                "old": {
+                  "properties": {
+                    "discount_each_product": {
+                      "type": "long"
+                    },
+                    "id": {
+                      "type": "long"
+                    },
+                    "is_discount_percent": {
+                      "type": "boolean"
+                    },
+                    "quantity": {
+                      "type": "long"
+                    },
+                    "variation_info": {
+                      "properties": {
+                        "name": {
+                          "type": "text",
+                          "fields": {
+                            "keyword": {
+                              "type": "keyword",
+                              "ignore_above": 256
+                            }
+                          }
+                        },
+                        "retail_price": {
+                          "type": "long"
+                        },
+                        "weight": {
+                          "type": "long"
+                        }
+                      }
+                    }
+                  }
+                },
+                "variation_id": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "note": {
+              "properties": {
+                "new": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "old": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "note_image": {
+              "type": "object"
+            },
+            "partner_count": {
+              "properties": {
+                "new": {
+                  "properties": {
+                    "id": {
+                      "type": "long"
+                    },
+                    "value": {
+                      "type": "long"
+                    }
+                  }
+                },
+                "old": {
+                  "properties": {
+                    "id": {
+                      "type": "long"
+                    },
+                    "value": {
+                      "type": "long"
+                    }
+                  }
+                }
+              }
+            },
+            "partner_fee": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
+            "partner_id": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                }
+              }
+            },
+            "partner_status": {
+              "properties": {
+                "new": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "old": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "prepaid": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
                 }
               }
             },
@@ -473,6 +893,198 @@
                 }
               }
             },
+            "prioritized": {
+              "properties": {
+                "new": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "shipping_address": {
+              "properties": {
+                "new": {
+                  "properties": {
+                    "address": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "commnue_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "commune_id": {
+                      "type": "long"
+                    },
+                    "country_code": {
+                      "type": "long"
+                    },
+                    "district_id": {
+                      "type": "long"
+                    },
+                    "district_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "full_address": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "full_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "phone_number": {
+                      "type": "long"
+                    },
+                    "post_code": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "province_id": {
+                      "type": "long"
+                    },
+                    "province_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    }
+                  }
+                },
+                "old": {
+                  "properties": {
+                    "address": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "commnue_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "commune_id": {
+                      "type": "long"
+                    },
+                    "country_code": {
+                      "type": "long"
+                    },
+                    "district_id": {
+                      "type": "long"
+                    },
+                    "district_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "full_address": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "full_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "phone_number": {
+                      "type": "long"
+                    },
+                    "post_code": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "province_id": {
+                      "type": "long"
+                    },
+                    "province_name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "shipping_fee": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
+            "shop_partner_id": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                }
+              }
+            },
             "status": {
               "properties": {
                 "new": {
@@ -483,6 +1095,42 @@
                 }
               }
             },
+            "tags": {
+              "properties": {
+                "new": {
+                  "properties": {
+                    "id": {
+                      "type": "long"
+                    },
+                    "name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    }
+                  }
+                },
+                "old": {
+                  "properties": {
+                    "id": {
+                      "type": "long"
+                    },
+                    "name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "time_assign_seller": {
               "properties": {
                 "new": {
@@ -490,8 +1138,80 @@
                 }
               }
             },
+            "time_send_partner": {
+              "properties": {
+                "new": {
+                  "type": "date"
+                },
+                "old": {
+                  "type": "date"
+                }
+              }
+            },
+            "total_discount": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
+            "total_fee": {
+              "properties": {
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
+            "transfer_money": {
+              "properties": {
+                "new": {
+                  "type": "long"
+                },
+                "old": {
+                  "type": "long"
+                }
+              }
+            },
             "updated_at": {
               "type": "date"
+            },
+            "user_send_partner": {
+              "properties": {
+                "new": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "warehouse_id": {
+              "properties": {
+                "new": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "old": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -591,13 +1311,7 @@
             },
             "variation_info": {
               "properties": {
-                "barcode": {
-                  "type": "date"
-                },
                 "category_ids": {
-                  "type": "long"
-                },
-                "display_id": {
                   "type": "long"
                 },
                 "exact_price": {
@@ -635,6 +1349,9 @@
                 },
                 "retail_price": {
                   "type": "long"
+                },
+                "tax_rate": {
+                  "type": "float"
                 },
                 "weight": {
                   "type": "long"
@@ -702,6 +1419,15 @@
         "money_to_collect": {
           "type": "long"
         },
+        "note": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
         "order_currency": {
           "type": "text",
           "fields": {
@@ -767,11 +1493,217 @@
             }
           }
         },
+        "partner": {
+          "properties": {
+            "cod": {
+              "type": "long"
+            },
+            "count_of_delivery": {
+              "type": "long"
+            },
+            "delivery_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "delivery_tel": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "extend_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "extend_update": {
+              "properties": {
+                "key": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "status": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "tracking_id": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "updated_at": {
+                  "type": "date"
+                }
+              }
+            },
+            "first_delivery_at": {
+              "type": "date"
+            },
+            "partner_id": {
+              "type": "long"
+            },
+            "partner_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "partner_status": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "picked_up_at": {
+              "type": "date"
+            },
+            "printed_form": {
+              "type": "long"
+            },
+            "service_partner": {
+              "properties": {
+                "items": {
+                  "properties": {
+                    "id": {
+                      "type": "long"
+                    },
+                    "name": {
+                      "type": "text",
+                      "fields": {
+                        "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                        }
+                      }
+                    },
+                    "num": {
+                      "type": "long"
+                    },
+                    "price": {
+                      "type": "long"
+                    }
+                  }
+                },
+                "need_optimize_route": {
+                  "type": "boolean"
+                },
+                "order_time": {
+                  "type": "long"
+                },
+                "partner_id": {
+                  "type": "long"
+                },
+                "path": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "payment_method": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "promo_code": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "service_id": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "sort_code": {
+              "type": "long"
+            },
+            "system_created": {
+              "type": "boolean"
+            },
+            "total_fee": {
+              "type": "long"
+            },
+            "updated_at": {
+              "type": "date"
+            }
+          }
+        },
+        "partner_account": {
+          "properties": {
+            "user_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
         "partner_fee": {
           "type": "long"
         },
         "payment_purchase_histories": {
           "type": "text"
+        },
+        "post_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
         },
         "prepaid": {
           "type": "long"
@@ -787,6 +1719,9 @@
           }
         },
         "received_at_shop": {
+          "type": "boolean"
+        },
+        "return_fee": {
           "type": "boolean"
         },
         "shipping_address": {
@@ -856,6 +1791,15 @@
             },
             "phone_number": {
               "type": "date"
+            },
+            "post_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
             },
             "province_id": {
               "type": "long"
@@ -978,15 +1922,15 @@
         "system_id": {
           "type": "long"
         },
-        "tags": {
-          "type": "text"
-        },
         "tax": {
           "type": "long"
         },
         "time_assign_seller": {
           "type": "date",
           "ignore_malformed": true
+        },
+        "time_send_partner": {
+          "type": "date"
         },
         "total_discount": {
           "type": "long"
