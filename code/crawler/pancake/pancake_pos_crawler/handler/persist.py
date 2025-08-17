@@ -46,7 +46,7 @@ def get_optimal_batch_size(
 def enrich_doc(doc: Dict) -> Dict:
     # Convert inserted_at to the required format, handling microseconds
     inserted_at = datetime.strptime(doc["inserted_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S")
-    ts = int(inserted_at.strftime("%Y-%m-%d %H:%M:%S").timestamp())
+    ts = int(inserted_at.timestamp())
     doc_id = f"{doc['id']}_{ts}"
 
     metadata = {
