@@ -33,13 +33,18 @@ async def get_pancake_orders(shop_id: str, api_key: str, from_date: str, to_date
                     data = await response.json()
                     orders = data.get("data", [])
                     
-                    # Remove 'items.variation_info.barcode' and 'tags' fields from orders
+                    # Remove 'items.variation_info.barcode', 'items.variation_info.display_id', and 'tags' fields from orders
                     for order in orders:
                         for item in order.get("items", []):
-                            if "variation_info" in item and "barcode" in item["variation_info"]:
-                                del item["variation_info"]["barcode"]
+                            if "variation_info" in item:
+                                if "barcode" in item["variation_info"]:
+                                    del item["variation_info"]["barcode"]
+                                if "display_id" in item["variation_info"]:
+                                    del item["variation_info"]["display_id"]
                         if "tags" in order:
                             del order["tags"]
+                        if "customer" in order and "notes" in order["customer"] and "removed_at" in order["customer"]["notes"]:
+                            del order["customer"]["notes"]["removed_at"]
 
                     all_orders.extend(orders)
 
