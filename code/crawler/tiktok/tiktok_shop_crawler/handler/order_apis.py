@@ -8,7 +8,64 @@ from .sign import cal_sign
 from .request import retry_post, retry_get
 
 
-async def get_order_list(
+async def get_order_all(
+    access_token: str,
+    shop_cipher: str,
+    create_time_ge: int,
+    create_time_lt: int,
+) -> Dict[str, Any]:
+    """
+    Fetch all orders from TikTok Shop API with price and product details.
+    """
+    order_resp = await list_order(
+        access_token=access_token,
+        shop_cipher=shop_cipher,
+        create_time_ge=create_time_ge,
+        create_time_lt=create_time_lt,
+    )
+    orders = order_resp.get("orders", [])
+
+    # Enrich each order with price_detail and each line_item with product_detail
+    for order in orders:
+        # Attach price_detail
+        order_id = order.get("order_id")
+        if order_id:
+            try:
+                price_detail = await get_price_detail(
+                    access_token=access_token,
+                    shop_cipher=shop_cipher,
+                    order_id=order_id,
+                )
+                order["price_detail"] = price_detail
+            except Exception as e:
+                logging.error(
+                    f"Failed to fetch price_detail for order {order_id}: {e}",
+                    exc_info=True,
+                )
+                order["price_detail"] = None
+
+        line_items = order.get("line_items", [])
+        for item in line_items:
+            product_id = item.get("product_id")
+            if product_id:
+                try:
+                    product_detail = await get_product_detail(
+                        access_token=access_token,
+                        shop_cipher=shop_cipher,
+                        product_id=product_id,
+                    )
+                    item["product_detail"] = product_detail
+                except Exception as e:
+                    logging.error(
+                        f"Failed to fetch product_detail for product {product_id}: {e}",
+                        exc_info=True,
+                    )
+                    item["product_detail"] = None
+
+    return {"total": len(orders), "orders": orders}
+
+
+async def list_order(
     access_token: str,
     shop_cipher: str,
     create_time_ge: int,
@@ -73,20 +130,6 @@ async def get_order_list(
             if not orders:
                 break
 
-            # Enrich each line_item with product_detail
-            for order in orders:
-                line_items = order.get("line_items", [])
-                for item in line_items:
-                    product_id = item.get("product_id")
-                    if product_id:
-                        # Fetch product_detail for each product_id
-                        product_detail = await get_product_detail(
-                            access_token=access_token,
-                            shop_cipher=shop_cipher,
-                            product_id=product_id,
-                        )
-                        item["product_detail"] = product_detail
-
             all_orders.extend(orders)
 
             page_token = data["data"].get("next_page_token")
@@ -140,6 +183,47 @@ async def get_product_detail(
     else:
         logging.error(
             f"Failed to fetch product detail for product {product_id}: {data}",
+            exc_info=True,
+        )
+        raise Exception(f"Error: {data.get('message')}")
+
+
+async def get_price_detail(access_token: str, shop_cipher: str, order_id: str) -> Dict:
+    """
+    Fetch price detail for a TikTok Shop order.
+    """
+    api_version = "202407"
+
+    path = f"/order/{api_version}/orders/{order_id}/price_detail"
+    base_url = f"{settings.TIKTOK_SHOP_API_BASEURL}{path}"
+    timestamp = int(time.time())
+
+    query_params = {
+        "app_key": settings.TIKTOK_SHOP_APP_KEY,
+        "timestamp": timestamp,
+        "shop_cipher": shop_cipher,
+    }
+
+    # Sign calculation (GET request, no body)
+    query_params["sign"] = cal_sign(
+        path=path,
+        params=query_params,
+        app_secret=settings.TIKTOK_SHOP_APP_SECRET,
+        content_type="application/json",
+    )
+
+    headers = {
+        "x-tts-access-token": access_token,
+        "content-type": "application/json",
+    }
+
+    data = await retry_get(url=base_url, headers=headers, params=query_params)
+
+    if data.get("code") == 0:
+        return data["data"]
+    else:
+        logging.error(
+            f"Failed to fetch price detail for order {order_id}: {data}",
             exc_info=True,
         )
         raise Exception(f"Error: {data.get('message')}")

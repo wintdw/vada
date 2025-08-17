@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List
 
-from .order_apis import get_order_list
+from .order_apis import get_order_all
 from .shop_apis import get_authorized_shop
 
 
@@ -46,7 +46,7 @@ async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
     # Range-splitting algorithm to overcome 5000 orders limit
     while ranges:
         s_ts, e_ts = ranges.pop()
-        order_json = await get_order_list(
+        order_json = await get_order_all(
             access_token=access_token,
             shop_cipher=shop_info["cipher"],
             create_time_ge=s_ts,
