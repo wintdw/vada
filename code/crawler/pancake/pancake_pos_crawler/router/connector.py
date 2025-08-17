@@ -2,7 +2,7 @@ from fastapi import APIRouter  # type: ignore
 import logging
 
 from model.index_mappings import index_mappings_data
-from handler.crawl_info import set_crawl_info, update_vada_uid, get_crawl_info
+from handler.crawl_info import set_crawl_info
 
 router = APIRouter()
 
@@ -11,7 +11,14 @@ async def expose_config():
     return {"mappings": index_mappings_data["mappings"]}
 
 @router.post("/ingest/partner/pancake/pos/create", tags=["Connector"])
-async def post_token(api_token: str):
+async def post_token(api_token: str, vada_uid: str):
+    """
+    Endpoint to save crawl info for Pancake POS.
+    :param api_token: The API token for Pancake POS.
+    :param vada_uid: The Vada user ID.
+    :return: A dictionary with the status and message.
+    """
+    
     crawl_interval = 240  # Default crawl interval in minutes
 
     try:
@@ -21,12 +28,13 @@ async def post_token(api_token: str):
 
         # Insert/update crawl info in database
         saved_crawl_info = await set_crawl_info(
+            vadauser_id=vada_uid,
             index_name=index_name,
             api_token=api_token,
             crawl_interval=crawl_interval,
         )
         logging.info(saved_crawl_info)
-        
+
         return {
             "status": "success",
             "message": "Crawl info saved successfully.",

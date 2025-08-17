@@ -196,6 +196,7 @@ async def update_crawl_token(
         return {}
 
 async def set_crawl_info(
+    vada_uid: str = "",
     index_name: str = "",
     api_token: str = "",
     crawl_interval: int = 1440
@@ -220,6 +221,7 @@ async def set_crawl_info(
 
         else:
             insert_result = await insert_crawl_info(
+                vada_uid=vada_uid,
                 index_name=index_name,
                 api_token=api_token,
                 crawl_interval=crawl_interval
