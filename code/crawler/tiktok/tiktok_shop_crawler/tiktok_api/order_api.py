@@ -76,6 +76,7 @@ async def get_product_detail(
         access_token=access_token,
         shop_cipher=shop_cipher,
     )
+
     return data
 
 
@@ -93,11 +94,4 @@ async def get_price_detail(access_token: str, shop_cipher: str, order_id: str) -
         shop_cipher=shop_cipher,
     )
 
-    if data.get("code") == 0:
-        return data["data"]
-    else:
-        logging.error(
-            f"Failed to fetch price detail for order {order_id}: {data}",
-            exc_info=True,
-        )
-        raise Exception(f"Error: {data.get('message')}")
+    return data
