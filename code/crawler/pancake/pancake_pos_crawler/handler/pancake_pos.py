@@ -3,7 +3,7 @@ import logging
 from .order import get_pancake_orders
 from .shop import get_shop_info
 
-async def crawl_pancake_pos_data(api_token: str, from_date: str, to_date: str) -> list:
+async def crawl_pancake_pos_data(api_key: str, from_date: str, to_date: str) -> list:
     """
     Crawl orders for all shops associated with the API token.
     """
@@ -11,7 +11,7 @@ async def crawl_pancake_pos_data(api_token: str, from_date: str, to_date: str) -
 
     # Fetch shop information
     logging.info("Fetching shop information...")
-    shops = await get_shop_info(api_token)
+    shops = await get_shop_info(api_key)
 
     if not shops:
         logging.error("No shops found. Aborting crawl.")
@@ -26,7 +26,7 @@ async def crawl_pancake_pos_data(api_token: str, from_date: str, to_date: str) -
             continue
 
         logging.info(f"Fetching orders for shop ID {shop_id}...")
-        orders = await get_pancake_orders(shop_id, api_token, from_date, to_date)
+        orders = await get_pancake_orders(shop_id, api_key, from_date, to_date)
 
         all_orders.extend(orders)
 

@@ -2,7 +2,7 @@ import aiohttp # type: ignore
 import logging
 from model.settings import settings
 
-async def get_pancake_orders(shop_id: str, api_token: str, from_date: str, to_date: str) -> list:
+async def get_pancake_orders(shop_id: str, api_key: str, from_date: str, to_date: str) -> list:
     """
     Fetch orders from Pancake POS API filtered by start and end date.
     """
@@ -11,7 +11,7 @@ async def get_pancake_orders(shop_id: str, api_token: str, from_date: str, to_da
         "Content-Type": "application/json",
     }
     params = {
-        "api_token": api_token,
+        "api_key": api_key,
         "start_date": from_date,
         "end_date": to_date,
     }

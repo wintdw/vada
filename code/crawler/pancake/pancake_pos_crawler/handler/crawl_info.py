@@ -39,7 +39,7 @@ async def get_mysql_cursor(connection):
 async def insert_crawl_info(
     vada_uid: str,
     index_name: str,
-    api_token: str,
+    api_key: str,
     crawl_interval: int,
 ) -> Dict:
     """
@@ -48,7 +48,7 @@ async def insert_crawl_info(
     query = """
         INSERT INTO PCPCrawlInfo (
             crawl_id, vada_uid, index_name,
-            api_token, crawl_interval, next_crawl_time
+            api_key, crawl_interval, next_crawl_time
         )
         VALUES (%s, %s, %s, %s, %s, NOW() + INTERVAL %s MINUTE)
     """
@@ -64,7 +64,7 @@ async def insert_crawl_info(
                         crawl_id,
                         vada_uid,
                         index_name,
-                        api_token,
+                        api_key,
                         crawl_interval,
                         crawl_interval,
                     ),
@@ -116,7 +116,7 @@ async def get_crawl_info(
                 "crawl_id": row["crawl_id"],
                 "vada_uid": row["vada_uid"],
                 "index_name": row["index_name"],
-                "api_token": row["api_token"],
+                "api_key": row["api_key"],
                 "crawl_interval": row["crawl_interval"],
                 "last_crawl_time": (
                     row["last_crawl_time"].isoformat()
@@ -166,31 +166,31 @@ async def update_crawl_time(crawl_id: str, crawl_interval: int) -> Dict:
 
 
 async def update_crawl_token(
-    crawl_id: str, api_token: str
+    crawl_id: str, api_key: str
 ) -> Dict:
     """
-    Updates the api_token for a given crawl_id.
+    Updates the api_key for a given crawl_id.
     """
     query = """
         UPDATE PCPCrawlInfo
-        SET api_token = %s
+        SET api_key = %s
         WHERE crawl_id = %s
     """
 
     try:
         async with get_mysql_connection() as connection:
             async with get_mysql_cursor(connection) as cursor:
-                await cursor.execute(query, (api_token, crawl_id))
+                await cursor.execute(query, (api_key, crawl_id))
                 await connection.commit()
 
         logging.info(
-            f"Updated api_token for crawl_id: {crawl_id}"
+            f"Updated api_key for crawl_id: {crawl_id}"
         )
         return {"crawl_id": crawl_id}
 
     except Exception as e:
         logging.error(
-            f"Error updating api_token for crawl_id {crawl_id}: {str(e)}",
+            f"Error updating api_key for crawl_id {crawl_id}: {str(e)}",
             exc_info=True,
         )
         return {}
@@ -198,7 +198,7 @@ async def update_crawl_token(
 async def set_crawl_info(
     vada_uid: str = "",
     index_name: str = "",
-    api_token: str = "",
+    api_key: str = "",
     crawl_interval: int = 1440
 ) -> Dict:
     """
@@ -211,10 +211,10 @@ async def set_crawl_info(
         if result:
             crawl_id = result[0]["crawl_id"]
 
-            if api_token:
-                await update_crawl_token(crawl_id, api_token)
+            if api_key:
+                await update_crawl_token(crawl_id, api_key)
                 logging.info(
-                    f"Updated api_token for crawl_id: {crawl_id}"
+                    f"Updated api_key for crawl_id: {crawl_id}"
                 )
 
             return {"crawl_id": crawl_id}
@@ -223,7 +223,7 @@ async def set_crawl_info(
             insert_result = await insert_crawl_info(
                 vada_uid=vada_uid,
                 index_name=index_name,
-                api_token=api_token,
+                api_key=api_key,
                 crawl_interval=crawl_interval
             )
             logging.info(f"Inserted new crawl info for index_name: {index_name}")

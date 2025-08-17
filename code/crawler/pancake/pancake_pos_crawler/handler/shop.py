@@ -3,7 +3,7 @@ import logging
 from typing import List, Dict
 from model.settings import settings
 
-async def get_shop_info(api_token: str) -> List[Dict]:
+async def get_shop_info(api_key: str) -> List[Dict]:
     """
     Fetch shop information from Pancake POS API.
     """
@@ -12,11 +12,11 @@ async def get_shop_info(api_token: str) -> List[Dict]:
         "Content-Type": "application/json",
     }
     params = {
-        "api_token": api_token
+        "api_key": api_key
     }
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as response:
+        async with session.get(url, headers=headers, params=params) as response:
             if response.status == 200:
                 data = await response.json()
                 return data.get("shops", [])
