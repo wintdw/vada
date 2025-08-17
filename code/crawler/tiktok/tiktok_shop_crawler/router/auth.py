@@ -6,8 +6,8 @@ from fastapi.responses import RedirectResponse  # type: ignore
 
 from model.setting import settings
 from handler.auth import get_tokens
-from handler.shop_apis import get_authorized_shop
 from handler.crawl_info import set_crawl_info
+from tiktok_api.shop_api import get_authorized_shop
 
 router = APIRouter()
 
