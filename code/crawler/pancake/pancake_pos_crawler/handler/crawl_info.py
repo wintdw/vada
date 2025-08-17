@@ -96,7 +96,7 @@ async def get_crawl_info(
         params.append(crawl_id)
     else:
         if index_name:
-            conditions.append("business_id = %s")
+            conditions.append("index_name = %s")
             params.append(index_name)
         if vada_uid:
             conditions.append("vada_uid = %s")
