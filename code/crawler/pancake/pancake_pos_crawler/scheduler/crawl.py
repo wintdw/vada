@@ -74,7 +74,6 @@ async def crawl_daily_pancake_pos(
     ).inc(insert_response.get("failure", 0))
 
     await update_crawl_time(crawl_id, crawl_interval)
-    crawl_response.pop("orders", None)
 
     logging.info(
         f"[{api_key}] [Daily Crawl] Result from {start_date} to {end_date}: {crawl_response}"
