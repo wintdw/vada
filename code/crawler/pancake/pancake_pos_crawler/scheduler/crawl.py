@@ -59,7 +59,7 @@ async def crawl_daily_pancake_pos(
 
     # Send to the datastore
     insert_response = await post_processing(
-        crawl_response.get("orders", []),
+        crawl_response,
         index_name,
     )
 
