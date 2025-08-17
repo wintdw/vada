@@ -18,7 +18,7 @@ async def post_token(api_token: str, vada_uid: str):
     :param vada_uid: The Vada user ID.
     :return: A dictionary with the status and message.
     """
-    
+
     crawl_interval = 240  # Default crawl interval in minutes
 
     try:
@@ -28,7 +28,7 @@ async def post_token(api_token: str, vada_uid: str):
 
         # Insert/update crawl info in database
         saved_crawl_info = await set_crawl_info(
-            vadauser_id=vada_uid,
+            vada_uid=vada_uid,
             index_name=index_name,
             api_token=api_token,
             crawl_interval=crawl_interval,

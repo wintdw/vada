@@ -48,13 +48,11 @@ async def crawl_daily_pancake_pos(
         return {}
 
     index_name = crawl_info[0]["index_name"]
-    business_id = crawl_info[0]["business_id"]
-    access_token = crawl_info[0]["access_token"]
+    api_token = crawl_info[0]["api_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
     crawl_response = await crawl_pancake_pos_data(
-        business_id=business_id,
-        access_token=access_token,
+        api_token=api_token,
         from_date=start_date,
         to_date=end_date,
     )
@@ -79,7 +77,7 @@ async def crawl_daily_pancake_pos(
     crawl_response.pop("orders", None)
 
     logging.info(
-        f"[{business_id}] [Daily Crawl] Result from {start_date} to {end_date}: {crawl_response}"
+        f"[{api_token}] [Daily Crawl] Result from {start_date} to {end_date}: {crawl_response}"
     )
 
     return crawl_response
@@ -94,7 +92,7 @@ async def crawl_daily_pancake_pos_scheduler(crawl_id: str):
         logging.error(f"Wrong crawl ID: {crawl_id}")
         return
 
-    business_id = crawl_info[0]["business_id"]
+    api_token = crawl_info[0]["api_token"]
 
     next_crawl_time = datetime.fromisoformat(crawl_info[0]["next_crawl_time"])
     now = datetime.now()
@@ -102,11 +100,11 @@ async def crawl_daily_pancake_pos_scheduler(crawl_id: str):
     # If not yet time for next crawl, skip
     if now < next_crawl_time:
         logging.debug(
-            f"[{business_id}] [Daily Crawl Scheduler] CrawlID {crawl_id}: skip (now={now}, next={next_crawl_time})"
+            f"[{api_token}] [Daily Crawl Scheduler] CrawlID {crawl_id}: skip (now={now}, next={next_crawl_time})"
         )
         return
 
     crawl_response = await crawl_daily_pancake_pos(crawl_id)
     logging.info(
-        f"[{business_id}] [Daily Crawl Scheduler] Finish crawling with ID {crawl_id}"
+        f"[{api_token}] [Daily Crawl Scheduler] Finish crawling with ID {crawl_id}"
     )
