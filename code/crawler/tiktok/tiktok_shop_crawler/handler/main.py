@@ -3,8 +3,64 @@ import logging
 from datetime import datetime
 from typing import Dict, List
 
-from .order_apis import get_order_list
-from .shop_apis import get_authorized_shop
+from tiktok_api.order_api import get_product_detail, get_price_detail, list_order
+from tiktok_api.auth_api import get_authorized_shops
+
+
+async def get_order_all(
+    access_token: str,
+    shop_cipher: str,
+    create_time_ge: int,
+    create_time_lt: int,
+) -> Dict:
+    """
+    Fetch all orders from TikTok Shop API with price and product details.
+    """
+    order_resp = await list_order(
+        access_token=access_token,
+        shop_cipher=shop_cipher,
+        create_time_ge=create_time_ge,
+        create_time_lt=create_time_lt,
+    )
+    orders = order_resp.get("orders", [])
+
+    # Enrich each order with price_detail and each line_item with product_detail
+    for order in orders:
+        # Attach price_detail
+        order_id = order.get("id")
+        try:
+            price_detail = await get_price_detail(
+                access_token=access_token,
+                shop_cipher=shop_cipher,
+                order_id=order_id,
+            )
+            order["price_detail"] = price_detail
+        except Exception as e:
+            logging.error(
+                f"Failed to fetch price_detail for order {order_id}: {e}",
+                exc_info=True,
+            )
+            order["price_detail"] = None
+
+        line_items = order.get("line_items", [])
+        for item in line_items:
+            product_id = item.get("product_id")
+            if product_id:
+                try:
+                    product_detail = await get_product_detail(
+                        access_token=access_token,
+                        shop_cipher=shop_cipher,
+                        product_id=product_id,
+                    )
+                    item["product_detail"] = product_detail
+                except Exception as e:
+                    logging.error(
+                        f"Failed to fetch product_detail for product {product_id}: {e}",
+                        exc_info=True,
+                    )
+                    item["product_detail"] = None
+
+    return {"total": len(orders), "orders": orders}
 
 
 async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
@@ -29,7 +85,7 @@ async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
     """
     profiling_start_time = time.time()
 
-    shop_info = await get_authorized_shop(access_token)
+    shop_info = await get_authorized_shops(access_token)
     if not shop_info:
         raise Exception("No shop information found. Please check your access token.")
 
@@ -46,7 +102,7 @@ async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
     # Range-splitting algorithm to overcome 5000 orders limit
     while ranges:
         s_ts, e_ts = ranges.pop()
-        order_json = await get_order_list(
+        order_json = await get_order_all(
             access_token=access_token,
             shop_cipher=shop_info["cipher"],
             create_time_ge=s_ts,

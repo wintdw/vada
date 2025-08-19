@@ -2,53 +2,34 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict
 
+from model.settings import settings
 from handler.nhanh import crawl_nhanh_data
 from handler.persist import post_processing
 from handler.crawl_info import update_crawl_time, get_crawl_info
+from handler.metrics import insert_success_counter, insert_failure_counter
 
 
 async def crawl_first_nhanh(crawl_id: str):
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=90)
+    start_date = end_date - timedelta(days=365)
     chunk = timedelta(days=2)
     current_end = end_date
 
-    crawl_info = await get_crawl_info(crawl_id=crawl_id)
-    if not crawl_info:
-        logging.error(f"Wrong crawl ID: {crawl_id}")
-        return
-
-    index_name = crawl_info[0]["index_name"]
-    business_id = crawl_info[0]["business_id"]
-    access_token = crawl_info[0]["access_token"]
-    crawl_interval = crawl_info[0]["crawl_interval"]
-
     logging.info(
-        f"[{business_id}] [First Crawl] Crawling from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+        f"[{crawl_id}] [First Crawl] Crawling from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
     )
 
     while current_end > start_date:
         current_start = max(current_end - chunk, start_date)
 
-        crawl_response = await crawl_nhanh_data(
-            business_id=business_id,
-            access_token=access_token,
-            from_date=current_start.strftime("%Y-%m-%d"),
-            to_date=current_end.strftime("%Y-%m-%d"),
-        )
-        logging.info(
-            f"[{business_id}] [First Crawl Chunk] Result from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {crawl_response.get('status')}"
-        )
-
-        # Send to the datastore
-        await post_processing(
-            crawl_response.get("orders", []),
-            index_name,
+        # Use crawl_daily_nhanh for each chunk
+        await crawl_daily_nhanh(
+            crawl_id=crawl_id,
+            start_date=current_start.strftime("%Y-%m-%d"),
+            end_date=current_end.strftime("%Y-%m-%d"),
         )
 
         current_end = current_start  # move backward
-
-    await update_crawl_time(crawl_id, crawl_interval)
 
 
 async def crawl_daily_nhanh(
@@ -79,10 +60,21 @@ async def crawl_daily_nhanh(
     )
 
     # Send to the datastore
-    await post_processing(
+    insert_response = await post_processing(
         crawl_response.get("orders", []),
         index_name,
     )
+
+    # Update Prometheus metrics for insert success/failure
+    insert_success_counter.labels(
+        crawl_id=crawl_id,
+        app_env=settings.APP_ENV,
+    ).inc(insert_response.get("success", 0))
+    insert_failure_counter.labels(
+        crawl_id=crawl_id,
+        app_env=settings.APP_ENV,
+    ).inc(insert_response.get("failure", 0))
+
     await update_crawl_time(crawl_id, crawl_interval)
     crawl_response.pop("orders", None)
 

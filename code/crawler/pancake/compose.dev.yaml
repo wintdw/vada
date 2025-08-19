@@ -1,0 +1,27 @@
+secrets:
+  mysql_crawler:
+    file: /var/secret/docker/mysql/crawler
+
+services:
+  pancake_pos_crawler:
+    build:
+      context: ./pancake_pos_crawler
+      dockerfile: Dockerfile
+    image: pancake_pos_crawler:latest
+    container_name: pancake_pos_crawler
+    restart: always
+    ports:
+      - "8151:8151"
+    secrets:
+      - mysql_crawler
+    environment:
+      APP_ENV: dev
+
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: crawler
+      MYSQL_DB: crawler_dev
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler
+
+      PCP_BASE_URL: https://pos.pages.fm/api/v1
+
+      INSERT_SERVICE_BASEURL: http://insert-dev.internal.vadata.vn

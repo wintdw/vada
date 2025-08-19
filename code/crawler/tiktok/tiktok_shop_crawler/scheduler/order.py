@@ -6,7 +6,7 @@ from model.setting import settings
 from handler.crawl_info import update_crawl_time, get_crawl_info
 from handler.main import get_orders
 from handler.persist import post_processing
-from handler.metrics import insert_success_gauge, insert_failure_gauge
+from handler.metrics import insert_success_counter, insert_failure_counter
 
 
 async def crawl_first_tiktokshop(crawl_id: str):
@@ -16,6 +16,9 @@ async def crawl_first_tiktokshop(crawl_id: str):
     window = 1
     num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
 
+    logging.info(
+        f"[First Crawl] Crawling {days_in_year}d backward from {now.strftime('%Y-%m-%d')}"
+    )
     for i in range(num_jobs):
         start_offset = i * window
         end_offset = (i + 1) * window
@@ -73,14 +76,15 @@ async def crawl_daily_tiktokshop(
     )
 
     # Update Prometheus metrics for insert success/failure
-    insert_success_gauge.labels(
+    insert_success_counter.labels(
         crawl_id=crawl_id,
         app_env=settings.APP_ENV,
-    ).set(insert_response.get("success", 0))
-    insert_failure_gauge.labels(
+    ).inc(insert_response.get("success", 0))
+
+    insert_failure_counter.labels(
         crawl_id=crawl_id,
         app_env=settings.APP_ENV,
-    ).set(insert_response.get("failure", 0))
+    ).inc(insert_response.get("failure", 0))
 
     await update_crawl_time(crawl_id, crawl_interval)
     crawl_response.pop("orders", None)

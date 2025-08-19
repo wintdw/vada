@@ -6,7 +6,7 @@ from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.metrics import update_crawl_metrics
 from handler.crawl_info import get_crawl_info
-from .crawl import crawl_first_nhanh, crawl_daily_nhanh_scheduler
+from .crawl import crawl_first_pancake_pos, crawl_daily_pancake_pos_scheduler
 
 
 async def init_scheduler():
@@ -22,10 +22,10 @@ async def init_scheduler():
 
                 if not bool(last_crawl_time):
                     # fire and forget
-                    asyncio.create_task(crawl_first_nhanh(crawl_id=crawl_id))
+                    asyncio.create_task(crawl_first_pancake_pos(crawl_id=crawl_id))
 
                 # run regular crawl
-                await crawl_daily_nhanh_scheduler(crawl_id=crawl_id)
+                await crawl_daily_pancake_pos_scheduler(crawl_id=crawl_id)
         except Exception as e:
             logging.error(f"Exception in update jobs: {e}", exc_info=True)
 
@@ -35,7 +35,7 @@ async def init_scheduler():
         update_jobs,
         trigger=IntervalTrigger(minutes=1),
         id="update_jobs",
-        name="Update Nhanh jobs every 1 minute",
+        name="Update pancake_pos jobs every 1 minute",
         replace_existing=False,
         misfire_grace_time=30,
         max_instances=1,

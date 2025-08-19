@@ -6,8 +6,8 @@ from fastapi.responses import RedirectResponse  # type: ignore
 
 from model.setting import settings
 from handler.auth import get_tokens
-from handler.shop_apis import get_authorized_shop
 from handler.crawl_info import set_crawl_info
+from tiktok_api.auth_api import get_authorized_shops
 
 router = APIRouter()
 
@@ -39,7 +39,7 @@ async def get_auth(
         )
 
         # Step 2: Get authorized shop information
-        shop_info = await get_authorized_shop(tokens["access_token"])
+        shop_info = await get_authorized_shops(tokens["access_token"])
 
         account_id = shop_info["id"]
         account_name = shop_info["name"]

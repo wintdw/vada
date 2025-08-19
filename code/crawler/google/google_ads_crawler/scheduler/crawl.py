@@ -1,52 +1,35 @@
 import logging
-from datetime import datetime, timedelta
 from typing import Dict
+from datetime import datetime, timedelta
 
+from model.setting import settings
 from handler.persist import post_processing
 from handler.report import fetch_google_reports
 from handler.mysql import update_crawl_time, get_crawl_info
+from handler.crawl_metrics import insert_success_counter, insert_failure_counter
 
 
 async def crawl_new_client(crawl_id: str):
     """
     Initial crawl for a new client, crawling 1 year of data in monthly chunks.
     """
-
-    crawl_info = await get_crawl_info(crawl_id=crawl_id)
-    if not crawl_info:
-        logging.error(f"Wrong crawl ID: {crawl_id}")
-        return
-
-    refresh_token = crawl_info[0]["refresh_token"]
-    index_name = crawl_info[0]["index_name"]
-    account_name = crawl_info[0]["account_name"]
-    crawl_interval = crawl_info[0]["crawl_interval"]
-
     now = datetime.now()
     start_date = now - timedelta(days=365)
     chunk = timedelta(days=30)
     current_start = start_date
 
     logging.info(
-        f"[{account_name}] [First Crawl] Starting initial crawl from {current_start.strftime('%Y-%m-%d')} to {now.strftime('%Y-%m-%d')}"
+        f"[{crawl_id}] [First Crawl] From {current_start.strftime('%Y-%m-%d')} to {now.strftime('%Y-%m-%d')}"
     )
     while current_start < now:
         current_end = min(current_start + chunk, now)
-        report_response = await fetch_google_reports(
-            refresh_token=refresh_token,
+        # Use crawl_daily for each chunk
+        await crawl_daily(
+            crawl_id=crawl_id,
             start_date=current_start.strftime("%Y-%m-%d"),
             end_date=current_end.strftime("%Y-%m-%d"),
         )
-        logging.info(
-            f"[{account_name}] [First Crawl Chunk] Chunk Crawl from {current_start.strftime('%Y-%m-%d')} to {current_end.strftime('%Y-%m-%d')}: {report_response.get('report', {}).get('total_reports', 0)} reports"
-        )
-        await post_processing(
-            report_response.get("report", {}).get("reports", []),
-            index_name,
-        )
         current_start = current_end
-
-    await update_crawl_time(crawl_id, crawl_interval)
 
 
 async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -> Dict:
@@ -74,10 +57,19 @@ async def crawl_daily(crawl_id: str, start_date: str = "", end_date: str = "") -
     crawl_response = await fetch_google_reports(
         refresh_token=refresh_token, start_date=start_date, end_date=end_date
     )
-    await post_processing(
+    insert_response = await post_processing(
         crawl_response.get("report", {}).get("reports", []),
         index_name,
     )
+
+    # Update Prometheus metrics for insert success/failure
+    insert_success_counter.labels(crawl_id=crawl_id, app_env=settings.APP_ENV).inc(
+        insert_response.get("success", 0)
+    )
+    insert_failure_counter.labels(crawl_id=crawl_id, app_env=settings.APP_ENV).inc(
+        insert_response.get("failure", 0)
+    )
+
     await update_crawl_time(crawl_id, crawl_interval)
 
     return {

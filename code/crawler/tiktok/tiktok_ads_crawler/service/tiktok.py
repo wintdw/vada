@@ -2,39 +2,20 @@ import json
 
 from typing import List, Dict, Optional
 
-from tool.requests import get, post
+from tool.requests import get
 from model.setting import settings
 
 
 async def tiktok_biz_get_user_info(access_token: str) -> Dict:
+    url = f"{settings.TIKTOK_BIZ_API_URL}/user/info/"
+
     request_json = await get(
-        url=f"{settings.TIKTOK_BIZ_API_URL}/user/info/",
+        url=url,
         access_token=access_token,
     )
     if "data" in request_json:
         return request_json["data"]
     return {}
-
-
-async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
-    """
-    Fetch all advertisers in the account.
-
-    Returns:
-        List[Dict]: A list of dictionaries containing advertiser information
-    """
-    request_json = await get(
-        url=f"{settings.TIKTOK_BIZ_API_URL}/oauth2/advertiser/get/",
-        access_token=access_token,
-        params={
-            "app_id": settings.TIKTOK_BIZ_APP_ID,
-            "secret": settings.TIKTOK_BIZ_SECRET,
-        },
-    )
-
-    if "data" in request_json and "list" in request_json["data"]:
-        return request_json["data"]["list"]
-    return []
 
 
 async def tiktok_biz_info_advertiser(
@@ -49,9 +30,11 @@ async def tiktok_biz_info_advertiser(
     Returns:
         List[Dict]: List of dictionaries containing advertiser information
     """
+    url = f"{settings.TIKTOK_BIZ_API_URL}/advertiser/info/"
     params = {"advertiser_ids": json.dumps(advertiser_ids)}
+
     request_json = await get(
-        url=f"{settings.TIKTOK_BIZ_API_URL}/advertiser/info/",
+        url=url,
         access_token=access_token,
         params=params,
     )
@@ -74,6 +57,7 @@ async def tiktok_biz_get_campaign(
     Returns:
         List[Dict]: List of campaign information dictionaries
     """
+    url = f"{settings.TIKTOK_BIZ_API_URL}/campaign/get/"
     all_campaigns: List[Dict] = []
     page: int = 1
 
@@ -84,7 +68,7 @@ async def tiktok_biz_get_campaign(
             params["filtering"] = json.dumps({"campaign_ids": campaign_ids})
 
         request_json = await get(
-            url=f"{settings.TIKTOK_BIZ_API_URL}/campaign/get/",
+            url=url,
             access_token=access_token,
             params=params,
         )
@@ -129,6 +113,7 @@ async def tiktok_biz_get_report_integrated(
     Returns:
         List[Dict]: List of flattened report entries
     """
+    url = f"{settings.TIKTOK_BIZ_API_URL}/report/integrated/get/"
     all_reports: List[Dict] = []
     page: int = 1
 
@@ -235,7 +220,7 @@ async def tiktok_biz_get_report_integrated(
         }
 
         request_json = await get(
-            url=f"{settings.TIKTOK_BIZ_API_URL}/report/integrated/get/",
+            url=url,
             access_token=access_token,
             params=params,
         )
@@ -279,6 +264,7 @@ async def tiktok_biz_get_ad(
     Returns:
         List[Dict]: List of ad information dictionaries
     """
+    url = f"{settings.TIKTOK_BIZ_API_URL}/ad/get/"
     all_ads: List[Dict] = []
     page: int = 1
 
@@ -297,7 +283,7 @@ async def tiktok_biz_get_ad(
             params["filtering"] = json.dumps(filtering)
 
         request_json = await get(
-            url=f"{settings.TIKTOK_BIZ_API_URL}/ad/get/",
+            url=url,
             access_token=access_token,
             params=params,
         )
@@ -332,6 +318,7 @@ async def tiktok_biz_get_adgroup(
     Returns:
         List[Dict]: List of ad group information dictionaries
     """
+    url = f"{settings.TIKTOK_BIZ_API_URL}/adgroup/get/"
     all_adgroups: List[Dict] = []
     page: int = 1
 
@@ -348,7 +335,7 @@ async def tiktok_biz_get_adgroup(
             params["filtering"] = json.dumps(filtering)
 
         request_json = await get(
-            url=f"{settings.TIKTOK_BIZ_API_URL}/adgroup/get/",
+            url=url,
             access_token=access_token,
             params=params,
         )
@@ -366,24 +353,32 @@ async def tiktok_biz_get_adgroup(
     return all_adgroups
 
 
-async def tiktok_biz_get_access_token(auth_code: str) -> Dict:
+async def tiktok_biz_get_gmv_max_campaign_detail(
+    access_token: str, advertiser_id: str, campaign_id: str
+) -> Dict:
     """
-    Fetch access token using authorization code.
+    Get the details of a GMV Max Campaign.
 
     Args:
-        auth_code (str): The authorization code
+        access_token (str): Authorized access token.
+        advertiser_id (str): Advertiser ID.
+        campaign_id (str): The ID of a GMV Max Campaign.
 
     Returns:
-        Dict: A dictionary containing the access token and other information
+        dict: Campaign detail data, or empty dict if not found.
     """
-    payload = {
-        "app_id": settings.TIKTOK_BIZ_APP_ID,
-        "secret": settings.TIKTOK_BIZ_SECRET,
-        "auth_code": auth_code,
+    url = f"{settings.TIKTOK_BIZ_API_URL}/campaign/gmv_max/info/"
+    params = {
+        "advertiser_id": advertiser_id,
+        "campaign_id": campaign_id,
     }
-    request_json = await post(
-        url=f"{settings.TIKTOK_BIZ_API_URL}/oauth2/access_token/", json=payload
+
+    request_json = await get(
+        url=url,
+        access_token=access_token,
+        params=params,
     )
-    if "data" in request_json and "access_token" in request_json["data"]:
+
+    if "data" in request_json:
         return request_json["data"]
     return {}

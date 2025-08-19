@@ -1,7 +1,64 @@
+import json
 import logging
 import aiohttp  # type: ignore
 import asyncio
 from typing import Dict, Any, Optional
+
+from model.setting import settings
+from .sign import cal_sign
+
+
+async def tiktok_api_request(
+    method: str,
+    path: str,
+    access_token: str,
+    shop_cipher: str,
+    params: Dict = {},
+    payload: Dict = {},
+) -> Dict:
+    """
+    Common TikTok Shop API request handler.
+    """
+    import time
+
+    base_url = f"{settings.TIKTOK_SHOP_API_BASEURL}{path}"
+    timestamp = int(time.time())
+    query_params = {
+        "app_key": settings.TIKTOK_SHOP_APP_KEY,
+        "timestamp": timestamp,
+        "shop_cipher": shop_cipher,
+    }
+    if params:
+        query_params.update(params)
+
+    # Sign calculation
+    sign_kwargs = {
+        "path": path,
+        "params": query_params,
+        "app_secret": settings.TIKTOK_SHOP_APP_SECRET,
+        "content_type": "application/json",
+    }
+    if payload:
+        sign_kwargs["body"] = json.dumps(payload).encode("utf-8")
+    query_params["sign"] = cal_sign(**sign_kwargs)
+
+    headers = {
+        "x-tts-access-token": access_token,
+        "content-type": "application/json",
+    }
+
+    if method == "POST":
+        data = await retry_post(
+            url=base_url, headers=headers, params=query_params, json_payload=payload
+        )
+    else:
+        data = await retry_get(url=base_url, headers=headers, params=query_params)
+
+    if data.get("code") == 0:
+        return data["data"]
+    else:
+        logging.error(f"Failed TikTok API call {path}: {data}", exc_info=True)
+        raise Exception(f"Error: {data.get('message')}")
 
 
 async def retry_post(
