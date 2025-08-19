@@ -58,9 +58,9 @@ def _get_domain(sandbox: bool) -> str:
 def generate_shopee_auth_url(
     redirect_url: str,
     custom_redirect_params: Optional[dict] = None,
-    sandbox: bool = True
+    sandbox: bool = False
 ) -> str:
-    path = "/auth"
+    path = "/api/v2/shop/auth_partner"
     timestamp = int(time.time())
     sign = _generate_signature(path, timestamp)
     domain = settings.SHOPEE_SANDBOX_AUTH_DOMAIN if sandbox else settings.SHOPEE_PRODUCTION_AUTH_DOMAIN
@@ -71,7 +71,7 @@ def generate_shopee_auth_url(
         "timestamp": timestamp,
         "response_type": "code",
         "sign": sign,
-        "redirect_uri": redirect_url
+        "redirect": redirect_url
     }
 
     if custom_redirect_params:
@@ -84,7 +84,7 @@ def generate_shopee_auth_url(
 async def get_access_token(
     authorized_code: str,
     shop_id: int,
-    sandbox: bool = True
+    sandbox: bool = False
 ):
     path = "/api/v2/auth/token/get"
     timestamp = int(time.time())
@@ -111,7 +111,7 @@ async def get_access_token(
 
 async def refresh_access_token(
     refresh_token: str,
-    sandbox: bool = True
+    sandbox: bool = False
 ):
     path = "/api/v2/auth/access_token/get"
     timestamp = int(time.time())
