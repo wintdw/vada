@@ -1,6 +1,8 @@
 secrets:
   mysql_crawler:
     file: /var/secret/docker/mysql/crawler
+  shopee_partner_key:
+    file: /var/secret/docker/shopee/partner_key
 
 services:
   shopee_crawler:
@@ -14,6 +16,7 @@ services:
       - "8150:8150"
     secrets:
       - mysql_crawler
+      - shopee_partner_key
     environment:
       MYSQL_HOST: mysql00.internal.vadata.vn
       MYSQL_USER: crawler
@@ -31,5 +34,5 @@ services:
       SHOPEE_PRODUCTION_AUTH_DOMAIN: partner.shopeemobile.com
       SHOPEE_SANDBOX_AUTH_DOMAIN: open.sandbox.test-stable.s`hopee.com
 
-      SHOPEE_PARTNER_ID: 1179887
-      SHOPEE_PARTNER_KEY: shpk6a58504b766e48467447764a6f57627a776e704c557a6a637963724b4b74
+  SHOPEE_PARTNER_ID: 1179887
+  SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key

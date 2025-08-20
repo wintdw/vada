@@ -15,7 +15,14 @@ class Settings(BaseSettings):
     INSERT_SERVICE_BASEURL: str
 
     SHOPEE_PARTNER_ID: int
-    SHOPEE_PARTNER_KEY: str
+    SHOPEE_PARTNER_KEY_FILE: str = ""
+    SHOPEE_PARTNER_KEY: str = ""
+    @property
+    def partner_key(self) -> str:
+        if self.SHOPEE_PARTNER_KEY_FILE and os.path.exists(self.SHOPEE_PARTNER_KEY_FILE):
+            with open(self.SHOPEE_PARTNER_KEY_FILE) as f:
+                return f.read().strip()
+        return self.SHOPEE_PARTNER_KEY
     API_BASE_URL: str
     
     SHOPEE_SHOP_AUTH_CALLBACK: str
