@@ -32,7 +32,7 @@ services:
       SHOPEE_PRODUCTION_API_DOMAIN: partner.shopeemobile.com
       SHOPEE_SANDBOX_API_DOMAIN: openplatform.sandbox.test-stable.shopee.sg
       SHOPEE_PRODUCTION_AUTH_DOMAIN: partner.shopeemobile.com
-      SHOPEE_SANDBOX_AUTH_DOMAIN: open.sandbox.test-stable.s`hopee.com
+      SHOPEE_SANDBOX_AUTH_DOMAIN: open.sandbox.test-stable.shopee.com
 
-  SHOPEE_PARTNER_ID: 1179887
-  SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key
+      SHOPEE_PARTNER_ID: 1179887
+      SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key
