@@ -2,14 +2,13 @@ import asyncio
 import logging
 from typing import Dict
 
-from service.oauth import tiktok_biz_get_advertiser
-from service.tiktok import (
-    tiktok_biz_info_advertiser,
+from service.oauth import tiktok_biz_get_advertisers
+from service.info import tiktok_biz_info_advertisers
+from service.ads import (
     tiktok_biz_get_report_integrated,
     tiktok_biz_get_ad,
     tiktok_biz_get_campaign,
     tiktok_biz_get_adgroup,
-    tiktok_biz_get_gmv_max_campaign_detail,
 )
 
 
@@ -19,7 +18,6 @@ def construct_detailed_report(
     campaign_info: Dict,
     adgroup_info: Dict,
     ad_info: Dict,
-    gmv_max_info: Dict,
 ) -> Dict:
     """
     Enhance a report with nested dictionaries for advertiser, campaign, ad group and ad.
@@ -41,7 +39,6 @@ def construct_detailed_report(
     enhanced_report["campaign"] = campaign_info
     enhanced_report["adgroup"] = adgroup_info
     enhanced_report["ad"] = ad_info
-    enhanced_report["gmv_max"] = gmv_max_info
 
     return enhanced_report
 
@@ -51,7 +48,7 @@ async def crawl_tiktok_business(
 ) -> Dict:
     try:
         # Get all advertisers
-        advertisers = await tiktok_biz_get_advertiser(access_token)
+        advertisers = await tiktok_biz_get_advertisers(access_token)
         total_advertisers = len(advertisers)
         logging.debug(f"Found {total_advertisers} advertisers to process")
         logging.debug(advertisers)
@@ -64,7 +61,7 @@ async def crawl_tiktok_business(
             )
 
             # Get advertiser info
-            advertiser_info = await tiktok_biz_info_advertiser(
+            advertiser_info = await tiktok_biz_info_advertisers(
                 access_token, [advertiser["advertiser_id"]]
             )
             logging.debug(
@@ -120,18 +117,8 @@ async def crawl_tiktok_business(
                     )
                 )
 
-                gmv_max_task = asyncio.create_task(
-                    tiktok_biz_get_gmv_max_campaign_detail(
-                        access_token=access_token,
-                        advertiser_id=advertiser["advertiser_id"],
-                        campaign_id=ads[0]["campaign_id"],
-                    )
-                )
-
                 # Wait for both tasks to complete
-                campaigns, adgroups, gmv_max_info = await asyncio.gather(
-                    campaign_task, adgroup_task, gmv_max_task
-                )
+                campaigns, adgroups = await asyncio.gather(campaign_task, adgroup_task)
 
                 # Create and process report
                 detailed_report = construct_detailed_report(
@@ -140,7 +127,6 @@ async def crawl_tiktok_business(
                     campaign_info=campaigns[0] if campaigns else {},
                     adgroup_info=adgroups[0] if adgroups else {},
                     ad_info=ads[0] if ads else {},
-                    gmv_max_info=gmv_max_info,
                 )
 
                 detailed_reports.append(detailed_report)

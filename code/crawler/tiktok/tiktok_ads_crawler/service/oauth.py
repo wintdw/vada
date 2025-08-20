@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List
 
 from tool.requests import post, get
@@ -24,10 +25,12 @@ async def tiktok_biz_get_access_token(auth_code: str) -> Dict:
     )
     if "data" in request_json and "access_token" in request_json["data"]:
         return request_json["data"]
+
+    logging.error(f"Failed to retrieve access token: {request_json}")
     return {}
 
 
-async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
+async def tiktok_biz_get_advertisers(access_token: str) -> List[Dict]:
     """
     Fetch all advertisers in the account.
 
@@ -45,4 +48,6 @@ async def tiktok_biz_get_advertiser(access_token: str) -> List[Dict]:
 
     if "data" in request_json and "list" in request_json["data"]:
         return request_json["data"]["list"]
+
+    logging.error(f"Failed to retrieve advertiser info: {request_json}")
     return []

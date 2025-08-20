@@ -1,47 +1,8 @@
 import json
-
 from typing import List, Dict, Optional
 
 from tool.requests import get
 from model.setting import settings
-
-
-async def tiktok_biz_get_user_info(access_token: str) -> Dict:
-    url = f"{settings.TIKTOK_BIZ_API_URL}/user/info/"
-
-    request_json = await get(
-        url=url,
-        access_token=access_token,
-    )
-    if "data" in request_json:
-        return request_json["data"]
-    return {}
-
-
-async def tiktok_biz_info_advertiser(
-    access_token: str, advertiser_ids: List[str]
-) -> List[Dict]:
-    """
-    Fetch detailed advertiser information.
-
-    Args:
-        advertiser_ids (List[str]): List of advertiser IDs to fetch information for
-
-    Returns:
-        List[Dict]: List of dictionaries containing advertiser information
-    """
-    url = f"{settings.TIKTOK_BIZ_API_URL}/advertiser/info/"
-    params = {"advertiser_ids": json.dumps(advertiser_ids)}
-
-    request_json = await get(
-        url=url,
-        access_token=access_token,
-        params=params,
-    )
-
-    if "data" in request_json and "list" in request_json["data"]:
-        return request_json["data"]["list"]
-    return []
 
 
 async def tiktok_biz_get_campaign(
@@ -351,34 +312,3 @@ async def tiktok_biz_get_adgroup(
             break
 
     return all_adgroups
-
-
-async def tiktok_biz_get_gmv_max_campaign_detail(
-    access_token: str, advertiser_id: str, campaign_id: str
-) -> Dict:
-    """
-    Get the details of a GMV Max Campaign.
-
-    Args:
-        access_token (str): Authorized access token.
-        advertiser_id (str): Advertiser ID.
-        campaign_id (str): The ID of a GMV Max Campaign.
-
-    Returns:
-        dict: Campaign detail data, or empty dict if not found.
-    """
-    url = f"{settings.TIKTOK_BIZ_API_URL}/campaign/gmv_max/info/"
-    params = {
-        "advertiser_id": advertiser_id,
-        "campaign_id": campaign_id,
-    }
-
-    request_json = await get(
-        url=url,
-        access_token=access_token,
-        params=params,
-    )
-
-    if "data" in request_json:
-        return request_json["data"]
-    return {}

@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse  # type: ignore
 from model.setting import settings
 from model.index_mappings import index_mappings_data
 from repository.crawl_info import set_crawl_info
-from service.tiktok import tiktok_biz_get_user_info
+from service.info import tiktok_biz_get_user_info
 from service.oauth import tiktok_biz_get_access_token
 
 router = APIRouter()
