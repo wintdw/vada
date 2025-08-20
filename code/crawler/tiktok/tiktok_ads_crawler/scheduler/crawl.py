@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict
 
 from model.setting import settings
-from handler.tiktok import crawl_tiktok_business
+from handler.ads import crawl_tiktok_business
 from handler.persist import post_processing
 from repository.crawl_info import update_crawl_time, get_crawl_info
 from handler.metrics import insert_success_counter, insert_failure_counter
