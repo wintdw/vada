@@ -34,5 +34,5 @@ services:
       SHOPEE_PRODUCTION_AUTH_DOMAIN: partner.shopeemobile.com
       SHOPEE_SANDBOX_AUTH_DOMAIN: partner.shopeemobile.com
 
-  SHOPEE_PARTNER_ID: 1179887
-  SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key
+      SHOPEE_PARTNER_ID: 1179887
+      SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key
