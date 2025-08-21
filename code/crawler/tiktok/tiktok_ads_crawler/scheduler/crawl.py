@@ -63,17 +63,13 @@ async def crawl_daily_tiktokad(
         start_date,
         end_date,
     )
-    gmv_crawl_response = await crawl_tiktok_gmv_campaigns(
-        access_token,
-        start_date,
-        end_date,
-    )
+    gmv_crawl_response = await crawl_tiktok_gmv_campaigns(access_token)
 
     reports = ad_crawl_response["report"].get("reports", [])
-    ad_insert_response = await post_processing(reports, index_name)
+    ad_insert_response = await post_processing(reports, index_name, "ad")
 
     gmv_campaigns = gmv_crawl_response.get("campaigns", [])
-    gmv_insert_response = await post_processing(gmv_campaigns, gmv_index_name)
+    gmv_insert_response = await post_processing(gmv_campaigns, gmv_index_name, "gmv")
 
     # Update Prometheus metrics for insert success/failure
     total_success = ad_insert_response.get("success", 0) + gmv_insert_response.get(

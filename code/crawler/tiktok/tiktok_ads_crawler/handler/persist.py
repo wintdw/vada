@@ -59,7 +59,7 @@ async def send_to_insert_service(docs: List[Dict], index_name: str) -> Dict:
             }
 
 
-async def post_processing(docs: List[Dict], index_name: str) -> Dict:
+async def post_processing(docs: List[Dict], index_name: str, type: str) -> Dict:
     """
     Produce data to insert service in batches, after enrichments
     This function includes all above funcs, so need to call this only
@@ -67,6 +67,7 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     Args:
         docs: List of processed data to be sent
         index_name: Name of the index to insert into
+        type: ad or gmv
 
     Returns:
         Dict: Last response from insert service
@@ -84,7 +85,7 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
         }
 
     # Enrich docs before batching
-    processed_docs = [standardize_doc(enrich_doc(doc)) for doc in docs]
+    processed_docs = [standardize_doc(enrich_doc(doc, type), type) for doc in docs]
     total_docs = len(processed_docs)
     batch_size = get_optimal_batch_size(total_docs)
     total_batches = (total_docs + batch_size - 1) // batch_size

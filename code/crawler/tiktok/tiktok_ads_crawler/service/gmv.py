@@ -34,8 +34,8 @@ async def tiktok_biz_get_gmv_max_campaign_detail(
 async def get_gmv_max_campaigns(
     access_token: str,
     advertiser_id: str,
-    date_start: str,
-    date_end: str,
+    date_start: str = "",
+    date_end: str = "",
 ) -> List[Dict]:
     """
     Retrieve GMV Max Campaigns within an ad account.
@@ -47,15 +47,13 @@ async def get_gmv_max_campaigns(
     total_page = 1
     page = 1
 
-    # Use date_start and date_end directly, format as required by API
-    start_time = f"{date_start} 00:00:00"
-    end_time = f"{date_end} 23:59:59"
+    filtering = {}
+    filtering["gmv_max_promotion_types"] = ["PRODUCT_GMV_MAX", "LIVE_GMV_MAX"]
 
-    filtering = {
-        "gmv_max_promotion_types": ["PRODUCT_GMV_MAX", "LIVE_GMV_MAX"],
-        "creation_filter_start_time": start_time,
-        "creation_filter_end_time": end_time,
-    }
+    if date_start:
+        filtering["creation_filter_start_time"] = f"{date_start} 00:00:00"
+    if date_end:
+        filtering["creation_filter_end_time"] = f"{date_end} 23:59:59"
 
     while True:
         params = {

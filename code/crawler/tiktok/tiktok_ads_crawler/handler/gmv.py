@@ -10,7 +10,7 @@ from service.gmv import (
 
 
 async def crawl_tiktok_gmv_campaigns(
-    access_token: str, start_date: str, end_date: str
+    access_token: str, start_date: str = "", end_date: str = ""
 ) -> Dict:
     try:
         # Get all advertisers
