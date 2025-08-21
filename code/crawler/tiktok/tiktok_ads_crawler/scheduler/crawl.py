@@ -4,6 +4,7 @@ from typing import Dict
 
 from model.setting import settings
 from handler.ads import crawl_tiktok_business
+from handler.gmv import crawl_tiktok_gmv_campaigns
 from handler.persist import post_processing
 from repository.crawl_info import update_crawl_time, get_crawl_info
 from handler.metrics import insert_success_counter, insert_failure_counter
@@ -48,40 +49,57 @@ async def crawl_daily_tiktokad(
 
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
+    account_id = crawl_info[0]["account_id"]
     index_name = crawl_info[0]["index_name"]
+    gmv_index_name = f"data_tiktokad_gmv_{account_id}"
     account_name = crawl_info[0]["account_name"]
 
     logging.info(
         f"[{account_name}] [Daily Crawl] Crawling from {start_date} to {end_date}"
     )
 
-    crawl_response = await crawl_tiktok_business(
+    ad_crawl_response = await crawl_tiktok_business(
         access_token,
         start_date,
         end_date,
     )
-    # Get number of docs to insert
-    reports = crawl_response["report"].get("reports", [])
-    insert_response = await post_processing(reports, index_name)
+    gmv_crawl_response = await crawl_tiktok_gmv_campaigns(
+        access_token,
+        start_date,
+        end_date,
+    )
+
+    reports = ad_crawl_response["report"].get("reports", [])
+    ad_insert_response = await post_processing(reports, index_name)
+
+    gmv_campaigns = gmv_crawl_response.get("campaigns", [])
+    gmv_insert_response = await post_processing(gmv_campaigns, gmv_index_name)
 
     # Update Prometheus metrics for insert success/failure
+    total_success = ad_insert_response.get("success", 0) + gmv_insert_response.get(
+        "success", 0
+    )
+    total_failure = ad_insert_response.get("failure", 0) + gmv_insert_response.get(
+        "failure", 0
+    )
+
     insert_success_counter.labels(
         crawl_id=crawl_id,
         app_env=settings.APP_ENV,
-    ).inc(insert_response.get("success", 0))
+    ).inc(total_success)
     insert_failure_counter.labels(
         crawl_id=crawl_id,
         app_env=settings.APP_ENV,
-    ).inc(insert_response.get("failure", 0))
+    ).inc(total_failure)
 
     await update_crawl_time(crawl_id, crawl_interval)
 
     # remove unnecessary fields from the response
-    crawl_response["report"].pop("reports", None)
+    ad_crawl_response["report"].pop("reports", None)
     logging.info(
-        f"[{account_name}] [Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {crawl_response}"
+        f"[{account_name}] [Daily Crawl] CrawlID {crawl_id} from {start_date} to {end_date}: {ad_crawl_response}"
     )
-    return crawl_response
+    return ad_crawl_response
 
 
 async def crawl_daily_tiktokad_scheduler(crawl_id: str):
