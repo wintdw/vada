@@ -2,6 +2,26 @@ from datetime import datetime
 from typing import Dict
 
 
+def standardize_doc(doc: Dict) -> Dict:
+    """
+    Standardizes the report dictionary by ensuring required fields are valid.
+
+    Ensure total_onsite_shopping_value is a number; set to 0 if not.
+    """
+
+    # total_onsite_shopping_value
+    total_onsite_shopping_value = doc.get("total_onsite_shopping_value")
+    if total_onsite_shopping_value is None:
+        doc["total_onsite_shopping_value"] = 0
+    elif not isinstance(total_onsite_shopping_value, (int, float)):
+        try:
+            doc["total_onsite_shopping_value"] = float(total_onsite_shopping_value)
+        except (TypeError, ValueError):
+            doc["total_onsite_shopping_value"] = 0
+
+    return doc
+
+
 def enrich_doc(doc: Dict) -> Dict:
     """
     Enrich a report with vada ingest metadata and, if applicable, company-specific metadata.

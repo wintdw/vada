@@ -4,7 +4,7 @@ import aiohttp  # type: ignore
 from typing import Dict, List
 
 from model.setting import settings
-from .enrichment import enrich_doc
+from .process import enrich_doc, standardize_doc
 
 
 def get_optimal_batch_size(
@@ -84,8 +84,8 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
         }
 
     # Enrich docs before batching
-    enriched_docs = [enrich_doc(doc) for doc in docs]
-    total_docs = len(enriched_docs)
+    processed_docs = [standardize_doc(enrich_doc(doc)) for doc in docs]
+    total_docs = len(processed_docs)
     batch_size = get_optimal_batch_size(total_docs)
     total_batches = (total_docs + batch_size - 1) // batch_size
 
@@ -100,7 +100,7 @@ async def post_processing(docs: List[Dict], index_name: str) -> Dict:
     all_error_msgs = []
 
     for i in range(0, total_docs, batch_size):
-        batch = enriched_docs[i : i + batch_size]
+        batch = processed_docs[i : i + batch_size]
         current_batch = i // batch_size + 1
 
         logging.debug(f"Sending batch {current_batch} of {total_batches}")
