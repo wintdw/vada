@@ -332,10 +332,10 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
             current[last_part] = {"type": "nested", "properties": {}}
         elif field_type == "object":
             current[last_part] = {"type": "object", "properties": {}}
-        else:
-            # Handle basic types (long, double, boolean, date, etc.)
-            es_field_type = "text" if field_type == "unknown" else field_type
-            current[last_part] = {"type": es_field_type}
+        # else:
+        #     # Handle basic types (long, double, boolean, date, etc.)
+        #     es_field_type = "text" if field_type == "unknown" else field_type
+        #     current[last_part] = {"type": es_field_type}
 
     # Process each field and build nested structure
     for field, field_type in field_types.items():

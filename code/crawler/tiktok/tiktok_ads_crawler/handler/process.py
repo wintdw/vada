@@ -15,9 +15,9 @@ def standardize_doc(doc: Dict, type: str) -> Dict:
         total_onsite_shopping_value = doc.get("total_onsite_shopping_value", "")
         if not isinstance(total_onsite_shopping_value, (int, float)):
             doc["total_onsite_shopping_value"] = 0
-    elif type == "gmv":
-        # Remove item_list field if present
-        doc.pop("item_list", None)
+    # elif type == "gmv":
+    #     # Remove item_list field if present
+    #     doc.pop("item_list", None)
 
     return doc
 
