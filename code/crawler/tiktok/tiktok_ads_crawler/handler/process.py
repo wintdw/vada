@@ -7,6 +7,7 @@ def standardize_doc(doc: Dict, type: str) -> Dict:
     Standardizes the report dictionary by ensuring required fields are valid.
 
     Ensure total_onsite_shopping_value is a number; set to 0 if not.
+    Remove item_list field if present.
     """
 
     # total_onsite_shopping_value
@@ -14,6 +15,9 @@ def standardize_doc(doc: Dict, type: str) -> Dict:
         total_onsite_shopping_value = doc.get("total_onsite_shopping_value", "")
         if not isinstance(total_onsite_shopping_value, (int, float)):
             doc["total_onsite_shopping_value"] = 0
+    elif type == "gmv":
+        # Remove item_list field if present
+        doc.pop("item_list", None)
 
     return doc
 
