@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     def partner_key(self) -> str:
         if self.SHOPEE_PARTNER_KEY_FILE and os.path.exists(self.SHOPEE_PARTNER_KEY_FILE):
             with open(self.SHOPEE_PARTNER_KEY_FILE) as f:
-                return f.read().strip()
+                self.SHOPEE_PARTNER_KEY = f.read().strip()
         return self.SHOPEE_PARTNER_KEY
     API_BASE_URL: str
     
