@@ -3,7 +3,7 @@ import logging
 from typing import Dict
 
 from service.oauth import tiktok_biz_get_advertisers
-from service.gmv_max import (
+from service.gmv import (
     get_gmv_max_campaigns,
     tiktok_biz_get_gmv_max_campaign_detail,
 )

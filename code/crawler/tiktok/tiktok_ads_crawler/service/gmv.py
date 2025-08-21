@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Dict, List
 
@@ -59,7 +60,7 @@ async def get_gmv_max_campaigns(
     while True:
         params = {
             "advertiser_id": advertiser_id,
-            "filtering": filtering,
+            "filtering": json.dumps(filtering),
             "page": page,
             "page_size": 100,
         }
