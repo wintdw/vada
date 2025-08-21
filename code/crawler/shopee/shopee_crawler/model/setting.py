@@ -19,10 +19,14 @@ class Settings(BaseSettings):
     SHOPEE_PARTNER_KEY: str = ""
     @property
     def partner_key(self) -> str:
-        if self.SHOPEE_PARTNER_KEY_FILE and os.path.exists(self.SHOPEE_PARTNER_KEY_FILE):
-            with open(self.SHOPEE_PARTNER_KEY_FILE) as f:
+        if self.SHOPEE_PARTNER_KEY:
+            return self.SHOPEE_PARTNER_KEY
+        elif self.SHOPEE_PARTNER_KEY_FILE and os.path.exists(self.SHOPEE_PARTNER_KEY_FILE):
+            with open(self.SHOPEE_PARTNER_KEY_FILE, "r") as f:
                 self.SHOPEE_PARTNER_KEY = f.read().strip()
-        return self.SHOPEE_PARTNER_KEY
+            return self.SHOPEE_PARTNER_KEY
+        else:
+            raise ValueError("Shopee partner key not found. Set SHOPEE_PARTNER_KEY env or SHOPEE_PARTNER_KEY_FILE.")
     API_BASE_URL: str
     
     SHOPEE_SHOP_AUTH_CALLBACK: str
@@ -40,14 +44,23 @@ class Settings(BaseSettings):
 
     @property
     def MYSQL_PASSWD(self) -> str:
-        # First try direct password (for local development)
+        """Return MySQL password from env or file, and cache it in self.MYSQL_PASSWORD"""
         if self.MYSQL_PASSWORD:
             return self.MYSQL_PASSWORD
-        # Then try file (for Docker)
         elif self.MYSQL_PASSWD_FILE and os.path.isfile(self.MYSQL_PASSWD_FILE):
             with open(self.MYSQL_PASSWD_FILE, "r") as file:
-                return file.read().strip()
+                self.MYSQL_PASSWORD = file.read().strip()
+            return self.MYSQL_PASSWORD
         else:
-            raise ValueError("MySQL password not found. Set MYSQL_PASSWORD environment variable or MYSQL_PASSWD_FILE.")
+            raise ValueError(
+                "MySQL password not found. Set MYSQL_PASSWORD environment variable or MYSQL_PASSWD_FILE."
+            )
 
+    @property
+    def partner_key(self) -> str:
+        if self.SHOPEE_PARTNER_KEY_FILE and os.path.exists(self.SHOPEE_PARTNER_KEY_FILE):
+            with open(self.SHOPEE_PARTNER_KEY_FILE) as f:
+                self.SHOPEE_PARTNER_KEY = f.read().strip()
+        return self.SHOPEE_PARTNER_KEY
+    
 settings = Settings()
