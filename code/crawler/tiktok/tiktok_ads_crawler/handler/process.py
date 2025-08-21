@@ -2,21 +2,44 @@ from datetime import datetime
 from typing import Dict
 
 
-def enrich_doc(doc: Dict) -> Dict:
+def standardize_doc(doc: Dict, type: str) -> Dict:
+    """
+    Standardizes the report dictionary by ensuring required fields are valid.
+
+    Ensure total_onsite_shopping_value is a number; set to 0 if not.
+    Remove item_list field if present.
+    """
+
+    # total_onsite_shopping_value
+    if type == "ad":
+        total_onsite_shopping_value = doc.get("total_onsite_shopping_value", "")
+        if not isinstance(total_onsite_shopping_value, (int, float)):
+            doc["total_onsite_shopping_value"] = 0
+    # elif type == "gmv":
+    #     # Remove item_list field if present
+    #     doc.pop("item_list", None)
+
+    return doc
+
+
+def enrich_doc(doc: Dict, type: str) -> Dict:
     """
     Enrich a report with vada ingest metadata and, if applicable, company-specific metadata.
 
     Args:
-        report (dict): The original or already enriched report
+        doc (dict): The original or already enriched report
+        type (str): "ad" or "gmv"
 
     Returns:
         dict: Enriched report
     """
-    # Base vada ingest metadata
-    timestamp = int(
-        datetime.strptime(doc["stat_time_day"], "%Y-%m-%d %H:%M:%S").timestamp()
-    )
-    doc_id = f"{doc['ad_id']}_{timestamp}"
+    if type == "gmv":
+        doc_id = f"{doc.get('advertiser_id')}_{doc.get('campaign_id')}"
+    else:
+        timestamp = int(
+            datetime.strptime(doc["stat_time_day"], "%Y-%m-%d %H:%M:%S").timestamp()
+        )
+        doc_id = f"{doc['ad_id']}_{timestamp}"
 
     metadata = {
         "_vada": {

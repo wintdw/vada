@@ -3,14 +3,14 @@ import logging
 from typing import Dict
 
 from service.oauth import tiktok_biz_get_advertisers
-from service.gmv_max import (
+from service.gmv import (
     get_gmv_max_campaigns,
     tiktok_biz_get_gmv_max_campaign_detail,
 )
 
 
 async def crawl_tiktok_gmv_campaigns(
-    access_token: str, date_start: str, date_end: str
+    access_token: str, start_date: str = "", end_date: str = ""
 ) -> Dict:
     try:
         # Get all advertisers
@@ -31,8 +31,8 @@ async def crawl_tiktok_gmv_campaigns(
             campaigns = await get_gmv_max_campaigns(
                 access_token=access_token,
                 advertiser_id=advertiser_id,
-                date_start=date_start,
-                date_end=date_end,
+                date_start=start_date,
+                date_end=end_date,
             )
             total_campaigns = len(campaigns)
             logging.debug(
@@ -56,16 +56,16 @@ async def crawl_tiktok_gmv_campaigns(
         if total_campaigns == 0:
             return {
                 "status": "success",
-                "date_start": date_start,
-                "date_end": date_end,
+                "date_start": start_date,
+                "date_end": end_date,
                 "campaigns": [],
                 "total_campaigns": 0,
             }
 
         return {
             "status": "success",
-            "date_start": date_start,
-            "date_end": date_end,
+            "date_start": start_date,
+            "date_end": end_date,
             "campaigns": detailed_campaigns,
             "total_campaigns": total_campaigns,
         }
