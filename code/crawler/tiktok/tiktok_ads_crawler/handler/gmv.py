@@ -9,6 +9,26 @@ from service.gmv import (
 )
 
 
+def construct_gmv_campaign(
+    campaign_info: dict,
+    campaign_detail: dict,
+) -> dict:
+    """
+    Enhance a GMV campaign with campaign info and campaign detail.
+
+    Args:
+        campaign_info (dict): The campaign info from get_gmv_max_campaigns
+        campaign_detail (dict): The campaign detail from tiktok_biz_get_gmv_max_campaign_detail
+
+    Returns:
+        dict: Enhanced campaign with nested details and optionally advertiser info
+    """
+    enhanced_campaign = campaign_info.copy()
+    enhanced_campaign["details"] = campaign_detail
+
+    return enhanced_campaign
+
+
 async def crawl_tiktok_gmv_campaigns(
     access_token: str, start_date: str = "", end_date: str = ""
 ) -> Dict:
@@ -39,18 +59,15 @@ async def crawl_tiktok_gmv_campaigns(
                 f"  → Found {total_campaigns} GMV Max campaigns for this advertiser"
             )
 
-            # Gather campaign details in parallel
-            tasks = [
-                tiktok_biz_get_gmv_max_campaign_detail(
+            for campaign in campaigns:
+                campaign_detail = await tiktok_biz_get_gmv_max_campaign_detail(
                     access_token=access_token,
                     advertiser_id=advertiser_id,
                     campaign_id=campaign["campaign_id"],
                 )
-                for campaign in campaigns
-            ]
-            if tasks:
-                campaign_details = await asyncio.gather(*tasks)
-                detailed_campaigns.extend(campaign_details)
+                detailed_campaigns.append(
+                    construct_gmv_campaign(campaign, campaign_detail)
+                )
 
         total_campaigns = len(detailed_campaigns)
         if total_campaigns == 0:
