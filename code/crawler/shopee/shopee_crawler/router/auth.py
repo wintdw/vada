@@ -26,7 +26,7 @@ async def get_auth_url(
         custom_redirect_params=custom_params,
         sandbox=True
     )
-    logging.info(f"Generated Shopee Auth : {auth_url}")
+    logging.info(f"Generated Shopee Auth : {auth_url} && 1" )
     return RedirectResponse(url=auth_url, status_code=302)
 
 

@@ -11,6 +11,12 @@ from model.setting import settings
 def _generate_signature(path: str, timestamp: int) -> str:
     partner_id = settings.SHOPEE_PARTNER_ID
     partner_key = settings.SHOPEE_PARTNER_KEY.encode()
+    
+    logging.info(
+            f"Signature: {partner_id} --- {partner_key}"
+    )
+      
+      
     base_string = f"{partner_id}{path}{timestamp}"
     
     logging.info(
