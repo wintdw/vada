@@ -1,0 +1,25 @@
+routes:
+  - name: "crm-api"
+    auth:
+      url: "https://dev-crm-api.vadata.vn/auth/login"
+      type: "login"
+      payload:
+        username: "myuser"
+        password: "mypassword"
+      token_field: "access_token"   # the JSON field containing the token
+    apis:
+      - url: "https://dev-crm-api.vadata.vn/customers"
+        method: "GET"
+        expected_schema:
+          type: object
+          properties:
+            customers: {type: array}
+          required: ["customers"]
+
+      - url: "https://dev-crm-api.vadata.vn/orders"
+        method: "GET"
+        expected_schema:
+          type: object
+          properties:
+            orders: {type: array}
+          required: ["orders"]
