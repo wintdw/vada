@@ -1,0 +1,12 @@
+services:
+  api_monitor:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: api_monitor:latest
+    container_name: api_monitor
+    restart: always
+    ports:
+      - "8500:8500"
+    environment:
+      APP_ENV: dev
