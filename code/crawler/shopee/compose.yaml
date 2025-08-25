@@ -29,10 +29,8 @@ services:
       API_BASE_URL:  https://api-app.vadata.vn
 
       # Shopee Domain Configuration
-      SHOPEE_PRODUCTION_API_DOMAIN: partner.shopeemobile.com
-      SHOPEE_SANDBOX_API_DOMAIN: partner.shopeemobile.com
-      SHOPEE_PRODUCTION_AUTH_DOMAIN: partner.shopeemobile.com
-      SHOPEE_SANDBOX_AUTH_DOMAIN: partner.shopeemobile.com
+      SHOPEE_API_DOMAIN: partner.shopeemobile.com
+      SHOPEE_AUTH_DOMAIN: partner.shopeemobile.com
 
       SHOPEE_PARTNER_ID: 2012328
       SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key

@@ -58,7 +58,7 @@ def generate_partner_signature(
 
 
 def _get_domain(sandbox: bool) -> str:
-    return settings.SHOPEE_SANDBOX_API_DOMAIN if sandbox else settings.SHOPEE_PRODUCTION_API_DOMAIN
+    return settings.SHOPEE_API_DOMAIN
 
 
 def generate_shopee_auth_url(
@@ -69,7 +69,7 @@ def generate_shopee_auth_url(
     path = "/api/v2/shop/auth_partner"
     timestamp = int(time.time())
     sign = _generate_signature(path, timestamp)
-    domain = settings.SHOPEE_SANDBOX_AUTH_DOMAIN if sandbox else settings.SHOPEE_PRODUCTION_AUTH_DOMAIN
+    domain = settings.SHOPEE_AUTH_DOMAIN
 
     query_params = {
         "auth_type": "seller",

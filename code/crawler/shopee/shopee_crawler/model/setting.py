@@ -29,10 +29,8 @@ class Settings(BaseSettings):
     SHOPEE_SHOP_AUTH_CALLBACK: str
     
     # New environment variables for different domains
-    SHOPEE_PRODUCTION_API_DOMAIN: str = "partner.shopeemobile.com"
-    SHOPEE_SANDBOX_API_DOMAIN: str = "partner.shopeemobile.com"
-    SHOPEE_PRODUCTION_AUTH_DOMAIN: str = "partner.shopeemobile.com"
-    SHOPEE_SANDBOX_AUTH_DOMAIN: str = "partner.shopeemobile.com"
+    SHOPEE_API_DOMAIN: str = "partner.shopeemobile.com"
+    SHOPEE_AUTH_DOMAIN: str = "partner.shopeemobile.com"
 
     class Config:
         # Load .env.local first (highest priority), then .env as fallback
