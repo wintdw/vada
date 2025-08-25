@@ -7,6 +7,8 @@ from starlette.responses import Response
 from jsonschema import validate, ValidationError
 from threading import Lock
 import logging
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
+from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 # ---------------- Prometheus Metrics ---------------- #
 api_requests_total = Counter(
@@ -157,3 +159,17 @@ def check():
 def metrics():
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+
+# Initialize the scheduler
+scheduler = AsyncIOScheduler()
+
+# Schedule the /check endpoint to run every day
+def scheduled_check():
+    logger.info("Scheduled /check endpoint execution started")
+    service.run_check()
+    logger.info("Scheduled /check endpoint execution completed")
+
+scheduler.add_job(scheduled_check, IntervalTrigger(days=1), id="daily_check")
+
+# Start the scheduler
+scheduler.start()
