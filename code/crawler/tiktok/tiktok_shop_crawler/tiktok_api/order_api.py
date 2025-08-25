@@ -9,7 +9,6 @@ async def list_order(
     shop_cipher: str,
     create_time_ge: int,
     create_time_lt: int,
-    page_size: int = 100,
 ) -> Dict[str, Any]:
     """
     Fetch the order list from the new TikTok Shop API (202309 version) with paging.
@@ -20,6 +19,7 @@ async def list_order(
     """
     api_version = "202309"
     path = f"/order/{api_version}/orders/search"
+    page_size = 100
 
     all_orders = []
     page_token = ""

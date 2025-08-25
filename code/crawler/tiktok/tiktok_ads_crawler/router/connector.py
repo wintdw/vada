@@ -34,7 +34,7 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
             account_name=account_name,
             index_name=index_name,
             access_token=access_token,
-            crawl_interval=1440,
+            crawl_interval=240,
         )
         logging.info(crawl_info)
 

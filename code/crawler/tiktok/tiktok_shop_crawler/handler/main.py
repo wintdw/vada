@@ -7,7 +7,7 @@ from typing import Dict, List
 
 from tiktok_api.order_api import get_product_detail, get_price_detail, list_order
 from tiktok_api.auth_api import get_authorized_shops
-from tiktok_api.finance import get_transactions_by_order
+from tiktok_api.finance_api import get_transactions_by_order
 
 
 async def get_order_all(
