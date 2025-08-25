@@ -5,6 +5,7 @@ from typing import Dict, List
 
 from tiktok_api.order_api import get_product_detail, get_price_detail, list_order
 from tiktok_api.auth_api import get_authorized_shops
+from tiktok_api.finance import get_transactions_by_order
 
 
 async def get_order_all(
@@ -41,6 +42,21 @@ async def get_order_all(
                 exc_info=True,
             )
             order["price_detail"] = None
+
+        # Attach transaction_detail (SKU-level statement transactions)
+        try:
+            transaction_detail = await get_transactions_by_order(
+                access_token=access_token,
+                shop_cipher=shop_cipher,
+                order_id=order_id,
+            )
+            order["transaction_detail"] = transaction_detail
+        except Exception as e:
+            logging.error(
+                f"Failed to fetch transaction_detail for order {order_id}: {e}",
+                exc_info=True,
+            )
+            order["transaction_detail"] = None
 
         line_items = order.get("line_items", [])
         for item in line_items:
