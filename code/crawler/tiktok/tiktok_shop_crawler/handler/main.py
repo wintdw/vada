@@ -1,5 +1,7 @@
 import time
 import logging
+import asyncio
+import random
 from datetime import datetime
 from typing import Dict, List
 
@@ -9,14 +11,15 @@ from tiktok_api.finance import get_transactions_by_order
 
 
 async def get_order_all(
-    access_token: str,
-    shop_cipher: str,
-    create_time_ge: int,
-    create_time_lt: int,
+    access_token: str, shop_cipher: str, create_time_ge: int, create_time_lt: int
 ) -> Dict:
     """
     Fetch all orders from TikTok Shop API with price and product details.
     """
+    # small per-order delay to avoid rate limits
+    per_request_delay = 0.1  # seconds
+    jitter = 0.3  # +/- 30%
+
     order_resp = await list_order(
         access_token=access_token,
         shop_cipher=shop_cipher,
@@ -75,6 +78,10 @@ async def get_order_all(
                         exc_info=True,
                     )
                     item["product_detail"] = None
+
+        # apply small jittered delay between processing orders to reduce burst rate
+        factor = random.uniform(1 - jitter, 1 + jitter)
+        await asyncio.sleep(per_request_delay * factor)
 
     return {"total": len(orders), "orders": orders}
 
