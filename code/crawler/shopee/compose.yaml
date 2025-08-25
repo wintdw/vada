@@ -1,0 +1,38 @@
+secrets:
+  mysql_crawler_prod:
+    file: /var/secret/docker/mysql/mysql_crawler_prod
+  shopee_partner_key:
+    file: /var/secret/docker/shopee/partner_key
+
+services:
+  shopee_crawler:
+    build:
+      context: ./shopee_crawler
+      dockerfile: Dockerfile
+    image: shopee_crawler:latest
+    container_name: shopee_crawler
+    restart: always
+    ports:
+      - "8150:8150"
+    secrets:
+      - mysql_crawler_prod
+      - shopee_partner_key
+    environment:
+      MYSQL_HOST: mysql00.internal.vadata.vn
+      MYSQL_USER: crawler_prod
+      MYSQL_DB: crawler_prod
+      MYSQL_PASSWD_FILE: /run/secrets/mysql_crawler_prod
+
+      INSERT_SERVICE_BASEURL: http://insert-app.internal.vadata.vn
+
+      SHOPEE_SHOP_AUTH_CALLBACK: https://qa.vadata.vn/callback.html
+      API_BASE_URL:  https://api-app.vadata.vn
+
+      # Shopee Domain Configuration
+      SHOPEE_PRODUCTION_API_DOMAIN: partner.shopeemobile.com
+      SHOPEE_SANDBOX_API_DOMAIN: partner.shopeemobile.com
+      SHOPEE_PRODUCTION_AUTH_DOMAIN: partner.shopeemobile.com
+      SHOPEE_SANDBOX_AUTH_DOMAIN: partner.shopeemobile.com
+
+      SHOPEE_PARTNER_ID: 2012328
+      SHOPEE_PARTNER_KEY_FILE: /run/secrets/shopee_partner_key
