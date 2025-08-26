@@ -7,9 +7,12 @@ def enrich_record(record: Dict, type: str) -> Dict:
     """
     # Create doc_id based on create_time, id, and user_id
 
-    doc_id = ".".join([str(record["create_time"]), record["id"], record["user_id"]])
-    if type == "finance":
+    if type == "order":
+        doc_id = ".".join([str(record["create_time"]), record["id"], record["user_id"]])
+    elif type == "finance":
         doc_id = ".".join([str(record["statement_time"]), record["id"]])
+    else:
+        raise RuntimeError(f"Unknown type: {type}")
 
     metadata = {
         "_vada": {
