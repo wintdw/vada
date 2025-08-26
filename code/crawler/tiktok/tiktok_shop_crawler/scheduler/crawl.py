@@ -36,7 +36,11 @@ async def crawl_first_tiktokshop(crawl_id: str):
 
 
 async def crawl_daily_tiktokshop(
-    crawl_id: str, start_date: str = "", end_date: str = "", crawl_type: str = "all"
+    crawl_id: str,
+    start_date: str = "",
+    end_date: str = "",
+    crawl_type: str = "all",
+    manual: bool = False,
 ) -> Dict:
     """
     start_date and end_date are for manual crawl only.
@@ -104,7 +108,10 @@ async def crawl_daily_tiktokshop(
         app_env=settings.APP_ENV,
     ).inc(total_failure)
 
-    await update_crawl_time(crawl_id, crawl_interval)
+    # Do not update auto crawl time if manual crawl
+    if not manual:
+        await update_crawl_time(crawl_id, crawl_interval)
+
     crawl_response.pop("orders", None)
     crawl_response.pop("statements", None)
 

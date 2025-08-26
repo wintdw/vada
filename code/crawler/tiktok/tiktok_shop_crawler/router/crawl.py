@@ -29,6 +29,7 @@ async def manual_crawl(
             start_date=start_date,
             end_date=end_date,
             crawl_type=crawl_type,
+            manual=True,
         )
         return {"crawl_id": crawl_id, "detail": crawl_resp}
 
