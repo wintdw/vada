@@ -95,8 +95,6 @@ async def get_transactions_by_statement(
             params=params,
         )
 
-        logging.debug(f"Fetched transactions page for statement {statement_id}: {data}")
-
         transactions = data.get("transactions", [])
 
         if not transactions:
