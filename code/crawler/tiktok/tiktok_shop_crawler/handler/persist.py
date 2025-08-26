@@ -3,6 +3,7 @@ import logging
 from typing import Dict, List
 
 from model.setting import settings
+from .process import enrich_record
 
 
 def get_optimal_batch_size(
@@ -36,20 +37,6 @@ def get_optimal_batch_size(
     return best_batch_size if best_batch_size else min(total_records, max_batch)
 
 
-def enrich_record(record: Dict) -> Dict:
-    # Create doc_id based on create_time, id, and user_id
-    doc_id = ".".join([str(record["create_time"]), record["id"], record["user_id"]])
-
-    metadata = {
-        "_vada": {
-            "ingest": {
-                "doc_id": doc_id,
-            }
-        }
-    }
-    return record | metadata
-
-
 async def send_to_insert_service(records: List[Dict], index_name: str) -> Dict:
     payload = {"meta": {"index_name": index_name}, "data": records}
     async with aiohttp.ClientSession() as session:
@@ -65,18 +52,23 @@ async def send_to_insert_service(records: List[Dict], index_name: str) -> Dict:
             }
 
 
-async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
+async def post_processing(raw_data: List[Dict], index_name: str, type: str) -> Dict:
     """
     Produce data to insert service in batches, after enrichments.
+
     Args:
         raw_data: List of data to be processed and sent
         index_name: Name of the index to insert into
+        type: "order" | "finance"
+
     Returns:
         Dict: Aggregated response from insert service
     """
     if not raw_data:
         logging.info(
-            "No records to process for index '%s'. Skipping insert.", index_name
+            "No records to process for index '%s' (type=%s). Skipping insert.",
+            index_name,
+            type,
         )
         return {
             "took": 0,
@@ -87,13 +79,18 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
         }
 
     # Enrich records before batching
-    enriched_records = [enrich_record(record) for record in raw_data]
+    enriched_records = [enrich_record(record, type) for record in raw_data]
     total_records = len(enriched_records)
     batch_size = get_optimal_batch_size(total_records)
     total_batches = (total_records + batch_size - 1) // batch_size
 
     logging.info(
-        f"Sending {total_batches} batches (~{batch_size} records each, total {total_records} records) to Insert service"
+        "Sending %d batches (~%d records each, total %d records) to Insert service (index=%s, type=%s)",
+        total_batches,
+        batch_size,
+        total_records,
+        index_name,
+        type,
     )
 
     total_took = 0
@@ -106,7 +103,7 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
         batch = enriched_records[i : i + batch_size]
         current_batch = i // batch_size + 1
 
-        logging.debug(f"Sending batch {current_batch} of {total_batches}")
+        logging.debug(f"Sending batch {current_batch} of {total_batches} (type={type})")
         insert_json = await send_to_insert_service(batch, index_name)
 
         # Aggregate results
@@ -129,7 +126,11 @@ async def post_processing(raw_data: List[Dict], index_name: str) -> Dict:
     }
 
     logging.info(
-        f"Finished processing {total_records} records in {total_batches} batches. Response: {return_dict}"
+        "Finished processing %d records in %d batches (type=%s). Response: %s",
+        total_records,
+        total_batches,
+        type,
+        return_dict,
     )
 
     return return_dict

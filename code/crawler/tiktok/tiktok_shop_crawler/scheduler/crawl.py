@@ -73,10 +73,10 @@ async def crawl_daily_tiktokshop(
 
     # Send orders to the datastore
     order_insert_response = await post_processing(
-        crawl_response.get("orders", []), order_index_name
+        crawl_response.get("orders", []), order_index_name, "order"
     )
     finance_insert_response = await post_processing(
-        crawl_response.get("statements", []), finance_index_name
+        crawl_response.get("statements", []), finance_index_name, "finance"
     )
 
     # Update Prometheus metrics for insert success/failure for both order and finance

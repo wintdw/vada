@@ -1,7 +1,5 @@
 import time
 import logging
-import asyncio
-import random
 from datetime import datetime
 from typing import Dict, List
 
@@ -56,18 +54,6 @@ async def get_orders_combined(
                 exc_info=True,
             )
             order["price_detail"] = {}
-
-        # add transaction_detail only if finance helper is available (safe no-op if not)
-        try:
-            from tiktok_api.finance_api import get_transactions_by_order
-
-            txn = await get_transactions_by_order(
-                access_token=access_token, shop_cipher=shop_cipher, order_id=order_id
-            )
-            order["transaction_detail"] = txn
-        except Exception:
-            # don't fail the whole process for missing/failed txn fetch
-            order.setdefault("transaction_detail", {})
 
         line_items = order.get("line_items", [])
         for item in line_items:
