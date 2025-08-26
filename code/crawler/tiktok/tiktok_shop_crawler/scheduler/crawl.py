@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from model.setting import settings
 from handler.crawl_info import update_crawl_time, get_crawl_info
-from handler.main import get_orders
+from handler.main import get_tiktokshop
 from handler.persist import post_processing
 from handler.metrics import insert_success_counter, insert_failure_counter
 
@@ -12,7 +12,7 @@ from handler.metrics import insert_success_counter, insert_failure_counter
 async def crawl_first_tiktokshop(crawl_id: str):
     """Split the first 1-year crawl into jobs (backward from now)"""
     now = datetime.now()
-    days_in_year = 365
+    days_in_year = 90
     window = 1
     num_jobs = days_in_year // window + (1 if days_in_year % window else 0)
 
@@ -60,64 +60,48 @@ async def crawl_daily_tiktokshop(
         logging.error(f"Wrong crawl ID: {crawl_id}")
         return {}
 
-    index_name = crawl_info[0]["index_name"]
+    account_id = crawl_info[0]["account_id"]
+    order_index_name = f"data_tiktokshop_{account_id}"
+    finance_index_name = f"data_tiktokshop_finance_{account_id}"
     account_name = crawl_info[0]["account_name"]
     access_token = crawl_info[0]["access_token"]
     crawl_interval = crawl_info[0]["crawl_interval"]
 
-    crawl_response = await get_orders(
+    crawl_response = await get_tiktokshop(
         access_token=access_token, start_ts=start_ts, end_ts=end_ts
     )
 
-    # Send to the datastore
-    insert_response = await post_processing(
-        crawl_response.get("orders", []),
-        index_name,
+    # Send orders to the datastore
+    order_insert_response = await post_processing(
+        crawl_response.get("orders", []), order_index_name
+    )
+    finance_insert_response = await post_processing(
+        crawl_response.get("statements", []), finance_index_name
     )
 
-    # Update Prometheus metrics for insert success/failure
+    # Update Prometheus metrics for insert success/failure for both order and finance
+    total_success = order_insert_response.get(
+        "success", 0
+    ) + finance_insert_response.get("success", 0)
+    total_failure = order_insert_response.get(
+        "failure", 0
+    ) + finance_insert_response.get("failure", 0)
+
     insert_success_counter.labels(
         crawl_id=crawl_id,
         app_env=settings.APP_ENV,
-    ).inc(insert_response.get("success", 0))
-
+    ).inc(total_success)
     insert_failure_counter.labels(
         crawl_id=crawl_id,
         app_env=settings.APP_ENV,
-    ).inc(insert_response.get("failure", 0))
+    ).inc(total_failure)
 
     await update_crawl_time(crawl_id, crawl_interval)
     crawl_response.pop("orders", None)
+    crawl_response.pop("statements", None)
 
     logging.info(
         f"[{account_name}] [Daily Crawl] Result from {start_date} to {end_date}: {crawl_response}"
     )
 
     return crawl_response
-
-
-async def crawl_daily_tiktokshop_scheduler(crawl_id: str):
-    """
-    This will call crawl_daily_tiktokshop if the time condition is met
-    """
-    crawl_info = await get_crawl_info(crawl_id=crawl_id)
-    if not crawl_info:
-        logging.error(f"Wrong crawl ID: {crawl_id}")
-        return
-
-    account_name = crawl_info[0]["account_name"]
-
-    next_crawl_time = datetime.fromisoformat(crawl_info[0]["next_crawl_time"])
-    now = datetime.now()
-
-    # If not yet time for next crawl, skip
-    if now < next_crawl_time:
-        logging.debug(
-            f"[{account_name}] [Daily Crawl Scheduler] CrawlID {crawl_id}: skip (now={now}, next={next_crawl_time})"
-        )
-        return
-
-    crawl_response = await crawl_daily_tiktokshop(crawl_id)
-    logging.info(
-        f"[{account_name}] [Daily Crawl Scheduler] Finish crawling with ID {crawl_id}"
-    )

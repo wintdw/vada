@@ -14,6 +14,9 @@ router = APIRouter()
 
 @router.get("/ingest/partner/tiktok/ad/callback", tags=["Connector"])
 async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
+    """
+    From TTAd -> our side with auth code
+    """
     try:
         access_token_response = await tiktok_biz_get_access_token(auth_code=auth_code)
         if not access_token_response:
@@ -48,6 +51,9 @@ async def ingest_partner_tiktok_ad_callback(auth_code: str, state: str):
 
 @router.get("/ingest/partner/tiktok/ad/auth", tags=["Connector"])
 async def ingest_partner_tiktok_ad_auth(vada_uid: str):
+    """
+    This url is the button which will redirect from our site -> Tiktok Ad for verification
+    """
     return RedirectResponse(
         url=f"https://business-api.tiktok.com/portal/auth?app_id={settings.TIKTOK_BIZ_APP_ID}&state={vada_uid}&redirect_uri={settings.TIKTOK_BIZ_REDIRECT_URI}"
     )

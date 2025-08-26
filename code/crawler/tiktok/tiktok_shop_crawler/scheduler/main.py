@@ -6,7 +6,8 @@ from apscheduler.triggers.interval import IntervalTrigger  # type: ignore
 
 from handler.metrics import update_crawl_metrics
 from handler.crawl_info import get_crawl_info
-from .order import crawl_first_tiktokshop, crawl_daily_tiktokshop_scheduler
+from .crawl import crawl_first_tiktokshop
+from .scheduler import schedule_daily_tiktokshop
 from .token import refresh_token_scheduler
 
 
@@ -27,7 +28,7 @@ async def init_scheduler():
                     asyncio.create_task(crawl_first_tiktokshop(crawl_id=crawl_id))
 
                 # run regular crawl regardless first_crawl
-                await crawl_daily_tiktokshop_scheduler(crawl_id=crawl_id)
+                await schedule_daily_tiktokshop(crawl_id=crawl_id)
         except Exception as e:
             logging.error(f"Exception in update jobs: {e}", exc_info=True)
 

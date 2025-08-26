@@ -7,31 +7,42 @@ from typing import Dict, List
 
 from tiktok_api.order_api import get_product_detail, get_price_detail, list_order
 from tiktok_api.auth_api import get_authorized_shops
-from tiktok_api.finance_api import get_transactions_by_order
+from tiktok_api.finance_api import get_transactions_by_statement, get_statements
 
 
-async def get_order_all(
-    access_token: str, shop_cipher: str, create_time_ge: int, create_time_lt: int
+async def get_orders_combined(
+    access_token: str,
+    shop_cipher: str,
+    create_time_ge: int,
+    create_time_lt: int,
 ) -> Dict:
     """
-    Fetch all orders from TikTok Shop API with price and product details.
+    Fetch orders in the given time range, overcome 5000-order limit by range-splitting,
+    then enrich each order with price_detail and product_detail.
     """
-    # small per-order delay to avoid rate limits
-    per_request_delay = 0.1  # seconds
-    jitter = 0.3  # +/- 30%
+    # range-splitting to collect raw orders
+    all_raw_orders: List[Dict] = []
+    ranges = [(create_time_ge, create_time_lt)]
 
-    order_resp = await list_order(
-        access_token=access_token,
-        shop_cipher=shop_cipher,
-        create_time_ge=create_time_ge,
-        create_time_lt=create_time_lt,
-    )
-    orders = order_resp.get("orders", [])
+    while ranges:
+        s_ts, e_ts = ranges.pop()
+        order_json = await list_order(
+            access_token=access_token,
+            shop_cipher=shop_cipher,
+            create_time_ge=s_ts,
+            create_time_lt=e_ts,
+        )
+        total_orders = order_json.get("total", 0)
+        if total_orders == 5000 and e_ts > s_ts:
+            mid = (s_ts + e_ts) // 2
+            ranges.append((s_ts, mid))
+            ranges.append((mid, e_ts))
+        else:
+            all_raw_orders.extend(order_json.get("orders", []))
 
-    # Enrich each order with price_detail and each line_item with product_detail
-    for order in orders:
-        # Attach price_detail
-        order_id = order.get("id")
+    # Enrich each order with price_detail and product_detail
+    for order in all_raw_orders:
+        order_id = order.get("id", "")
         try:
             price_detail = await get_price_detail(
                 access_token=access_token,
@@ -44,22 +55,19 @@ async def get_order_all(
                 f"Failed to fetch price_detail for order {order_id}: {e}",
                 exc_info=True,
             )
-            order["price_detail"] = None
+            order["price_detail"] = {}
 
-        # Attach transaction_detail (SKU-level statement transactions)
+        # add transaction_detail only if finance helper is available (safe no-op if not)
         try:
-            transaction_detail = await get_transactions_by_order(
-                access_token=access_token,
-                shop_cipher=shop_cipher,
-                order_id=order_id,
+            from tiktok_api.finance_api import get_transactions_by_order
+
+            txn = await get_transactions_by_order(
+                access_token=access_token, shop_cipher=shop_cipher, order_id=order_id
             )
-            order["transaction_detail"] = transaction_detail
-        except Exception as e:
-            logging.error(
-                f"Failed to fetch transaction_detail for order {order_id}: {e}",
-                exc_info=True,
-            )
-            order["transaction_detail"] = None
+            order["transaction_detail"] = txn
+        except Exception:
+            # don't fail the whole process for missing/failed txn fetch
+            order.setdefault("transaction_detail", {})
 
         line_items = order.get("line_items", [])
         for item in line_items:
@@ -77,35 +85,53 @@ async def get_order_all(
                         f"Failed to fetch product_detail for product {product_id}: {e}",
                         exc_info=True,
                     )
-                    item["product_detail"] = None
+                    item["product_detail"] = {}
 
-        # apply small jittered delay between processing orders to reduce burst rate
-        factor = random.uniform(1 - jitter, 1 + jitter)
-        await asyncio.sleep(per_request_delay * factor)
-
-    return {"total": len(orders), "orders": orders}
+    return {"total": len(all_raw_orders), "orders": all_raw_orders}
 
 
-async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
-    """Fetch orders from TikTok Shop API using timestamps.
-
-    This function overcomes the TikTok Shop API's 5000 orders per request limit
-    by using a range-splitting algorithm:
-
-    - Start with the full requested time range.
-    - If the API returns exactly 5000 orders,
-      split the range in half and add both halves to the processing queue.
-    - Repeat until all ranges return fewer than 5000 orders.
-    - Aggregate all orders from all sub-ranges and post-process them.
-
-    Args:
-        access_token: TikTok Shop access token
-        start_ts: Start timestamp (epoch seconds)
-        end_ts: End timestamp (epoch seconds)
-
-    Returns:
-        Dict: Orders response after post-processing
+async def get_txns_by_statement(
+    access_token: str,
+    shop_cipher: str,
+    statement_time_ge: int,
+    statement_time_lt: int,
+) -> Dict:
     """
+    Fetch statements in the given time range and attach transactions for each statement.
+    Uses finance_api.get_statements and finance_api.get_transactions_by_statement.
+    """
+    stmt_resp = await get_statements(
+        access_token=access_token,
+        shop_cipher=shop_cipher,
+        statement_time_ge=statement_time_ge,
+        statement_time_lt=statement_time_lt,
+    )
+    statements = stmt_resp.get("statements", [])
+
+    for stmt in statements:
+        stmt_id = stmt.get("id")
+        try:
+            txn_resp = await get_transactions_by_statement(
+                access_token=access_token,
+                shop_cipher=shop_cipher,
+                statement_id=stmt_id,
+            )
+            # attach full response (or txn_resp.get("transactions") if you prefer list only)
+            stmt["transactions_detail"] = txn_resp
+        except Exception as e:
+            logging.error(
+                "Failed to fetch transactions for statement %s: %s",
+                stmt_id,
+                e,
+                exc_info=True,
+            )
+            stmt["transactions_detail"] = {}
+
+    return {"total": len(statements), "statements": statements}
+
+
+async def get_tiktokshop(access_token: str, start_ts: int, end_ts: int) -> Dict:
+    """Fetch orders from TikTok Shop API using timestamps (delegates splitting+enrichment)."""
     profiling_start_time = time.time()
 
     shop_info = await get_authorized_shops(access_token)
@@ -119,32 +145,26 @@ async def get_orders(access_token: str, start_ts: int, end_ts: int) -> Dict:
         shop_info["id"],
     )
 
-    all_orders: List[Dict] = []
-    ranges = [(start_ts, end_ts)]
+    orders_combined = await get_orders_combined(
+        access_token=access_token,
+        shop_cipher=shop_info["cipher"],
+        create_time_ge=start_ts,
+        create_time_lt=end_ts,
+    )
+    all_orders = orders_combined.get("orders", [])
 
-    # Range-splitting algorithm to overcome 5000 orders limit
-    while ranges:
-        s_ts, e_ts = ranges.pop()
-        order_json = await get_order_all(
-            access_token=access_token,
-            shop_cipher=shop_info["cipher"],
-            create_time_ge=s_ts,
-            create_time_lt=e_ts,
-        )
-        total = order_json.get("total", 0)
-        # If we hit the 5000 limit, split the range.
-        # This ensures we do not miss any orders, regardless of the range size.
-        if total == 5000 and e_ts > s_ts:
-            mid = (s_ts + e_ts) // 2
-            ranges.append((s_ts, mid))
-            ranges.append((mid, e_ts))
-        else:
-            all_orders.extend(order_json.get("orders", []))
+    txns = await get_txns_by_statement(
+        access_token=access_token,
+        shop_cipher=shop_info["cipher"],
+        statement_time_ge=start_ts,
+        statement_time_lt=end_ts,
+    )
+    all_stmts = txns.get("statements", [])
 
     return_dict = {
         "status": "success",
-        "total_orders": len(all_orders),
         "orders": all_orders,
+        "statements": all_stmts,
         "time_start": datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
         "time_end": datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
         "execution_time": time.time() - profiling_start_time,

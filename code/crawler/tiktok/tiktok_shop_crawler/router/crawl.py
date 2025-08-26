@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, HTTPException  # type: ignore
 import logging
 
-from scheduler.order import crawl_daily_tiktokshop
+from scheduler.crawl import crawl_daily_tiktokshop
 from handler.crawl_info import get_crawl_info
 
 router = APIRouter()
