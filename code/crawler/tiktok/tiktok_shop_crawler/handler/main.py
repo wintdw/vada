@@ -102,7 +102,6 @@ async def get_txns_by_statement(
                 shop_cipher=shop_cipher,
                 statement_id=stmt_id,
             )
-            # attach full response (or txn_resp.get("transactions") if you prefer list only)
             stmt["transactions_detail"] = txn_resp
         except Exception as e:
             logging.error(
@@ -125,12 +124,11 @@ async def get_tiktokshop(access_token: str, start_ts: int, end_ts: int) -> Dict:
         raise Exception("No shop information found. Please check your access token.")
 
     logging.info(
-        "Fetching orders from %s to %s for shop ID: %s",
+        "Fetching orders from %s to %s for shop: %s",
         datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
         datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
-        shop_info["id"],
+        shop_info["name"],
     )
-
     orders_combined = await get_orders_combined(
         access_token=access_token,
         shop_cipher=shop_info["cipher"],
@@ -139,6 +137,12 @@ async def get_tiktokshop(access_token: str, start_ts: int, end_ts: int) -> Dict:
     )
     all_orders = orders_combined.get("orders", [])
 
+    logging.info(
+        "Fetching financial statements from %s to %s for shop: %s",
+        datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
+        datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
+        shop_info["name"],
+    )
     txns = await get_txns_by_statement(
         access_token=access_token,
         shop_cipher=shop_info["cipher"],

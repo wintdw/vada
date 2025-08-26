@@ -9,7 +9,7 @@ def enrich_record(record: Dict, type: str) -> Dict:
 
     doc_id = ".".join([str(record["create_time"]), record["id"], record["user_id"]])
     if type == "finance":
-        doc_id = ".".join([str(record["create_time"]), record["id"]])
+        doc_id = ".".join([str(record["statement_time"]), record["id"]])
 
     metadata = {
         "_vada": {
