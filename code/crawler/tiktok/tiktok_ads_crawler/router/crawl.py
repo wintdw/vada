@@ -31,6 +31,8 @@ async def manual_crawl(
         )
         return {"crawl_id": crawl_id, "detail": crawl_resp}
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Failed manual crawl for {crawl_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")

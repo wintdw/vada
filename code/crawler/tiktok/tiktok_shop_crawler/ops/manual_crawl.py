@@ -27,6 +27,7 @@ while current_day > start_date:
             "crawl_id": crawl_id,
             "start_date": previous_day.strftime(DATE_FORMAT),
             "end_date": current_day.strftime(DATE_FORMAT),
+            "crawl_type": "all",
         }
 
         print("=" * 60)

@@ -115,41 +115,52 @@ async def get_txns_by_statement(
     return {"total": len(statements), "statements": statements}
 
 
-async def get_tiktokshop(access_token: str, start_ts: int, end_ts: int) -> Dict:
-    """Fetch orders from TikTok Shop API using timestamps (delegates splitting+enrichment)."""
+async def get_tiktokshop(
+    access_token: str, start_ts: int, end_ts: int, crawl_type: str = "all"
+) -> Dict:
+    """Fetch orders and/or statements from TikTok Shop API using timestamps.
+
+    crawl_type: "all" | "order" | "finance"
+    """
     profiling_start_time = time.time()
 
     shop_info = await get_authorized_shops(access_token)
     if not shop_info:
         raise Exception("No shop information found. Please check your access token.")
 
-    logging.info(
-        "Fetching orders from %s to %s for shop: %s",
-        datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
-        datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
-        shop_info["name"],
-    )
-    orders_combined = await get_orders_combined(
-        access_token=access_token,
-        shop_cipher=shop_info["cipher"],
-        create_time_ge=start_ts,
-        create_time_lt=end_ts,
-    )
-    all_orders = orders_combined.get("orders", [])
+    # Fetch orders if requested
+    all_orders: List[Dict] = []
+    if crawl_type in ("all", "order"):
+        logging.info(
+            "Fetching orders from %s to %s for shop: %s",
+            datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
+            shop_info["name"],
+        )
+        orders_combined = await get_orders_combined(
+            access_token=access_token,
+            shop_cipher=shop_info["cipher"],
+            create_time_ge=start_ts,
+            create_time_lt=end_ts,
+        )
+        all_orders = orders_combined.get("orders", [])
 
-    logging.info(
-        "Fetching financial statements from %s to %s for shop: %s",
-        datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
-        datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
-        shop_info["name"],
-    )
-    txns = await get_txns_by_statement(
-        access_token=access_token,
-        shop_cipher=shop_info["cipher"],
-        statement_time_ge=start_ts,
-        statement_time_lt=end_ts,
-    )
-    all_stmts = txns.get("statements", [])
+    # Fetch statements if requested
+    all_stmts: List[Dict] = []
+    if crawl_type in ("all", "finance"):
+        logging.info(
+            "Fetching financial statements from %s to %s for shop: %s",
+            datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d %H:%M:%S"),
+            shop_info["name"],
+        )
+        txns = await get_txns_by_statement(
+            access_token=access_token,
+            shop_cipher=shop_info["cipher"],
+            statement_time_ge=start_ts,
+            statement_time_lt=end_ts,
+        )
+        all_stmts = txns.get("statements", [])
 
     return_dict = {
         "status": "success",

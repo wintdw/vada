@@ -36,11 +36,16 @@ async def crawl_first_tiktokshop(crawl_id: str):
 
 
 async def crawl_daily_tiktokshop(
-    crawl_id: str, start_date: str = "", end_date: str = ""
+    crawl_id: str, start_date: str = "", end_date: str = "", crawl_type: str = "all"
 ) -> Dict:
     """
     start_date and end_date are for manual crawl only.
     For daily run, crawl the last 8 hours using timestamps.
+
+    crawl_type: "all" | "order" | "finance"
+      - all: fetch and persist both orders and statements (default)
+      - order: fetch orders only and persist orders
+      - finance: fetch statements only and persist statements
     """
     if not start_date or not end_date:
         # Crawl the last 8 hours
@@ -51,7 +56,7 @@ async def crawl_daily_tiktokshop(
         start_date = start_dt.strftime("%Y-%m-%d %H:%M:%S")
         end_date = end_dt.strftime("%Y-%m-%d %H:%M:%S")
     else:
-        # Convert date strings to timestamps
+        # Convert date strings to timestamps (date-only expected)
         start_ts = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
         end_ts = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
 
@@ -68,7 +73,10 @@ async def crawl_daily_tiktokshop(
     crawl_interval = crawl_info[0]["crawl_interval"]
 
     crawl_response = await get_tiktokshop(
-        access_token=access_token, start_ts=start_ts, end_ts=end_ts
+        access_token=access_token,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        crawl_type=crawl_type,
     )
 
     # Send orders to the datastore
