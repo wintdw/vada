@@ -95,6 +95,8 @@ async def get_transactions_by_statement(
             params=params,
         )
 
+        logging.debug(f"Fetched transactions page for statement {statement_id}: {resp}")
+
         data = resp.get("data", {})
         transactions = data.get("transactions", []) if isinstance(data, dict) else []
 
@@ -107,7 +109,7 @@ async def get_transactions_by_statement(
         if page_token:
             logging.info(f"More transactions available, next page_token: {page_token}")
         else:
-            logging.info("No more transactions available")
+            logging.debug("No more transactions available")
             break
 
     return {"total": len(all_transactions), "transactions": all_transactions}

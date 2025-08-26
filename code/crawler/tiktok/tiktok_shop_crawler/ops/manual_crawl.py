@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 BASE_URL = "http://localhost:8148/ingest/partner/tiktok/shop/crawl"
 CRAWL_IDS = [
     "091f89ae-4ba8-4cc0-98a8-7201b85b815e",
-    "3f324f08-bc54-4ab6-b90f-b6ed11a1ea9e",
     "bd32c8f1-4316-4ca0-9e9c-d7470abefae5",
 ]  # Add as many as you want
 DATE_FORMAT = "%Y-%m-%d"

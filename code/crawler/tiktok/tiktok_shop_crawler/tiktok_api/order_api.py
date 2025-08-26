@@ -55,7 +55,7 @@ async def list_order(
         if page_token:
             logging.info(f"More orders available, next page_token: {page_token}")
         else:
-            logging.info("No more orders available")
+            logging.debug("No more orders available")
             break
 
     return {"total": len(all_orders), "orders": all_orders}
