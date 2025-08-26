@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 from .request import tiktok_api_request
 
@@ -87,7 +87,7 @@ async def get_transactions_by_statement(
         if page_token:
             params["page_token"] = page_token
 
-        resp = await tiktok_api_request(
+        data = await tiktok_api_request(
             method="GET",
             path=path,
             access_token=access_token,
@@ -95,10 +95,9 @@ async def get_transactions_by_statement(
             params=params,
         )
 
-        logging.debug(f"Fetched transactions page for statement {statement_id}: {resp}")
+        logging.debug(f"Fetched transactions page for statement {statement_id}: {data}")
 
-        data = resp.get("data", {})
-        transactions = data.get("transactions", []) if isinstance(data, dict) else []
+        transactions = data.get("transactions", [])
 
         if not transactions:
             break
