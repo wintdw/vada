@@ -1,10 +1,10 @@
-import requests
-import yaml
+import requests # type: ignore
+import yaml # type: ignore
 import time
-from fastapi import FastAPI
-from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
-from starlette.responses import Response
-from jsonschema import validate, ValidationError
+from fastapi import FastAPI # type: ignore
+from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST # type: ignore
+from starlette.responses import Response # type: ignore
+from jsonschema import validate, ValidationError # type: ignore
 from threading import Lock
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
@@ -39,8 +39,6 @@ class APIMonitorService:
             self.config = yaml.safe_load(f)
 
         self.route_groups = self.config["routes"]
-        self.tokens = {}  # cache token per auth block
-        self.lock = Lock()
 
     def _auth_key(self, auth_conf):
         return f"{auth_conf['url']}|{auth_conf.get('username', '')}"
@@ -48,31 +46,25 @@ class APIMonitorService:
     def get_access_token(self, auth_conf):
         logger.info("Fetching access token for auth configuration: %s", auth_conf)
         key = self._auth_key(auth_conf)
-        with self.lock:
-            if key in self.tokens:
-                logger.info("Using cached token for key: %s", key)
-                return self.tokens[key]
+        if auth_conf.get("type") == "login":
+            logger.info("Authenticating with username/password at URL: %s", auth_conf["url"])
+            resp = requests.post(auth_conf["url"], json=auth_conf["payload"])
+        else:
+            logger.info("Authenticating with client credentials at URL: %s", auth_conf["url"])
+            resp = requests.post(auth_conf["url"], data={
+                "client_id": auth_conf["client_id"],
+                "client_secret": auth_conf["client_secret"],
+                "grant_type": "client_credentials"
+            })
 
-            if auth_conf.get("type") == "login":
-                logger.info("Authenticating with username/password at URL: %s", auth_conf["url"])
-                resp = requests.post(auth_conf["url"], json=auth_conf["payload"])
-            else:
-                logger.info("Authenticating with client credentials at URL: %s", auth_conf["url"])
-                resp = requests.post(auth_conf["url"], data={
-                    "client_id": auth_conf["client_id"],
-                    "client_secret": auth_conf["client_secret"],
-                    "grant_type": "client_credentials"
-                })
-
-            resp.raise_for_status()
-            token_field = auth_conf.get("token_field", "access_token")
-            token = resp.json().get(token_field)
-            if not token:
-                logger.error("Token field '%s' not found in response", token_field)
-                raise ValueError(f"Token field '{token_field}' not found in response")
-            self.tokens[key] = token
-            logger.info("Token fetched and cached for key: %s", key)
-            return token
+        resp.raise_for_status()
+        token_field = auth_conf.get("token_field", "access_token")
+        token = resp.json().get(token_field)
+        if not token:
+            logger.error("Token field '%s' not found in response", token_field)
+            raise ValueError(f"Token field '{token_field}' not found in response")
+        logger.info("Token fetched and cached for key: %s", key)
+        return token
 
     def call_api(self, group_name, auth_conf, url, method="GET", headers=None, data=None, params=None):
         logger.info("Calling API: %s with method: %s", url, method)
@@ -163,13 +155,13 @@ def metrics():
 # Initialize the scheduler
 scheduler = AsyncIOScheduler()
 
-# Schedule the /check endpoint to run every day
+# Schedule the /check endpoint to run every 5 minutes
 def scheduled_check():
     logger.info("Scheduled /check endpoint execution started")
     service.run_check()
     logger.info("Scheduled /check endpoint execution completed")
 
-scheduler.add_job(scheduled_check, IntervalTrigger(days=1), id="daily_check")
+scheduler.add_job(scheduled_check, IntervalTrigger(minutes=5), id="five_minute_check")
 
 # Start the scheduler
 scheduler.start()
