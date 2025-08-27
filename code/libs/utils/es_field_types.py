@@ -202,46 +202,39 @@ def convert_es_field_types(
                     converted_data[field] = float(value)
 
             elif field_type == "date":
-                if isinstance(value, str):
+                value = str(value)
+                try:
+                    dt = parser.isoparse(value)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=DEFAULT_TZ)
+                    dt = dt.astimezone(DEFAULT_TZ)
+                    converted_data[field] = dt.isoformat()
+                # If can convert to int
+                except (ValueError, TypeError):
                     try:
-                        dt = parser.isoparse(value)
-                        if dt.tzinfo is None:
-                            dt = dt.replace(tzinfo=DEFAULT_TZ)
-                        dt = dt.astimezone(DEFAULT_TZ)
-                        converted_data[field] = dt.isoformat()
-                    # If can convert to int
+                        int_value = int(value)
+                        converted_data[field] = datetime.fromtimestamp(
+                            (
+                                int_value / 1000000
+                                if int_value > 100000000000000
+                                else (
+                                    int_value / 1000
+                                    if int_value > 100000000000
+                                    else int_value
+                                )
+                            ),
+                            DEFAULT_TZ,
+                        ).isoformat()
+                    # General parse as the last resort
                     except (ValueError, TypeError):
                         try:
-                            int_value = int(value)
-                            converted_data[field] = datetime.fromtimestamp(
-                                (
-                                    int_value / 1000000
-                                    if int_value > 100000000000000
-                                    else (
-                                        int_value / 1000
-                                        if int_value > 100000000000
-                                        else int_value
-                                    )
-                                ),
-                                DEFAULT_TZ,
-                            ).isoformat()
-                        # General parse as the last resort
+                            dt = parser.parse(value)
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=DEFAULT_TZ)
+                            dt = dt.astimezone(DEFAULT_TZ)
+                            converted_data[field] = dt.isoformat()
                         except (ValueError, TypeError):
-                            try:
-                                dt = parser.parse(value)
-                                if dt.tzinfo is None:
-                                    dt = dt.replace(tzinfo=DEFAULT_TZ)
-                                dt = dt.astimezone(DEFAULT_TZ)
-                                converted_data[field] = dt.isoformat()
-                            except (ValueError, TypeError):
-                                continue
-                elif isinstance(value, int):
-                    try:
-                        converted_data[field] = datetime.fromtimestamp(
-                            value, DEFAULT_TZ
-                        ).isoformat()
-                    except (ValueError, TypeError):
-                        continue
+                            continue
 
         converted_json_objects.append(converted_data)
 
