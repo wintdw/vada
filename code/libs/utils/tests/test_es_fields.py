@@ -156,6 +156,13 @@ def test_construct_es_mappings():
     expected_mappings = {
         "mappings": {
             "dynamic": True,
+            "dynamic_date_formats": [
+                "strict_date_optional_time",
+                "basic_date",
+                "basic_date_time",
+                "basic_date_time_no_millis",
+                "yyyy/MM/dd HH:mm:ss",
+            ],
             "properties": {
                 "name": {
                     "type": "text",
