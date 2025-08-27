@@ -178,7 +178,7 @@ def clear_cached_tokens():
         service.tokens.clear()
     logger.info("Cached tokens cleared")
 
-scheduler.add_job(clear_cached_tokens, IntervalTrigger(days=1), id="clear_tokens")
+scheduler.add_job(clear_cached_tokens, IntervalTrigger(minutes=30), id="clear_tokens")
 
 # Start the scheduler
 scheduler.start()
