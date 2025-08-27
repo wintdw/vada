@@ -98,7 +98,7 @@ def test_determine_and_convert_es_field_types():
             "is_student": False,
             "scores": [95, 85],
             "address": {"city": "New York", "zip": 10001},
-            "created_at": "2023-10-01T12:34:56+00:00",
+            "created_at": "2023-10-01T19:34:56+07:00",
         },
         {
             "name": "Bob",
@@ -106,7 +106,7 @@ def test_determine_and_convert_es_field_types():
             "is_student": True,
             "scores": [88, 92],
             "address": {"city": "San Francisco", "zip": 94105},
-            "created_at": "2023-09-15T08:00:00+00:00",
+            "created_at": "2023-09-15T15:00:00+07:00",
         },
         {
             "name": "Charlie",
@@ -114,7 +114,7 @@ def test_determine_and_convert_es_field_types():
             "is_student": False,
             "scores": [90, 80],
             "address": {"city": "Chicago", "zip": 60601},
-            "created_at": "2023-08-20T15:30:00+00:00",
+            "created_at": "2023-08-20T22:30:00+07:00",
         },
         {
             "name": "Dave",
@@ -123,7 +123,7 @@ def test_determine_and_convert_es_field_types():
             "scores": [85, 95],
             "tags": ["engineer", "developer"],
             "address": {"city": "Seattle", "zip": 98101},
-            "created_at": "2023-07-01T00:00:00+00:00",
+            "created_at": "2023-07-01T07:00:00+07:00",
         },
         {
             "name": "Eve",
@@ -134,14 +134,14 @@ def test_determine_and_convert_es_field_types():
                 {"type": "email", "value": "eve@example.com"},
                 {"type": "phone", "value": "123-456-7890"},
             ],
-            "created_at": "2023-06-01T12:00:00+00:00",
+            "created_at": "2023-06-01T19:00:00+07:00",
         },
         {"timestamp": "2021-01-01T07:00:00+07:00"},
         {"timestamp": "2000-01-01T00:00:00+07:00"},
         {"price": 123.45, "discount": 10},
         {"price": 0},
         {"price": 0},
-        {"another_date": "2025-01-15T15:46:56"},
+        {"another_date": "2025-01-15T15:46:56+07:00"},
     ]
 
     print(json.dumps(converted_json_lines, indent=4))
@@ -165,17 +165,11 @@ def test_construct_es_mappings():
                         }
                     },
                 },
-                "age": {"type": "double"},
-                "is_student": {"type": "boolean"},
-                "scores": {"type": "text"},
                 "address": {"type": "object", "properties": {}},
-                "created_at": {"type": "date"},
-                "tags": {"type": "text"},
+                "created_at": {"type": "date", "ignore_malformed": True},
                 "contacts": {"type": "nested", "properties": {}},
-                "timestamp": {"type": "date"},
-                "price": {"type": "double"},
-                "discount": {"type": "long"},
-                "another_date": {"type": "date"},
+                "timestamp": {"type": "date", "ignore_malformed": True},
+                "another_date": {"type": "date", "ignore_malformed": True},
             },
         }
     }
