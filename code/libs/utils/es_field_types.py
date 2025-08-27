@@ -1,7 +1,10 @@
-from datetime import datetime, timezone, timedelta
+import json
+import logging
+
 from collections import defaultdict
 from dateutil import parser  # type: ignore
 from typing import Dict, List, Any
+from datetime import datetime, timezone, timedelta
 
 
 # Define your default timezone as UTC+7
@@ -75,8 +78,7 @@ def determine_es_field_types(
                     field_type_counts[full_field_name]["boolean"] += 1
                     continue
                 try:
-                    int_value = int(value)
-                    if is_valid_timestamp(int_value):
+                    if is_valid_timestamp(int(value)):
                         field_type_counts[full_field_name]["date"] += 1
                     elif len(value) > 13:
                         field_type_counts[full_field_name]["text"] += 1
@@ -333,5 +335,9 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     # Process each field and build nested structure
     for field, field_type in field_types.items():
         add_nested_field(es_mappings["mappings"]["properties"], field, field_type)
+
+    logging.info(
+        f"Constructed Elasticsearch mappings: {json.dumps(es_mappings, indent=4)}"
+    )
 
     return es_mappings
