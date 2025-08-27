@@ -24,11 +24,6 @@ services:
       - es
     ports:
       - "8000:8000"
-  insert_replica:
-    <<: *insert
-    container_name: insert_replica
-    ports:
-      - "8002:8000"
 
   ingest:
     build:
