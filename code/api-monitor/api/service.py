@@ -39,6 +39,8 @@ class APIMonitorService:
             self.config = yaml.safe_load(f)
 
         self.route_groups = self.config["routes"]
+        self.tokens = {}  # cache token per auth block
+        self.lock = Lock()
 
     def _auth_key(self, auth_conf):
         return f"{auth_conf['url']}|{auth_conf.get('username', '')}"
@@ -46,25 +48,31 @@ class APIMonitorService:
     def get_access_token(self, auth_conf):
         logger.info("Fetching access token for auth configuration: %s", auth_conf)
         key = self._auth_key(auth_conf)
-        if auth_conf.get("type") == "login":
-            logger.info("Authenticating with username/password at URL: %s", auth_conf["url"])
-            resp = requests.post(auth_conf["url"], json=auth_conf["payload"])
-        else:
-            logger.info("Authenticating with client credentials at URL: %s", auth_conf["url"])
-            resp = requests.post(auth_conf["url"], data={
-                "client_id": auth_conf["client_id"],
-                "client_secret": auth_conf["client_secret"],
-                "grant_type": "client_credentials"
-            })
+        with self.lock:
+            if key in self.tokens:
+                logger.info("Using cached token for key: %s", key)
+                return self.tokens[key]
 
-        resp.raise_for_status()
-        token_field = auth_conf.get("token_field", "access_token")
-        token = resp.json().get(token_field)
-        if not token:
-            logger.error("Token field '%s' not found in response", token_field)
-            raise ValueError(f"Token field '{token_field}' not found in response")
-        logger.info("Token fetched and cached for key: %s", key)
-        return token
+            if auth_conf.get("type") == "login":
+                logger.info("Authenticating with username/password at URL: %s", auth_conf["url"])
+                resp = requests.post(auth_conf["url"], json=auth_conf["payload"])
+            else:
+                logger.info("Authenticating with client credentials at URL: %s", auth_conf["url"])
+                resp = requests.post(auth_conf["url"], data={
+                    "client_id": auth_conf["client_id"],
+                    "client_secret": auth_conf["client_secret"],
+                    "grant_type": "client_credentials"
+                })
+
+            resp.raise_for_status()
+            token_field = auth_conf.get("token_field", "access_token")
+            token = resp.json().get(token_field)
+            if not token:
+                logger.error("Token field '%s' not found in response", token_field)
+                raise ValueError(f"Token field '{token_field}' not found in response")
+            self.tokens[key] = token
+            logger.info("Token fetched and cached for key: %s", key)
+            return token
 
     def call_api(self, group_name, auth_conf, url, method="GET", headers=None, data=None, params=None):
         logger.info("Calling API: %s with method: %s", url, method)
@@ -162,6 +170,15 @@ def scheduled_check():
     logger.info("Scheduled /check endpoint execution completed")
 
 scheduler.add_job(scheduled_check, IntervalTrigger(minutes=5), id="five_minute_check")
+
+# Update the job to clear cached tokens every 1 day
+def clear_cached_tokens():
+    logger.info("Clearing cached tokens")
+    with service.lock:
+        service.tokens.clear()
+    logger.info("Cached tokens cleared")
+
+scheduler.add_job(clear_cached_tokens, IntervalTrigger(days=1), id="clear_tokens")
 
 # Start the scheduler
 scheduler.start()
