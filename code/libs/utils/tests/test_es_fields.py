@@ -59,6 +59,7 @@ json_lines = [
     },
     {"price": ""},
     {"price": ""},
+    {"another_date": 1753894800000},
     {"another_date": "2025-01-15 15:46:56"},
 ]
 
@@ -141,6 +142,7 @@ def test_determine_and_convert_es_field_types():
         {"price": 123.45, "discount": 10},
         {"price": 0},
         {"price": 0},
+        {"another_date": "2025-07-31T00:00:00+07:00"},
         {"another_date": "2025-01-15T15:46:56+07:00"},
     ]
 
