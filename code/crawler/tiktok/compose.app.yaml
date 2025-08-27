@@ -30,7 +30,7 @@ services:
       TIKTOK_BIZ_REDIRECT_URI: https://api-app.vadata.vn/ingest/partner/tiktok/ad/callback
 
       INSERT_SERVICE_BASEURL: http://insert-app.internal.vadata.vn
-      CONNECTOR_CALLBACK_URL: https://app.vadata.vn/callback.html
+      CONNECTOR_CALLBACK_URL: https://client.vadata.vn/callback.html
 
   tiktok_shop_crawler:
     build:
@@ -58,5 +58,5 @@ services:
       TIKTOK_SHOP_APP_SECRET_FILE: /run/secrets/tiktok_shop_app_secret
       TIKTOK_SHOP_AUTH_BASEURL: https://auth.tiktok-shops.com
       TIKTOK_SHOP_AUTH_LINK: https://services.tiktokshop.com/open/authorize?service_id=7358037259238688517
-      TIKTOK_SHOP_AUTH_CALLBACK: https://app.vadata.vn/callback.html
+      TIKTOK_SHOP_AUTH_CALLBACK: https://client.vadata.vn/callback.html
       TIKTOK_SHOP_API_BASEURL: https://open-api.tiktokglobalshop.com

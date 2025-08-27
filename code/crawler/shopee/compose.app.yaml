@@ -1,6 +1,6 @@
 secrets:
   mysql_crawler_prod:
-    file: /var/secret/docker/mysql/mysql_crawler_prod
+    file: /var/secret/docker/mysql/crawler_prod
   shopee_partner_key:
     file: /var/secret/docker/shopee/partner_key
 
@@ -25,7 +25,7 @@ services:
 
       INSERT_SERVICE_BASEURL: http://insert-app.internal.vadata.vn
 
-      SHOPEE_SHOP_AUTH_CALLBACK: https://qa.vadata.vn/callback.html
+      SHOPEE_SHOP_AUTH_CALLBACK: https://client.vadata.vn/callback.html
       API_BASE_URL:  https://api-app.vadata.vn
 
       # Shopee Domain Configuration
