@@ -48,9 +48,6 @@ services:
     container_name: qe_replica
     ports:
       - "9676:9675"
-    depends_on:
-      qe:
-        condition: service_healthy
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.10.4

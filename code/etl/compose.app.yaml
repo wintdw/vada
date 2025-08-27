@@ -29,9 +29,6 @@ services:
     container_name: insert_replica
     ports:
       - "8002:8000"
-    depends_on:
-      insert:
-        condition: service_healthy
 
   ingest:
     build:
