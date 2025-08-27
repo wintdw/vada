@@ -1,21 +1,26 @@
 from fastapi import APIRouter  # type: ignore
 import logging
+from pydantic import BaseModel
 
 from model.index_mappings import index_mappings_data
 from handler.crawl_info import set_crawl_info
 
 router = APIRouter()
 
+# Define a request model for the POST body
+class TokenRequest(BaseModel):
+    api_key: str
+    vada_uid: str
+
 @router.get("/ingest/partner/pancake/pos/config")
 async def expose_config():
     return {"mappings": index_mappings_data["mappings"]}
 
 @router.post("/ingest/partner/pancake/pos/create", tags=["Connector"])
-async def post_token(api_key: str, vada_uid: str):
+async def post_token(request: TokenRequest):
     """
     Endpoint to save crawl info for Pancake POS.
-    :param api_key: The API token for Pancake POS.
-    :param vada_uid: The Vada user ID.
+    :param request: The request body containing api_key and vada_uid.
     :return: A dictionary with the status and message.
     """
 
@@ -23,14 +28,14 @@ async def post_token(api_key: str, vada_uid: str):
 
     try:
         # Generate unique index name
-        index_name = f"data_pancake_pos_{api_key[:5]}"
-        friendly_index_name = f"Pancake POS - {api_key[:5]}"
+        index_name = f"data_pancake_pos_{request.api_key[:5]}"
+        friendly_index_name = f"Pancake POS - {request.api_key[:5]}"
 
         # Insert/update crawl info in database
         saved_crawl_info = await set_crawl_info(
-            vada_uid=vada_uid,
+            vada_uid=request.vada_uid,
             index_name=index_name,
-            api_key=api_key,
+            api_key=request.api_key,
             crawl_interval=crawl_interval,
         )
         logging.info(saved_crawl_info)
