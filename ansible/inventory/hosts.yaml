@@ -8,8 +8,7 @@ all:
             mon.internal.vadata.vn:
             proxy01.internal.vadata.vn:
             proxy02.internal.vadata.vn:
-            bus00.internal.vadata.vn:
-            k8s-jump.internal.vadata.vn:
+            jump.internal.vadata.vn:
         backend:
           hosts:
             mysql00.internal.vadata.vn:
@@ -19,3 +18,6 @@ all:
             demo.internal.vadata.vn:
             prod.internal.vadata.vn:
             web.internal.vadata.vn:
+        data:
+          hosts:
+            data00.internal.vadata.vn:
