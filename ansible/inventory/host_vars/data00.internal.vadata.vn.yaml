@@ -4,3 +4,5 @@ host_users:
     pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwFtX2jBJh54M86tfYBR/P5wVKoGQizfJ1a4+YHQRIA phongdk
   - user: tuannm
     pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKmxTift9t/PpfGUsXK1y4RSQ4Js4GzXVHaGF7M+ZNK9 tuannm
+  - user: cxa
+    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGTWjrKLaNLAaoC8jMHfvJj13O/gZyoM3snA2rpiggxd cxa
