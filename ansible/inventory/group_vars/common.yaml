@@ -1,7 +1,0 @@
-users:
-  - user: dw
-    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC3ZCeEfuLThVmUHaqe5TRyGnlnAxj/lXLL3QlibfBxK dw
-    sudo: true
-  - user: ducnc
-    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFdCWEc2G9r+6g8VosYR+aTkMpjLWMBPTrca75s3eWBa ducnc
-    sudo: true
