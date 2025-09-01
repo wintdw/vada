@@ -91,13 +91,3 @@ class MappingsProcessor:
             agg_field,
             time_field,
         )
-
-    async def add_user(
-        self,
-        user_name: str,
-        user_email: str,
-        user_passwd: str,
-    ) -> Dict:
-
-        await self.auth_crm()
-        return await self.crm.add_user(user_name, user_email, user_passwd)
