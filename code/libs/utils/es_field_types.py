@@ -336,7 +336,7 @@ def construct_es_mappings(field_types: Dict[str, str]) -> Dict[str, Any]:
     for field, field_type in field_types.items():
         add_nested_field(es_mappings["mappings"]["properties"], field, field_type)
 
-    logging.info(
+    logging.debug(
         f"Constructed Elasticsearch mappings: {json.dumps(es_mappings, indent=4)}"
     )
 
